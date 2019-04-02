@@ -30,7 +30,7 @@ public class AuthorizationService {
 	public void processRequest(ContentCachingRequestWrapper request) {
 		//CustomHttpServletRequestWrapper requestWrapper = new CustomHttpServletRequestWrapper((HttpServletRequest) request);
 		if (!verifySecretHeader(request)) {
-			//throwUnauthorizedException("Secret header is not valid");
+			throwUnauthorizedException("Secret header is not valid");
 		}
 		String shopDomain = request.getHeader(shopDomainHeader);
 		if (!this.shopDomain.equals(shopDomain)) {
