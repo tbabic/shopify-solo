@@ -12,11 +12,14 @@ public class SoloReceipt {
 	
 	private final String email;
 	
+	private final String paymentType;
+	
 	private final boolean isTaxed;
 	
 	private final List<SoloProduct> products;
 	
 	private SoloReceipt(Builder builder) {
+		this.paymentType = builder.paymentType;
 		this.serviceType = builder.serviceType;
 		this.receiptType = builder.receiptType;
 		this.email = builder.email;
@@ -31,6 +34,10 @@ public class SoloReceipt {
 	
 	public String getReceiptType() {
 		return receiptType;
+	}
+	
+	public String getPaymentType() {
+		return paymentType;
 	}
 
 	public String getEmail() {
@@ -50,6 +57,7 @@ public class SoloReceipt {
 	public static class Builder {
 		private String serviceType;
 		private String receiptType;
+		private String paymentType;
 		private String email;
 		private boolean isTaxed;
 		private List<SoloProduct> products = new ArrayList<>();
@@ -60,6 +68,10 @@ public class SoloReceipt {
 		}
 		public Builder receiptType(String receiptType) {
 			this.receiptType = receiptType;
+			return this;
+		}
+		public Builder paymentType(String paymentType) {
+			this.paymentType = paymentType;
 			return this;
 		}
 		public Builder email(String email) {

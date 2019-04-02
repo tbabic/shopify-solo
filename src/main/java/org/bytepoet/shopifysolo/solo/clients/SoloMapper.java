@@ -21,6 +21,12 @@ class SoloMapper {
 		if (receipt.getReceiptType() != null) {
 			map.put("tip_racuna", receipt.getReceiptType());
 		}
+		if (receipt.getServiceType() != null) {
+			map.put("tip_usluge", receipt.getServiceType());
+		}
+		if (receipt.getPaymentType() != null) {
+			map.put("nacin_placanja", receipt.getPaymentType());
+		}
 		if (receipt.getEmail() != null) {
 			map.put("kupac_naziv", receipt.getEmail());
 		}		
@@ -51,7 +57,7 @@ class SoloMapper {
 			map.put("jed_mjera_"+n, product.getUnit());
 		}
 		if (product.getPrice() != null) {
-			map.put("cijena_"+n, product.getPrice());
+			map.put("cijena_"+n, convertPrice(product.getPrice()));
 		}
 		map.put("kolicina_"+n, Integer.toString(product.getQuantity()));
 		if (product.getDiscount() != null) {
@@ -61,6 +67,11 @@ class SoloMapper {
 			map.put("porez_stopa_"+n, product.getTaxRate());
 		}
 		
+	}
+	
+	
+	private String convertPrice(String decimalPointPrice) {
+		return decimalPointPrice.replaceFirst("\\.", ",");
 	}
 	
 }

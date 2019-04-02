@@ -9,6 +9,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpServerErrorException;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 
 import okhttp3.OkHttpClient;
@@ -56,7 +60,11 @@ public class SoloApiClient {
 			logger.debug("Calling url: " + url);
 			Response response = client.newCall(request).execute();
 			if (!response.isSuccessful()) {
-				response.body().string();
+				throw new HttpServerErrorException(HttpStatus.valueOf(response.code()), response.body().string());
+			}
+			ObjectMapper mapper = new ObjectMapper();
+			SoloResponse soloResponse = mapper.readValue(response.body().string(), SoloResponse.class);
+			if (soloResponse.status != 0) {
 				throw new HttpServerErrorException(HttpStatus.valueOf(response.code()), response.body().string());
 			}
 			
@@ -65,6 +73,17 @@ public class SoloApiClient {
 		}
 
 
+	}
+	
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	private static class SoloResponse {
+		@JsonProperty
+		private int status;
+		@JsonProperty
+		private String message;
+		
+		@JsonProperty
+		private Map<String, Object> racun;
 	}
 
 }

@@ -15,11 +15,15 @@ public class ShopifyToSoloMapper {
 	
 	@Value("${soloapi.receipt-type}")
 	private String receiptType;
+	
+	@Value("${soloapi.payment-type}")
+	private String paymentType;
 
 	public SoloReceipt map(ShopifyOrder order) {
 		SoloReceipt.Builder builder = new SoloReceipt.Builder();
 		builder.serviceType(serviceType);
 		builder.receiptType(receiptType);
+		builder.paymentType(paymentType);
 		builder.email(order.getEmail());
 		builder.isTaxed(order.isTaxesIncluded());
 		if (order.getLineItems() != null) {
