@@ -27,8 +27,13 @@ public class AuthorizationService {
 	@Value("${shopify.shop-domain.value}")
 	private String shopDomain = "www.kragrlica.com";
 	
+	@Value("${shopify.disable-verification}")
+	private boolean disableVerification = false;
+	
 	public void processRequest(ContentCachingRequestWrapper request) {
-		//CustomHttpServletRequestWrapper requestWrapper = new CustomHttpServletRequestWrapper((HttpServletRequest) request);
+		if (disableVerification) {
+			return;
+		}
 		if (!verifySecretHeader(request)) {
 			throwUnauthorizedException("Secret header is not valid");
 		}
