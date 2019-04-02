@@ -1,5 +1,8 @@
 package org.bytepoet.shopifysolo.shopify.models;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -53,12 +56,14 @@ public class ShopifyLineItem {
 	
 	@JsonIgnore
 	public String getDiscountPercent() {
+		DecimalFormat df = new DecimalFormat("#.####");
+		df.setRoundingMode(RoundingMode.HALF_UP);
+		
 		double pricePerItem = Double.parseDouble(getPricePerItem());
 		double totalPrice = pricePerItem*quantity;
 		double discountAmount = Double.parseDouble(totalDiscount);
-		double disocunt = 100* discountAmount / totalPrice;
-		Long discountLong = Math.round(disocunt);
-		return discountLong.toString();
+		double discount = 100* discountAmount / totalPrice;
+		return df.format(discount);
 	}
 
 	@Override

@@ -6,15 +6,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Joiner;
-
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -40,17 +39,10 @@ public class SoloApiClient {
 	public void createReceipt(SoloReceipt receipt) {
 		String endpoint = "/racun";
 		
-		Map<String, String> parameters = mapper.map(receipt);
-		parameters.put("token", apiToken);
+		MultiValueMap<String, String> parameters = mapper.map(receipt);
+		parameters.add("token", apiToken);
 		
-		String queryParams = Joiner.on("&").withKeyValueSeparator("=")
-	            .join(parameters);
-		
-		String url = new StringBuilder(rootUrl)
-				.append(endpoint)
-				.append("?")
-				.append(queryParams)
-				.toString();
+		String url = buildUri(rootUrl+endpoint,parameters);
 				
 		
 		OkHttpClient client = new OkHttpClient();
@@ -60,20 +52,28 @@ public class SoloApiClient {
 			logger.debug("Calling url: " + url);
 			Response response = client.newCall(request).execute();
 			if (!response.isSuccessful()) {
-				throw new HttpServerErrorException(HttpStatus.valueOf(response.code()), response.body().string());
+				throw new RuntimeException("statusCode: " + response.code() + " body: " + response.body().string());
 			}
 			ObjectMapper mapper = new ObjectMapper();
-			SoloResponse soloResponse = mapper.readValue(response.body().string(), SoloResponse.class);
+			String responseBody = response.body().string();
+			SoloResponse soloResponse = mapper.readValue(responseBody, SoloResponse.class);
 			if (soloResponse.status != 0) {
-				throw new HttpServerErrorException(HttpStatus.valueOf(response.code()), response.body().string());
+				throw new RuntimeException("statusCode: " + response.code() + " body: " + responseBody);
 			}
 			
 		} catch (Exception e) {
-			throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+			throw new RuntimeException( e.getMessage(), e);
 		}
 
-
 	}
+	
+	public String buildUri(String url, MultiValueMap<String, String> params) {
+	    UriComponents uriComponents = UriComponentsBuilder.newInstance()
+	            .queryParams(params).build();
+
+	   return url+uriComponents.toString();
+	}
+	
 	
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	private static class SoloResponse {
