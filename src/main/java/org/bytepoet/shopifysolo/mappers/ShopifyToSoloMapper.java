@@ -1,5 +1,6 @@
 package org.bytepoet.shopifysolo.mappers;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyLineItem;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.solo.models.SoloProduct;
@@ -38,12 +39,19 @@ public class ShopifyToSoloMapper {
 	
 	private SoloProduct map(ShopifyLineItem lineItem, String taxRate) {
 		return new SoloProduct.Builder()
-				.name(lineItem.getTitle() + "/" + lineItem.getVariantTitle())
+				.name(productName(lineItem))
 				.quantity(lineItem.getQuantity())
 				.price(lineItem.getPricePerItem())
 				.discount(lineItem.getDiscountPercent())
 				.taxRate(taxRate)
 				.build();
+	}
+	
+	private String productName(ShopifyLineItem lineItem) {
+		if (StringUtils.isBlank(lineItem.getVariantTitle())) {
+			return lineItem.getTitle();
+		}
+		return lineItem.getTitle() + "/ " + lineItem.getVariantTitle();
 	}
 	
 }
