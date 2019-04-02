@@ -1,0 +1,33 @@
+plugins {
+	id 'org.springframework.boot' version '2.1.3.RELEASE'
+	id 'java'
+}
+
+apply plugin: 'io.spring.dependency-management'
+
+group = 'org.bytepoet.shopifysolo'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter'
+	
+	// https://mvnrepository.com/artifact/com.google.guava/guava
+	compile group: 'com.google.guava', name: 'guava', version: '27.1-jre'
+	
+	
+	// https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
+	compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.8'
+	
+	// https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
+	compile group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.14.0'
+	
+	
+	
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
