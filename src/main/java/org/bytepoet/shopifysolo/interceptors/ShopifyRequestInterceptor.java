@@ -57,12 +57,12 @@ public class ShopifyRequestInterceptor implements HandlerInterceptor {
 		SecretKeySpec keySpec = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
 		alg.init(keySpec);
 		String data = CharStreams.toString(new InputStreamReader(request.getInputStream()));
-		logger.debug("data: " + data);
+		logger.trace("data: " + data);
 		byte [] encodedBytes = alg.doFinal(data.getBytes());
 		String encodedString = Base64.encodeBase64String(encodedBytes);
 		
 		String actualValue = request.getHeader(secretHeader);
-		logger.debug("secret received: " + actualValue);
+		logger.trace("secret received: " + actualValue);
 		if (encodedString.equals(actualValue)) {
 			return true;
 		}
