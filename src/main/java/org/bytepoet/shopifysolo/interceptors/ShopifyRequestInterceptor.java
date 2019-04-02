@@ -4,6 +4,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 public class ShopifyRequestInterceptor implements HandlerInterceptor {
@@ -23,13 +25,19 @@ public class ShopifyRequestInterceptor implements HandlerInterceptor {
 
 		String secret = request.getHeader(secretHeader);
 		if (!this.secret.equals(secret)) {
+			throwUnauthorizedException("Secret header is not valid");
 			return false;
 		}
 		String shopDomain = request.getHeader(shopDomainHeader);
 		if (!this.shopDomain.equals(shopDomain)) {
+			throwUnauthorizedException("Shop domain is not valid");
 			return false;
 		}
 		return true;
 		
+	}
+	
+	private void throwUnauthorizedException(String errorMessage) {
+		throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, errorMessage);
 	}
 }
