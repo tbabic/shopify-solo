@@ -1,5 +1,6 @@
 package org.bytepoet.shopifysolo.controllers;
 
+import org.bytepoet.shopifysolo.authorization.AuthorizationService;
 import org.bytepoet.shopifysolo.mappers.ShopifyToSoloMapper;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.solo.clients.SoloApiClient;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
 @RequestMapping("/orders")
 @RestController
@@ -23,9 +25,13 @@ public class OrderController {
 	@Autowired
 	private ShopifyToSoloMapper mapper;
 	
+	@Autowired
+	private AuthorizationService authorizationService;
+	
 	@PostMapping
-	public void orders(@RequestBody ShopifyOrder order) {
+	public void orders(@RequestBody ShopifyOrder order, ContentCachingRequestWrapper request) throws Exception {
 		logger.debug(order.toString());
+		authorizationService.processRequest(request);
 		soloApiClient.createReceipt(mapper.map(order));
 	}
 }
