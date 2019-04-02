@@ -2,6 +2,8 @@ package org.bytepoet.shopifysolo.solo.clients;
 
 import java.util.Map;
 import org.bytepoet.shopifysolo.solo.models.SoloReceipt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -11,12 +13,15 @@ import com.google.common.base.Joiner;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 
 
 @Service
 public class SoloApiClient {
+	
+	private static final Logger logger = LoggerFactory.getLogger(SoloApiClient.class);
 	
 	@Value("${solo-api-token}")
 	private String apiToken;
@@ -45,8 +50,10 @@ public class SoloApiClient {
 				
 		
 		OkHttpClient client = new OkHttpClient();
-		Request request = new Request.Builder().url(url).get().build();
+		RequestBody body = RequestBody.create(null, new byte[]{});
+		Request request = new Request.Builder().url(url).post(body).build();
 		try {
+			logger.debug("Calling url: " + url);
 			Response response = client.newCall(request).execute();
 			if (!response.isSuccessful()) {
 				response.body().string();
