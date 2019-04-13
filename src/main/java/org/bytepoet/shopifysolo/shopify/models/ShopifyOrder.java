@@ -35,7 +35,10 @@ public class ShopifyOrder {
 	
 	@JsonProperty("line_items")
 	private List<ShopifyLineItem> lineItems;
-
+	
+	public String getId() {
+		return id;
+	}
 
 	public String getEmail() {
 		return email;

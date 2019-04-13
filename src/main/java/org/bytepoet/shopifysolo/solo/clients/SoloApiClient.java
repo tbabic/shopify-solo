@@ -36,6 +36,7 @@ public class SoloApiClient {
 	private SoloMapper mapper;
 	
 	
+	
 	public void createReceipt(SoloReceipt receipt) {
 		String endpoint = "/racun";
 		
@@ -60,6 +61,7 @@ public class SoloApiClient {
 			if (soloResponse.status != 0) {
 				throw new RuntimeException("statusCode: " + response.code() + " body: " + responseBody);
 			}
+			return;
 			
 		} catch (Exception e) {
 			throw new RuntimeException( e.getMessage(), e);
@@ -67,7 +69,8 @@ public class SoloApiClient {
 
 	}
 	
-	public String buildUri(String url, MultiValueMap<String, String> params) {
+	
+	private String buildUri(String url, MultiValueMap<String, String> params) {
 	    UriComponents uriComponents = UriComponentsBuilder.newInstance()
 	            .queryParams(params).build();
 
@@ -82,8 +85,8 @@ public class SoloApiClient {
 		@JsonProperty
 		private String message;
 		
-		@JsonProperty
-		private Map<String, Object> racun;
+		@JsonProperty("racun")
+		private Map<String, Object> receipt;
 	}
 
 }

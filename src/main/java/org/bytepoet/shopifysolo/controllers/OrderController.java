@@ -2,6 +2,7 @@ package org.bytepoet.shopifysolo.controllers;
 
 import org.bytepoet.shopifysolo.authorization.AuthorizationService;
 import org.bytepoet.shopifysolo.mappers.ShopifyToSoloMapper;
+import org.bytepoet.shopifysolo.services.CachedFunctionalService;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.solo.clients.SoloApiClient;
 import org.slf4j.Logger;
@@ -29,9 +30,18 @@ public class OrderController {
 	private AuthorizationService authorizationService;
 	
 	@PostMapping
-	public void orders(@RequestBody ShopifyOrder order, ContentCachingRequestWrapper request) throws Exception {
+	public void postOrder(@RequestBody ShopifyOrder order, ContentCachingRequestWrapper request) throws Exception {
 		logger.debug(order.toString());
 		authorizationService.processRequest(request);
+		CachedFunctionalService.<ShopifyOrder>cacheAndExecute(
+				order, 
+				o -> o.getId(), 
+				o -> this.createReceipt(o));
+		
+	}
+	
+	
+	private void createReceipt(ShopifyOrder order) {
 		soloApiClient.createReceipt(mapper.map(order));
 	}
 }
