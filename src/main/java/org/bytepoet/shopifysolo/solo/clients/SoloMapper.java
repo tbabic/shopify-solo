@@ -30,7 +30,7 @@ class SoloMapper {
 			map.add("kupac_naziv", receipt.getEmail());
 		}		
 		map.add("prikazi_porez", receipt.isTaxed() ? "1" : "0");
-		
+		map.add("fiskalizacija", receipt.isFiscal() ? "1" : "0");
 		addToMap(map, receipt.getProducts());
 	}
 	

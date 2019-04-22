@@ -19,6 +19,9 @@ public class ShopifyToSoloMapper {
 	
 	@Value("${soloapi.payment-type}")
 	private String paymentType;
+	
+	@Value("${soloapi.fiscalization}")
+	private boolean fiscalization;
 
 	public SoloReceipt map(ShopifyOrder order) {
 		SoloReceipt.Builder builder = new SoloReceipt.Builder();

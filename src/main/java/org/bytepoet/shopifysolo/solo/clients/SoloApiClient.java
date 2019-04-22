@@ -37,7 +37,7 @@ public class SoloApiClient {
 	
 	
 	
-	public void createReceipt(SoloReceipt receipt) {
+	public String createReceipt(SoloReceipt receipt) {
 		String endpoint = "/racun";
 		
 		MultiValueMap<String, String> parameters = mapper.map(receipt);
@@ -61,7 +61,7 @@ public class SoloApiClient {
 			if (soloResponse.status != 0) {
 				throw new RuntimeException("statusCode: " + response.code() + " body: " + responseBody);
 			}
-			return;
+			return soloResponse.receipt.get("pdf").toString();
 			
 		} catch (Exception e) {
 			throw new RuntimeException( e.getMessage(), e);

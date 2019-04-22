@@ -16,6 +16,8 @@ public class SoloReceipt {
 	
 	private final boolean isTaxed;
 	
+	private final boolean isFiscal;
+	
 	private final List<SoloProduct> products;
 	
 	private SoloReceipt(Builder builder) {
@@ -24,6 +26,7 @@ public class SoloReceipt {
 		this.receiptType = builder.receiptType;
 		this.email = builder.email;
 		this.isTaxed = builder.isTaxed;
+		this.isFiscal = builder.isFiscal;
 		this.products = Collections.unmodifiableList(builder.products);
 		
 	}
@@ -44,10 +47,12 @@ public class SoloReceipt {
 		return email;
 	}
 	
-	
-
 	public boolean isTaxed() {
 		return isTaxed;
+	}
+	
+	public boolean isFiscal() {
+		return isFiscal;
 	}
 
 	public List<SoloProduct> getProducts() {
@@ -60,6 +65,7 @@ public class SoloReceipt {
 		private String paymentType;
 		private String email;
 		private boolean isTaxed;
+		private boolean isFiscal;
 		private List<SoloProduct> products = new ArrayList<>();
 
 		public Builder serviceType(String serviceType) {
@@ -81,6 +87,11 @@ public class SoloReceipt {
 		
 		public Builder isTaxed(boolean isTaxed) {
 			this.isTaxed = isTaxed;
+			return this;
+		}
+		
+		public Builder isFiscal(boolean isFiscal) {
+			this.isFiscal = isFiscal;
 			return this;
 		}
 		

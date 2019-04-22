@@ -30,6 +30,15 @@ dependencies {
 	// https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
 	compile group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.14.0'
 	
+	compile 'com.google.apis:google-api-services-gmail:v1-rev102-1.25.0'
+	
+	// https://mvnrepository.com/artifact/javax.mail/javax.mail-api
+	compile group: 'javax.mail', name: 'javax.mail-api', version: '1.6.2'
+	
+	// https://mvnrepository.com/artifact/com.sun.mail/javax.mail
+	compile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.2'
+	
+	
 	
 	
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
