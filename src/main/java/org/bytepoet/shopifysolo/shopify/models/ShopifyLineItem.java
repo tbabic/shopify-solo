@@ -2,6 +2,7 @@ package org.bytepoet.shopifysolo.shopify.models;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -27,6 +28,9 @@ public class ShopifyLineItem {
 	
 	@JsonProperty("price_set")
 	private ShopifyPriceSet priceSet;
+	
+	@JsonProperty("discount_allocations")
+	private List<ShopifyDiscountAllocation> discountAllocations;
 
 	public String getTitle() {
 		return title;
@@ -56,12 +60,15 @@ public class ShopifyLineItem {
 	
 	@JsonIgnore
 	public String getDiscountPercent() {
+		if (discountAllocations.isEmpty()) {
+			return "0.00";
+		}
 		DecimalFormat df = new DecimalFormat("#.####");
 		df.setRoundingMode(RoundingMode.HALF_UP);
 		
 		double pricePerItem = Double.parseDouble(getPricePerItem());
 		double totalPrice = pricePerItem*quantity;
-		double discountAmount = Double.parseDouble(totalDiscount);
+		double discountAmount = Double.parseDouble(discountAllocations.get(0).getAmount());
 		double discount = 100* discountAmount / totalPrice;
 		return df.format(discount);
 	}
