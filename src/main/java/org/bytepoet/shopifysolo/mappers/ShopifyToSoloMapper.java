@@ -39,13 +39,16 @@ public class ShopifyToSoloMapper {
 				builder.addProduct(map(lineItem, "0"));
 			}
 		}
-		builder.addProduct( new SoloProduct.Builder()
-				.name(shippingTitle)
-				.quantity(1)
-				.price(order.getShippingPrice())
-				.taxRate("0")
-				.discount("0")
-				.build());
+		if (!order.getShippingPrice().equals("0.00")) {
+			builder.addProduct( new SoloProduct.Builder()
+					.name(shippingTitle)
+					.quantity(1)
+					.price(order.getShippingPrice())
+					.taxRate("0")
+					.discount("0")
+					.build());
+		}
+		
 		
 		
 		return builder.build();
