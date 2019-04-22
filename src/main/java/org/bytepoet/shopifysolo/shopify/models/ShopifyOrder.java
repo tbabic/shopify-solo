@@ -36,6 +36,9 @@ public class ShopifyOrder {
 	@JsonProperty("line_items")
 	private List<ShopifyLineItem> lineItems;
 	
+	@JsonProperty("total_shipping_price_set")
+	private ShopifyPriceSet shipping;
+	
 	public String getId() {
 		return id;
 	}
@@ -55,6 +58,11 @@ public class ShopifyOrder {
 	public List<ShopifyLineItem> getLineItems() {
 		return lineItems;
 	}
+	
+	public String getShippingPrice() {
+		return shipping.getPrice();
+	}
+	
 	
 	@JsonIgnore
 	public String getTaxPercent() {
