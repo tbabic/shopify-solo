@@ -34,6 +34,7 @@ public class ShopifyToSoloMapper {
 		builder.paymentType(paymentType);
 		builder.email(order.getEmail());
 		builder.isTaxed(false);
+		builder.isFiscal(fiscalization);
 		if (order.getLineItems() != null) {
 			for (ShopifyLineItem lineItem : order.getLineItems()) {
 				builder.addProduct(map(lineItem, "0"));
