@@ -1,6 +1,8 @@
 package org.bytepoet.shopifysolo.solo.clients;
 
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.solo.models.SoloProduct;
 import org.bytepoet.shopifysolo.solo.models.SoloReceipt;
 import org.springframework.stereotype.Service;
@@ -28,7 +30,10 @@ class SoloMapper {
 		}
 		if (receipt.getEmail() != null) {
 			map.add("kupac_naziv", receipt.getEmail());
-		}		
+		}
+		if (StringUtils.isNotBlank(receipt.getNote())) {
+			map.add("napomene", receipt.getNote());
+		}	
 		map.add("prikazi_porez", receipt.isTaxed() ? "1" : "0");
 		map.add("fiskalizacija", receipt.isFiscal() ? "1" : "0");
 		addToMap(map, receipt.getProducts());

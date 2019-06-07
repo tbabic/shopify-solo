@@ -23,6 +23,9 @@ public class ShopifyToSoloMapper {
 	@Value("${soloapi.fiscalization}")
 	private boolean fiscalization;
 	
+	@Value("${soloapi.note}")
+	private String note;
+	
 	
 	@Value("${soloapi.shipping-title}")
 	private String shippingTitle;
@@ -35,6 +38,7 @@ public class ShopifyToSoloMapper {
 		builder.email(order.getEmail());
 		builder.isTaxed(false);
 		builder.isFiscal(fiscalization);
+		builder.note(note);
 		if (order.getLineItems() != null) {
 			for (ShopifyLineItem lineItem : order.getLineItems()) {
 				builder.addProduct(map(lineItem, "0"));

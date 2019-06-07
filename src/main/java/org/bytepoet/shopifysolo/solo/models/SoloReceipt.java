@@ -18,6 +18,8 @@ public class SoloReceipt {
 	
 	private final boolean isFiscal;
 	
+	private final String note;
+	
 	private final List<SoloProduct> products;
 	
 	private SoloReceipt(Builder builder) {
@@ -28,6 +30,7 @@ public class SoloReceipt {
 		this.isTaxed = builder.isTaxed;
 		this.isFiscal = builder.isFiscal;
 		this.products = Collections.unmodifiableList(builder.products);
+		this.note = builder.note;
 		
 	}
 	
@@ -58,15 +61,22 @@ public class SoloReceipt {
 	public List<SoloProduct> getProducts() {
 		return products;
 	}
+	
+	public String getNote() {
+		return note;
+	}
 
 	public static class Builder {
+		
 		private String serviceType;
 		private String receiptType;
 		private String paymentType;
 		private String email;
 		private boolean isTaxed;
 		private boolean isFiscal;
+		private String note;
 		private List<SoloProduct> products = new ArrayList<>();
+		
 
 		public Builder serviceType(String serviceType) {
 			this.serviceType = serviceType;
@@ -102,6 +112,11 @@ public class SoloReceipt {
 		
 		public Builder addProduct(SoloProduct.Builder productBuilder) {
 			products.add(productBuilder.build());
+			return this;
+		}
+		
+		public Builder note(String note) {
+			this.note = note;
 			return this;
 		}
 		
