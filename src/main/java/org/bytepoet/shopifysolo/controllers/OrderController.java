@@ -10,6 +10,7 @@ import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +35,9 @@ public class OrderController {
 	@Autowired
 	private SoloMaillingService soloMaillingService;
 	
+	@Value("${email.body}")
+	private String body;
+	
 	
 	
 	@PostMapping
@@ -51,7 +55,7 @@ public class OrderController {
 	private void createInvoice(ShopifyOrder order) {
 		SoloInvoice invoice = invoiceMapper.map(order);
 		String pdfUrl = soloApiClient.createInvoice(invoice);
-		soloMaillingService.sendEmailWithPdf(invoice, pdfUrl);
+		soloMaillingService.sendEmailWithPdf(invoice.getEmail(), pdfUrl, body);
 	}
 	
 }

@@ -10,6 +10,7 @@ import org.bytepoet.shopifysolo.solo.models.SoloTender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +35,9 @@ public class TenderController {
 	@Autowired
 	private SoloMaillingService soloMaillingService;
 	
+	@Value("${email.tender-body}")
+	private String body;
+	
 
 	
 	
@@ -51,7 +55,7 @@ public class TenderController {
 	private void createTender(ShopifyOrder order) {
 		SoloTender tender = tenderMapper.map(order);
 		String pdfUrl = soloApiClient.createTender(tender);
-		soloMaillingService.sendEmailWithPdf(tender, pdfUrl);
+		soloMaillingService.sendEmailWithPdf(tender.getEmail(), pdfUrl, body);
 	}
 
 	

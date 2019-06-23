@@ -25,14 +25,11 @@ public class SoloMaillingService {
 	@Value("${email.subject}")
 	private String subject;
 	
-	@Value("${email.body}")
-	private String body;
-	
 	@Value("${email.always-bcc:}")
 	private String alwaysBcc;
 	
 	
-	public void sendEmailWithPdf(SoloBillingObject invoice, String pdfUrl) {
+	public void sendEmailWithPdf(String email, String pdfUrl, String body) {
 		OkHttpClient client = new OkHttpClient();
 		Request request = new Request.Builder().url(pdfUrl).get().build();
 		try {
@@ -43,7 +40,7 @@ public class SoloMaillingService {
 					.mimeType("application/pdf")
 					.content(response.body().byteStream());		
 			
-			MailReceipient to = new MailReceipient(invoice.getEmail());
+			MailReceipient to = new MailReceipient(email);
 			if (StringUtils.isNotBlank(alwaysBcc)) {
 				to.bcc(alwaysBcc);
 			}
