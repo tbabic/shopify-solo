@@ -45,7 +45,7 @@ public class OrderControllerTests {
 	public void postOrder_OneValidOrder_Ok() throws Exception {
 		ShopifyOrder order = ShopifyOrderCreator.createOrder("1");
 		orderController.postOrder(order, null);
-		Mockito.verify(soloApiClient).createReceipt(Mockito.any());
+		Mockito.verify(soloApiClient).createInvoice(Mockito.any());
 	}
 	
 	@Test
@@ -54,7 +54,7 @@ public class OrderControllerTests {
 		ShopifyOrder order2 = ShopifyOrderCreator.createOrder("2");
 		orderController.postOrder(order1, null);
 		orderController.postOrder(order2, null);
-		Mockito.verify(soloApiClient, Mockito.times(2)).createReceipt(Mockito.any());
+		Mockito.verify(soloApiClient, Mockito.times(2)).createInvoice(Mockito.any());
 		
 	}
 	
@@ -64,7 +64,7 @@ public class OrderControllerTests {
 		ShopifyOrder order2 = ShopifyOrderCreator.createOrder("1");
 		orderController.postOrder(order1, null);
 		orderController.postOrder(order2, null);
-		Mockito.verify(soloApiClient, Mockito.times(1)).createReceipt(Mockito.any());
+		Mockito.verify(soloApiClient, Mockito.times(1)).createInvoice(Mockito.any());
 		
 	}
 	
@@ -78,7 +78,7 @@ public class OrderControllerTests {
 		CompletableFuture<Boolean> result2 = postOrderAsync(order2, null);
 		assertThat(result1.get(), equalTo(true));
 		assertThat(result2.get(), equalTo(true));
-		Mockito.verify(soloApiClient, Mockito.times(2)).createReceipt(Mockito.any());
+		Mockito.verify(soloApiClient, Mockito.times(2)).createInvoice(Mockito.any());
 		
 	}
 	
@@ -92,14 +92,14 @@ public class OrderControllerTests {
 		CompletableFuture<Boolean> result2 = postOrderAsync(order2, null);
 		assertThat(result1.get(), equalTo(true));
 		assertThat(result2.get(), equalTo(true));
-		Mockito.verify(soloApiClient, Mockito.times(1)).createReceipt(Mockito.any());
+		Mockito.verify(soloApiClient, Mockito.times(1)).createInvoice(Mockito.any());
 	}
 
 	private void delayCreateReceipt(long sleepTime) {
 		Mockito.doAnswer((Answer<?>) invocation -> {
 	        Thread.sleep(sleepTime);
 	        return null;
-	    }).when(soloApiClient).createReceipt(Mockito.any());
+	    }).when(soloApiClient).createInvoice(Mockito.any());
 	}
 	
 	

@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.solo.models.SoloProduct;
-import org.bytepoet.shopifysolo.solo.models.SoloReceipt;
+import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -12,13 +12,13 @@ import org.springframework.util.MultiValueMap;
 @Service
 class SoloMapper {
 
-	MultiValueMap<String, String> map(SoloReceipt receipt) {
+	MultiValueMap<String, String> map(SoloInvoice receipt) {
 		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
 		addToMap(map, receipt);
 		return map;
 	}
 
-	private void addToMap(MultiValueMap<String, String> map, SoloReceipt receipt) {
+	private void addToMap(MultiValueMap<String, String> map, SoloInvoice receipt) {
 		if (receipt.getReceiptType() != null) {
 			map.add("tip_racuna", receipt.getReceiptType());
 		}

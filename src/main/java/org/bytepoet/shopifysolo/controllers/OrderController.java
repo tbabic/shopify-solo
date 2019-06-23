@@ -12,7 +12,7 @@ import org.bytepoet.shopifysolo.services.MailService.MailAttachment;
 import org.bytepoet.shopifysolo.services.MailService.MailReceipient;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.solo.clients.SoloApiClient;
-import org.bytepoet.shopifysolo.solo.models.SoloReceipt;
+import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,9 +68,13 @@ public class OrderController {
 	
 	
 	private void createReceipt(ShopifyOrder order) {
-		SoloReceipt receipt = mapper.map(order);
-		String pdfUrl = soloApiClient.createReceipt(receipt);
-		
+		SoloInvoice receipt = mapper.map(order);
+		String pdfUrl = soloApiClient.createInvoice(receipt);
+		sendEmailWithPdf(receipt, pdfUrl);
+	}
+
+
+	private void sendEmailWithPdf(SoloInvoice receipt, String pdfUrl) {
 		OkHttpClient client = new OkHttpClient();
 		Request request = new Request.Builder().url(pdfUrl).get().build();
 		try {
@@ -81,21 +85,16 @@ public class OrderController {
 					.mimeType("application/pdf")
 					.content(response.body().byteStream());		
 			
-			sendReceiptEmail(receipt, attachment);
+			MailReceipient to = new MailReceipient(receipt.getEmail());
+			if (StringUtils.isNotBlank(alwaysBcc)) {
+				to.bcc(alwaysBcc);
+			}
+			mailService.sendEmail(to, subject, body, Arrays.asList(attachment));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		
-		
 	}
 	
-	private void sendReceiptEmail(SoloReceipt receipt, MailAttachment attachment) {
-		MailReceipient to = new MailReceipient(receipt.getEmail());
-		if (StringUtils.isNotBlank(alwaysBcc)) {
-			to.bcc(alwaysBcc);
-		}
-		mailService.sendEmail(to, subject, body, Arrays.asList(attachment));
-	}
 	
 	private String extractFileNameFromContentDisposition(String contentDispositionHeader) {
 		return contentDispositionHeader.replaceFirst("attachment;filename=", "").replace("\"", "");

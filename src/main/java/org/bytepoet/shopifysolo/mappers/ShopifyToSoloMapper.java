@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyLineItem;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.solo.models.SoloProduct;
-import org.bytepoet.shopifysolo.solo.models.SoloReceipt;
+import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -30,8 +30,8 @@ public class ShopifyToSoloMapper {
 	@Value("${soloapi.shipping-title}")
 	private String shippingTitle;
 	
-	public SoloReceipt map(ShopifyOrder order) {
-		SoloReceipt.Builder builder = new SoloReceipt.Builder();
+	public SoloInvoice map(ShopifyOrder order) {
+		SoloInvoice.Builder builder = new SoloInvoice.Builder();
 		builder.serviceType(serviceType);
 		builder.receiptType(receiptType);
 		builder.paymentType(paymentType);
