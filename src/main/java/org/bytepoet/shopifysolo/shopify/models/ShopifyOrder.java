@@ -12,6 +12,9 @@ public class ShopifyOrder {
 	@JsonProperty("id")
 	private String id;
 	
+	@JsonProperty("gateway")
+	private String gateway;
+	
 	@JsonProperty("email")
 	private String email;
 	
@@ -41,6 +44,10 @@ public class ShopifyOrder {
 	
 	public String getId() {
 		return id;
+	}
+	
+	public String getGateway() {
+		return gateway;
 	}
 
 	public String getEmail() {
@@ -78,13 +85,5 @@ public class ShopifyOrder {
 				+ subTotalPrice + ", totalTax=" + totalTax + ", taxesIncluded=" + taxesIncluded + ", currency="
 				+ currency + ", customer=" + customer + ", lineItems=" + lineItems + "]";
 	}
-	
-	
-	
-	
-	
-	
-	
-	
 	
 }

@@ -35,6 +35,9 @@ public class TenderController {
 	@Autowired
 	private SoloMaillingService soloMaillingService;
 	
+	@Value("${shopify.tender-gateway}")
+	private String tenderGateway;
+	
 	@Value("${email.tender-body}")
 	private String body;
 	
@@ -56,6 +59,9 @@ public class TenderController {
 	}
 	
 	private void createTender(ShopifyOrder order) {
+		if (!tenderGateway.equals(order.getGateway())) {
+			return;
+		}
 		SoloTender tender = tenderMapper.map(order);
 		String pdfUrl = soloApiClient.createTender(tender);
 		soloMaillingService.sendEmailWithPdf(tender.getEmail(), pdfUrl, subject, body);
