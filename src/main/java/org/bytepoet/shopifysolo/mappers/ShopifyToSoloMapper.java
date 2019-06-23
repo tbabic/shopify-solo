@@ -4,41 +4,43 @@ import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyLineItem;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.solo.models.SoloProduct;
-import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
+import org.bytepoet.shopifysolo.solo.models.SoloBillingObject;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
-@Service
-public class ShopifyToSoloMapper {
+
+public abstract class ShopifyToSoloMapper<T extends SoloBillingObject, B extends SoloBillingObject.Builder<T>> {
 	
 	@Value("${soloapi.service-type}")
 	private String serviceType;
 	
-	@Value("${soloapi.receipt-type}")
-	private String receiptType;
-	
 	@Value("${soloapi.payment-type}")
 	private String paymentType;
-	
-	@Value("${soloapi.fiscalization}")
-	private boolean fiscalization;
 	
 	@Value("${soloapi.note}")
 	private String note;
 	
-	
 	@Value("${soloapi.shipping-title}")
 	private String shippingTitle;
 	
-	public SoloInvoice map(ShopifyOrder order) {
-		SoloInvoice.Builder builder = new SoloInvoice.Builder();
+	public T map(ShopifyOrder order) {
+		B builder = getBuilder();
+		baseMappings(order, builder);
+		additionalMappings(order, builder);
+		return builder.build();
+		
+	}
+	
+	protected abstract B getBuilder();
+	
+	protected abstract void additionalMappings(ShopifyOrder order, B builder);
+	
+	private void baseMappings(ShopifyOrder order, B builder) {
 		builder.serviceType(serviceType);
-		builder.receiptType(receiptType);
 		builder.paymentType(paymentType);
 		builder.email(order.getEmail());
 		builder.isTaxed(false);
-		builder.isFiscal(fiscalization);
-		builder.note(note);
+		builder.note(this.note);
+		
 		if (order.getLineItems() != null) {
 			for (ShopifyLineItem lineItem : order.getLineItems()) {
 				builder.addProduct(map(lineItem, "0"));
@@ -53,10 +55,7 @@ public class ShopifyToSoloMapper {
 					.discount("0")
 					.build());
 		}
-		
-		
-		
-		return builder.build();
+
 
 	}
 	

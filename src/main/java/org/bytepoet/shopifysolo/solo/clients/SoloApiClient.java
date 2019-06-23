@@ -2,6 +2,7 @@ package org.bytepoet.shopifysolo.solo.clients;
 
 import java.util.Map;
 import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
+import org.bytepoet.shopifysolo.solo.models.SoloTender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,9 +47,9 @@ public class SoloApiClient {
 		return response.invoice.get("pdf").toString();
 	}
 	
-	public String createTender(SoloInvoice receipt) {
+	public String createTender(SoloTender tender) {
 		String endpoint = "/ponuda";
-		MultiValueMap<String, String> parameters = mapper.map(receipt);
+		MultiValueMap<String, String> parameters = mapper.map(tender);
 		parameters.add("token", apiToken);
 		SoloResponse response = executeRequest(endpoint, parameters);
 		return response.tender.get("pdf").toString();

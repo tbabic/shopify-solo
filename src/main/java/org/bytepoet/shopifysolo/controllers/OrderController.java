@@ -5,14 +5,17 @@ import java.util.Arrays;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.authorization.AuthorizationService;
-import org.bytepoet.shopifysolo.mappers.ShopifyToSoloMapper;
+import org.bytepoet.shopifysolo.mappers.ShopifyToSoloInvoiceMapper;
+import org.bytepoet.shopifysolo.mappers.ShopifyToSoloTenderMapper;
 import org.bytepoet.shopifysolo.services.CachedFunctionalService;
 import org.bytepoet.shopifysolo.services.MailService;
 import org.bytepoet.shopifysolo.services.MailService.MailAttachment;
 import org.bytepoet.shopifysolo.services.MailService.MailReceipient;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.solo.clients.SoloApiClient;
+import org.bytepoet.shopifysolo.solo.models.SoloBillingObject;
 import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
+import org.bytepoet.shopifysolo.solo.models.SoloTender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +40,10 @@ public class OrderController {
 	private SoloApiClient soloApiClient;
 	
 	@Autowired
-	private ShopifyToSoloMapper mapper;
+	private ShopifyToSoloInvoiceMapper invoiceMapper;
+	
+	@Autowired
+	private ShopifyToSoloTenderMapper tenderMapper;
 	
 	@Autowired
 	private AuthorizationService authorizationService;
@@ -62,19 +68,25 @@ public class OrderController {
 		CachedFunctionalService.<ShopifyOrder>cacheAndExecute(
 				order, 
 				o -> o.getId(), 
-				o -> this.createReceipt(o));
+				o -> this.createInvoice(o));
 		
 	}
 	
 	
-	private void createReceipt(ShopifyOrder order) {
-		SoloInvoice receipt = mapper.map(order);
-		String pdfUrl = soloApiClient.createInvoice(receipt);
-		sendEmailWithPdf(receipt, pdfUrl);
+	private void createInvoice(ShopifyOrder order) {
+		SoloInvoice invoice = invoiceMapper.map(order);
+		String pdfUrl = soloApiClient.createInvoice(invoice);
+		sendEmailWithPdf(invoice, pdfUrl);
+	}
+	
+	private void createTender(ShopifyOrder order) {
+		SoloTender tender = tenderMapper.map(order);
+		String pdfUrl = soloApiClient.createTender(tender);
+		sendEmailWithPdf(tender, pdfUrl);
 	}
 
 
-	private void sendEmailWithPdf(SoloInvoice receipt, String pdfUrl) {
+	private void sendEmailWithPdf(SoloBillingObject invoice, String pdfUrl) {
 		OkHttpClient client = new OkHttpClient();
 		Request request = new Request.Builder().url(pdfUrl).get().build();
 		try {
@@ -85,7 +97,7 @@ public class OrderController {
 					.mimeType("application/pdf")
 					.content(response.body().byteStream());		
 			
-			MailReceipient to = new MailReceipient(receipt.getEmail());
+			MailReceipient to = new MailReceipient(invoice.getEmail());
 			if (StringUtils.isNotBlank(alwaysBcc)) {
 				to.bcc(alwaysBcc);
 			}

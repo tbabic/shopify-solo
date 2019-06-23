@@ -4,11 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class AbstractSoloInvoice {
+public abstract class SoloBillingObject {
 
 	private final String serviceType;
-	
-	private final String receiptType;
 	
 	private final String email;
 	
@@ -20,10 +18,9 @@ public abstract class AbstractSoloInvoice {
 	
 	private final List<SoloProduct> products;
 	
-	protected AbstractSoloInvoice(Builder<? extends AbstractSoloInvoice> builder) {
+	protected SoloBillingObject(Builder<? extends SoloBillingObject> builder) {
 		this.paymentType = builder.paymentType;
 		this.serviceType = builder.serviceType;
-		this.receiptType = builder.receiptType;
 		this.email = builder.email;
 		this.isTaxed = builder.isTaxed;
 		this.products = Collections.unmodifiableList(builder.products);
@@ -33,10 +30,6 @@ public abstract class AbstractSoloInvoice {
 	
 	public String getServiceType() {
 		return serviceType;
-	}
-	
-	public String getReceiptType() {
-		return receiptType;
 	}
 	
 	public String getPaymentType() {
@@ -59,10 +52,9 @@ public abstract class AbstractSoloInvoice {
 		return note;
 	}
 
-	protected abstract static class Builder<T extends AbstractSoloInvoice> {
+	public abstract static class Builder<T extends SoloBillingObject> {
 		
 		private String serviceType;
-		private String receiptType;
 		private String paymentType;
 		private String email;
 		private boolean isTaxed;
@@ -74,14 +66,12 @@ public abstract class AbstractSoloInvoice {
 			this.serviceType = serviceType;
 			return this;
 		}
-		public Builder<T> receiptType(String receiptType) {
-			this.receiptType = receiptType;
-			return this;
-		}
+		
 		public Builder<T> paymentType(String paymentType) {
 			this.paymentType = paymentType;
 			return this;
 		}
+		
 		public Builder<T> email(String email) {
 			this.email = email;
 			return this;
