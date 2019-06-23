@@ -30,9 +30,6 @@ public class SoloApiClient {
 	@Value("${solo-api-token}")
 	private String apiToken;
 	
-	@Value("${solo-api-test-token}")
-	private String apiTestToken;
-	
 	@Value("${soloapi.rooturl}")
 	private String rootUrl;
 	
