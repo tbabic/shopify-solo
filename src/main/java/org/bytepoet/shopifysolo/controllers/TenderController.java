@@ -38,6 +38,9 @@ public class TenderController {
 	@Value("${email.tender-body}")
 	private String body;
 	
+	@Value("${email.tender-subject}")
+	private String subject;
+	
 
 	
 	
@@ -55,7 +58,7 @@ public class TenderController {
 	private void createTender(ShopifyOrder order) {
 		SoloTender tender = tenderMapper.map(order);
 		String pdfUrl = soloApiClient.createTender(tender);
-		soloMaillingService.sendEmailWithPdf(tender.getEmail(), pdfUrl, body);
+		soloMaillingService.sendEmailWithPdf(tender.getEmail(), pdfUrl, subject, body);
 	}
 
 	

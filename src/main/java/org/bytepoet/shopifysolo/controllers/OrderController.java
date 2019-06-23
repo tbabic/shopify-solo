@@ -35,6 +35,9 @@ public class OrderController {
 	@Autowired
 	private SoloMaillingService soloMaillingService;
 	
+	@Value("${email.subject}")
+	private String subject;
+	
 	@Value("${email.body}")
 	private String body;
 	
@@ -55,7 +58,7 @@ public class OrderController {
 	private void createInvoice(ShopifyOrder order) {
 		SoloInvoice invoice = invoiceMapper.map(order);
 		String pdfUrl = soloApiClient.createInvoice(invoice);
-		soloMaillingService.sendEmailWithPdf(invoice.getEmail(), pdfUrl, body);
+		soloMaillingService.sendEmailWithPdf(invoice.getEmail(), pdfUrl, subject, body);
 	}
 	
 }

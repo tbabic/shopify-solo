@@ -21,14 +21,11 @@ public class SoloMaillingService {
 	@Autowired
 	private MailService mailService;
 	
-	@Value("${email.subject}")
-	private String subject;
-	
 	@Value("${email.always-bcc:}")
 	private String alwaysBcc;
 	
 	
-	public void sendEmailWithPdf(String email, String pdfUrl, String body) {
+	public void sendEmailWithPdf(String email, String pdfUrl, String subject, String body) {
 		OkHttpClient client = new OkHttpClient();
 		Request request = new Request.Builder().url(pdfUrl).get().build();
 		try {
