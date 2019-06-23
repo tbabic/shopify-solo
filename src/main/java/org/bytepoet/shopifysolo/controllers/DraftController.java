@@ -47,7 +47,7 @@ public class DraftController {
 		authorizationService.processRequest(request);
 		CachedFunctionalService.<ShopifyOrder>cacheAndExecute(
 				order, 
-				o -> o.getId(), 
+				o -> "drafts/"+o.getId(), 
 				o -> this.createTender(o));
 		
 	}

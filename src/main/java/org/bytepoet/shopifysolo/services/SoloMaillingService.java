@@ -6,7 +6,6 @@ import java.util.Arrays;
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.services.MailService.MailAttachment;
 import org.bytepoet.shopifysolo.services.MailService.MailReceipient;
-import org.bytepoet.shopifysolo.solo.models.SoloBillingObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

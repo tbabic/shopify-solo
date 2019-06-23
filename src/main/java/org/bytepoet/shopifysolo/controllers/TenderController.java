@@ -47,7 +47,7 @@ public class TenderController {
 		authorizationService.processRequest(request);
 		CachedFunctionalService.<ShopifyOrder>cacheAndExecute(
 				order, 
-				o -> o.getId(), 
+				o -> "tenders/"+o.getId(), 
 				o -> this.createTender(o));
 		
 	}

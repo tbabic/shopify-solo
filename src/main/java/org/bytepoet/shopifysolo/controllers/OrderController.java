@@ -46,7 +46,7 @@ public class OrderController {
 		authorizationService.processRequest(request);
 		CachedFunctionalService.<ShopifyOrder>cacheAndExecute(
 				order, 
-				o -> o.getId(), 
+				o -> "orders/"+o.getId(), 
 				o -> this.createInvoice(o));
 		
 	}
