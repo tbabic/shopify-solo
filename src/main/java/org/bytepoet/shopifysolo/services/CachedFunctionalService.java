@@ -4,37 +4,41 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 
 
 public class CachedFunctionalService {
-
+	
+	private static final Logger logger = LoggerFactory.getLogger(CachedFunctionalService.class);
 	
 	private static Cache<MapKey, Object> cache = CacheBuilder.newBuilder()
 		    .maximumSize(10000)
 		    .expireAfterWrite(48, TimeUnit.HOURS)
 		    .build();
 	
+	private static Cache<MapKey, Executor> executors = CacheBuilder.newBuilder()
+		    .maximumSize(10000)
+		    .expireAfterWrite(48, TimeUnit.HOURS)
+		    .build();
 	
-	public static <OUT, IN> OUT cacheAndExecute(IN parameter, Function<IN,?> keyFunction, Function<IN,OUT> callback) {
+	public static <IN, OUT> void cacheAndExecute(IN parameter, Function<IN,?> keyFunction, Function<IN, OUT> callback) {
 		Object id = keyFunction.apply(parameter);
 		MapKey mapKey = new MapKey(parameter.getClass(), id);
-		if (putIfEmpty(mapKey, parameter)) {
-			return callback.apply(parameter);
-		}
-		return null;
-		
+		Executor executor = getExecutor(mapKey);
+		executor.execute(mapKey, parameter, callback);
+		return;
 	}
 	
 	public static <IN> void cacheAndExecute(IN parameter, Function<IN,?> keyFunction, Consumer<IN> callback) {
 		Object id = keyFunction.apply(parameter);
 		MapKey mapKey = new MapKey(parameter.getClass(), id);
-		if (putIfEmpty(mapKey, parameter)) {
-			callback.accept(parameter);
-		}
-		
+		Executor executor = getExecutor(mapKey);
+		executor.execute(mapKey, parameter, callback);
 		return;
 	}
 	
@@ -42,12 +46,57 @@ public class CachedFunctionalService {
 		cache.invalidateAll();
 	}
 	
-	private static synchronized boolean putIfEmpty(MapKey mapKey, Object parameter) {
-		if (cache.getIfPresent(mapKey) != null) {
-			return false;
+	private synchronized static Executor getExecutor(MapKey mapKey) {
+		logger.info("fetching executor");
+		Executor executor = executors.getIfPresent(mapKey);
+		if (executor == null) {
+			logger.info("new executor");
+			executor = new Executor();
+			executors.put(mapKey, executor);
 		}
-		cache.put(mapKey, parameter);
-		return true;
+		return executor;
+	}
+	
+	private static class Executor {
+		
+		private synchronized <IN, OUT> OUT execute(MapKey mapKey, IN parameter, Function<IN, OUT> callback) {
+			try {
+				logger.debug("starting execution");
+				if (cache.getIfPresent(mapKey) != null) {
+					logger.debug("skipping execution");
+					// already executed
+					return null;
+				}
+				logger.debug("processing execution");
+				OUT result = callback.apply(parameter);
+				cache.put(mapKey, parameter);
+				logger.debug("execution finished");
+				return result;
+			} catch (Exception e) {
+				throw e;
+			}
+			
+		}
+		
+		
+		private synchronized <IN, OUT> void execute(MapKey mapKey, IN parameter, Consumer<IN> callback) {
+			try {
+				logger.debug("starting execution");
+				if (cache.getIfPresent(mapKey) != null) {
+					logger.info("skipping execution");
+					// already executed
+					return;
+				}
+				logger.debug("processing execution");
+				callback.accept(parameter);
+				cache.put(mapKey, parameter);
+				logger.debug("execution finished");
+				return;
+			} catch (Exception e) {
+				throw e;
+			}
+			
+		}
 	}
 	
 	

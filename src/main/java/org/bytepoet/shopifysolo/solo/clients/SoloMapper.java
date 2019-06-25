@@ -4,7 +4,9 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.solo.models.SoloProduct;
-import org.bytepoet.shopifysolo.solo.models.SoloReceipt;
+import org.bytepoet.shopifysolo.solo.models.SoloTender;
+import org.bytepoet.shopifysolo.solo.models.SoloBillingObject;
+import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -12,31 +14,38 @@ import org.springframework.util.MultiValueMap;
 @Service
 class SoloMapper {
 
-	MultiValueMap<String, String> map(SoloReceipt receipt) {
+	MultiValueMap<String, String> map(SoloInvoice receipt) {
 		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
 		addToMap(map, receipt);
-		return map;
-	}
-
-	private void addToMap(MultiValueMap<String, String> map, SoloReceipt receipt) {
 		if (receipt.getReceiptType() != null) {
 			map.add("tip_racuna", receipt.getReceiptType());
 		}
-		if (receipt.getServiceType() != null) {
-			map.add("tip_usluge", receipt.getServiceType());
-		}
-		if (receipt.getPaymentType() != null) {
-			map.add("nacin_placanja", receipt.getPaymentType());
-		}
-		if (receipt.getEmail() != null) {
-			map.add("kupac_naziv", receipt.getEmail());
-		}
-		if (StringUtils.isNotBlank(receipt.getNote())) {
-			map.add("napomene", receipt.getNote());
-		}	
-		map.add("prikazi_porez", receipt.isTaxed() ? "1" : "0");
 		map.add("fiskalizacija", receipt.isFiscal() ? "1" : "0");
-		addToMap(map, receipt.getProducts());
+		return map;
+	}
+	
+	MultiValueMap<String, String> map(SoloTender tender) {
+		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+		addToMap(map, tender);
+		return map;
+	}
+
+	private void addToMap(MultiValueMap<String, String> map, SoloBillingObject billing) {
+		if (billing.getServiceType() != null) {
+			map.add("tip_usluge", billing.getServiceType());
+		}
+		if (billing.getPaymentType() != null) {
+			map.add("nacin_placanja", String.valueOf(billing.getPaymentType().getValue()));
+		}
+		if (billing.getEmail() != null) {
+			map.add("kupac_naziv", billing.getEmail());
+		}
+		if (StringUtils.isNotBlank(billing.getNote())) {
+			map.add("napomene", billing.getNote());
+		}	
+		map.add("prikazi_porez", billing.isTaxed() ? "1" : "0");
+		
+		addToMap(map, billing.getProducts());
 	}
 	
 	private void addToMap(MultiValueMap<String, String> map, List<SoloProduct> products) {

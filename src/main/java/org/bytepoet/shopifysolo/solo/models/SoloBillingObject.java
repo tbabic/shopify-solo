@@ -4,31 +4,25 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class SoloReceipt {
-	
+public abstract class SoloBillingObject {
+
 	private final String serviceType;
-	
-	private final String receiptType;
 	
 	private final String email;
 	
-	private final String paymentType;
+	private final SoloPaymentType paymentType;
 	
 	private final boolean isTaxed;
-	
-	private final boolean isFiscal;
 	
 	private final String note;
 	
 	private final List<SoloProduct> products;
 	
-	private SoloReceipt(Builder builder) {
+	protected SoloBillingObject(Builder<? extends SoloBillingObject> builder) {
 		this.paymentType = builder.paymentType;
 		this.serviceType = builder.serviceType;
-		this.receiptType = builder.receiptType;
 		this.email = builder.email;
 		this.isTaxed = builder.isTaxed;
-		this.isFiscal = builder.isFiscal;
 		this.products = Collections.unmodifiableList(builder.products);
 		this.note = builder.note;
 		
@@ -38,11 +32,7 @@ public class SoloReceipt {
 		return serviceType;
 	}
 	
-	public String getReceiptType() {
-		return receiptType;
-	}
-	
-	public String getPaymentType() {
+	public SoloPaymentType getPaymentType() {
 		return paymentType;
 	}
 
@@ -53,10 +43,6 @@ public class SoloReceipt {
 	public boolean isTaxed() {
 		return isTaxed;
 	}
-	
-	public boolean isFiscal() {
-		return isFiscal;
-	}
 
 	public List<SoloProduct> getProducts() {
 		return products;
@@ -66,69 +52,52 @@ public class SoloReceipt {
 		return note;
 	}
 
-	public static class Builder {
+	public abstract static class Builder<T extends SoloBillingObject> {
 		
 		private String serviceType;
-		private String receiptType;
-		private String paymentType;
+		private SoloPaymentType paymentType;
 		private String email;
 		private boolean isTaxed;
-		private boolean isFiscal;
 		private String note;
 		private List<SoloProduct> products = new ArrayList<>();
 		
 
-		public Builder serviceType(String serviceType) {
+		public Builder<T> serviceType(String serviceType) {
 			this.serviceType = serviceType;
 			return this;
 		}
-		public Builder receiptType(String receiptType) {
-			this.receiptType = receiptType;
-			return this;
-		}
-		public Builder paymentType(String paymentType) {
+		
+		public Builder<T> paymentType(SoloPaymentType paymentType) {
 			this.paymentType = paymentType;
 			return this;
 		}
-		public Builder email(String email) {
+		
+		public Builder<T> email(String email) {
 			this.email = email;
 			return this;
 		}
 		
-		public Builder isTaxed(boolean isTaxed) {
+		public Builder<T> isTaxed(boolean isTaxed) {
 			this.isTaxed = isTaxed;
 			return this;
 		}
 		
-		public Builder isFiscal(boolean isFiscal) {
-			this.isFiscal = isFiscal;
-			return this;
-		}
-		
-		public Builder addProduct(SoloProduct product) {
+		public Builder<T> addProduct(SoloProduct product) {
 			products.add(product);
 			return this;
 		}
 		
-		public Builder addProduct(SoloProduct.Builder productBuilder) {
+		public Builder<T> addProduct(SoloProduct.Builder productBuilder) {
 			products.add(productBuilder.build());
 			return this;
 		}
 		
-		public Builder note(String note) {
+		public Builder<T> note(String note) {
 			this.note = note;
 			return this;
 		}
 		
-		public SoloReceipt build() {
-			return new SoloReceipt(this);
-		}
+		public abstract T build();
 		
 	}
-	
-	
-	
-	
-	
-	
 }

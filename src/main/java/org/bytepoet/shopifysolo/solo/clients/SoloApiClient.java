@@ -1,7 +1,8 @@
 package org.bytepoet.shopifysolo.solo.clients;
 
 import java.util.Map;
-import org.bytepoet.shopifysolo.solo.models.SoloReceipt;
+import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
+import org.bytepoet.shopifysolo.solo.models.SoloTender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,17 +36,25 @@ public class SoloApiClient {
 	@Autowired
 	private SoloMapper mapper;
 	
-	
-	
-	public String createReceipt(SoloReceipt receipt) {
+	public String createInvoice(SoloInvoice receipt) {
 		String endpoint = "/racun";
-		
 		MultiValueMap<String, String> parameters = mapper.map(receipt);
 		parameters.add("token", apiToken);
+		SoloResponse response = executeRequest(endpoint, parameters);
+		return response.invoice.get("pdf").toString();
+	}
+	
+	public String createTender(SoloTender tender) {
+		String endpoint = "/ponuda";
+		MultiValueMap<String, String> parameters = mapper.map(tender);
+		parameters.add("token", apiToken);
+		SoloResponse response = executeRequest(endpoint, parameters);
+		return response.tender.get("pdf").toString();
+	}
+
+	private SoloResponse executeRequest(String endpoint, MultiValueMap<String, String> parameters) {
 		
 		String url = buildUri(rootUrl+endpoint,parameters);
-				
-		
 		OkHttpClient client = new OkHttpClient();
 		RequestBody body = RequestBody.create(null, new byte[]{});
 		Request request = new Request.Builder().url(url).post(body).build();
@@ -61,15 +70,14 @@ public class SoloApiClient {
 			if (soloResponse.status != 0) {
 				throw new RuntimeException("statusCode: " + response.code() + " body: " + responseBody);
 			}
-			return soloResponse.receipt.get("pdf").toString();
+			return soloResponse;
+
 			
 		} catch (Exception e) {
 			throw new RuntimeException( e.getMessage(), e);
 		}
-
 	}
-	
-	
+
 	private String buildUri(String url, MultiValueMap<String, String> params) {
 	    UriComponents uriComponents = UriComponentsBuilder.newInstance()
 	            .queryParams(params).build();
@@ -86,7 +94,10 @@ public class SoloApiClient {
 		private String message;
 		
 		@JsonProperty("racun")
-		private Map<String, Object> receipt;
+		private Map<String, Object> invoice;
+		
+		@JsonProperty("ponuda")
+		private Map<String, Object> tender;
 	}
 
 }

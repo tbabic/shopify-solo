@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.text.MessageFormat;
 
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ShopifyOrderCreator {
@@ -13,6 +15,7 @@ public class ShopifyOrderCreator {
 	public static ShopifyOrder createOrder(String id) {
 		String json = MessageFormat.format(SHOPIFY_ORDER_FORMAT, id);
 		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		try {
 			return mapper.readValue(json, ShopifyOrder.class);
 		} catch (IOException e) {
