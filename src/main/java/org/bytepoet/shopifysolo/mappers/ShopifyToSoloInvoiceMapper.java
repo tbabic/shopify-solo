@@ -2,6 +2,7 @@ package org.bytepoet.shopifysolo.mappers;
 
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,9 @@ public class ShopifyToSoloInvoiceMapper extends ShopifyToSoloMapper<SoloInvoice,
 	@Value("${soloapi.non-fiscal-note}")
 	private String nonFiscalNote;
 	
+	@Autowired
+	private PaymentTypeMapper paymentTypeMapper;
+	
 	
 	@Override
 	protected SoloInvoice.Builder getBuilder() {
@@ -30,13 +34,18 @@ public class ShopifyToSoloInvoiceMapper extends ShopifyToSoloMapper<SoloInvoice,
 	protected void additionalMappings(ShopifyOrder order,
 			org.bytepoet.shopifysolo.solo.models.SoloInvoice.Builder builder) {
 		builder.receiptType(receiptType);
-		builder.isFiscal(fiscalization);
+		boolean isFiscal = isFiscal(order);
+		builder.isFiscal(isFiscal);
 		String note = this.note;
-		if (!fiscalization) {
+		if (!isFiscal) {
 			note += "\n" + nonFiscalNote;
 		}
 		builder.note(note);
 		
+	}
+	
+	private boolean isFiscal(ShopifyOrder order) {
+		return fiscalization && paymentTypeMapper.getPaymentType(order).isFiscal();
 	}
 
 

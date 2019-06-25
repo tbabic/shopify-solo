@@ -35,7 +35,7 @@ class SoloMapper {
 			map.add("tip_usluge", billing.getServiceType());
 		}
 		if (billing.getPaymentType() != null) {
-			map.add("nacin_placanja", billing.getPaymentType());
+			map.add("nacin_placanja", String.valueOf(billing.getPaymentType().getValue()));
 		}
 		if (billing.getEmail() != null) {
 			map.add("kupac_naziv", billing.getEmail());

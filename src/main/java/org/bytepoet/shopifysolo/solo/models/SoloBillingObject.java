@@ -10,7 +10,7 @@ public abstract class SoloBillingObject {
 	
 	private final String email;
 	
-	private final String paymentType;
+	private final SoloPaymentType paymentType;
 	
 	private final boolean isTaxed;
 	
@@ -32,7 +32,7 @@ public abstract class SoloBillingObject {
 		return serviceType;
 	}
 	
-	public String getPaymentType() {
+	public SoloPaymentType getPaymentType() {
 		return paymentType;
 	}
 
@@ -55,7 +55,7 @@ public abstract class SoloBillingObject {
 	public abstract static class Builder<T extends SoloBillingObject> {
 		
 		private String serviceType;
-		private String paymentType;
+		private SoloPaymentType paymentType;
 		private String email;
 		private boolean isTaxed;
 		private String note;
@@ -67,7 +67,7 @@ public abstract class SoloBillingObject {
 			return this;
 		}
 		
-		public Builder<T> paymentType(String paymentType) {
+		public Builder<T> paymentType(SoloPaymentType paymentType) {
 			this.paymentType = paymentType;
 			return this;
 		}

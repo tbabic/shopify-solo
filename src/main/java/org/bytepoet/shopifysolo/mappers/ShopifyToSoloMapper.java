@@ -5,6 +5,7 @@ import org.bytepoet.shopifysolo.shopify.models.ShopifyLineItem;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.solo.models.SoloProduct;
 import org.bytepoet.shopifysolo.solo.models.SoloBillingObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 
@@ -13,14 +14,14 @@ public abstract class ShopifyToSoloMapper<T extends SoloBillingObject, B extends
 	@Value("${soloapi.service-type}")
 	private String serviceType;
 	
-	@Value("${soloapi.payment-type}")
-	private String paymentType;
-	
 	@Value("${soloapi.note}")
 	private String note;
 	
 	@Value("${soloapi.shipping-title}")
 	private String shippingTitle;
+	
+	@Autowired
+	private PaymentTypeMapper paymentTypeMapper;
 	
 	public T map(ShopifyOrder order) {
 		B builder = getBuilder();
@@ -36,7 +37,7 @@ public abstract class ShopifyToSoloMapper<T extends SoloBillingObject, B extends
 	
 	private void baseMappings(ShopifyOrder order, B builder) {
 		builder.serviceType(serviceType);
-		builder.paymentType(paymentType);
+		builder.paymentType(paymentTypeMapper.getPaymentType(order));
 		builder.email(order.getEmail());
 		builder.isTaxed(false);
 		builder.note(this.note);

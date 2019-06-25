@@ -35,8 +35,8 @@ public class TenderController {
 	@Autowired
 	private SoloMaillingService soloMaillingService;
 	
-	@Value("${shopify.tender-gateway}")
-	private String tenderGateway;
+	@Value("${shopify.bank-deposit-gateway}")
+	private String bankDepositGateway;
 	
 	@Value("${email.tender-body}")
 	private String body;
@@ -59,7 +59,7 @@ public class TenderController {
 	}
 	
 	private void createTender(ShopifyOrder order) {
-		if (!tenderGateway.equals(order.getGateway())) {
+		if (!bankDepositGateway.equals(order.getGateway())) {
 			return;
 		}
 		SoloTender tender = tenderMapper.map(order);
