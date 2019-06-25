@@ -64,7 +64,11 @@ public class TenderController {
 		}
 		SoloTender tender = tenderMapper.map(order);
 		String pdfUrl = soloApiClient.createTender(tender);
-		soloMaillingService.sendEmailWithPdf(tender.getEmail(), pdfUrl, subject, body);
+		try {
+			soloMaillingService.sendEmailWithPdf(tender.getEmail(), pdfUrl, subject, body);
+		} catch(Exception e) {
+			logger.error(e.getMessage(),e);
+		}
 	}
 
 	

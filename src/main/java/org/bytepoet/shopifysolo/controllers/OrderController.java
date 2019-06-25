@@ -58,7 +58,12 @@ public class OrderController {
 	private void createInvoice(ShopifyOrder order) {
 		SoloInvoice invoice = invoiceMapper.map(order);
 		String pdfUrl = soloApiClient.createInvoice(invoice);
-		soloMaillingService.sendEmailWithPdf(invoice.getEmail(), pdfUrl, subject, body);
+		try {
+			soloMaillingService.sendEmailWithPdf(invoice.getEmail(), pdfUrl, subject, body);
+		} catch(Exception e) {
+			logger.error(e.getMessage(),e);
+		}
+		
 	}
 	
 }
