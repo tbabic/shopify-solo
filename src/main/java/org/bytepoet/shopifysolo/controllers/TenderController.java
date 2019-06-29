@@ -44,6 +44,8 @@ public class TenderController {
 	@Value("${email.tender-subject}")
 	private String subject;
 	
+	@Value("${email.tender-bcc:}")
+	private String tenderBcc;
 
 	
 	
@@ -65,7 +67,7 @@ public class TenderController {
 		SoloTender tender = tenderMapper.map(order);
 		String pdfUrl = soloApiClient.createTender(tender);
 		try {
-			soloMaillingService.sendEmailWithPdf(tender.getEmail(), pdfUrl, subject, body);
+			soloMaillingService.sendEmailWithPdf(tender.getEmail(), tenderBcc, pdfUrl, subject, body);
 		} catch(Exception e) {
 			logger.error(e.getMessage(),e);
 		}

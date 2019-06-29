@@ -41,6 +41,8 @@ public class OrderController {
 	@Value("${email.body}")
 	private String body;
 	
+	@Value("${email.always-bcc:}")
+	private String alwaysBcc;
 	
 	
 	@PostMapping
@@ -59,7 +61,7 @@ public class OrderController {
 		SoloInvoice invoice = invoiceMapper.map(order);
 		String pdfUrl = soloApiClient.createInvoice(invoice);
 		try {
-			soloMaillingService.sendEmailWithPdf(invoice.getEmail(), pdfUrl, subject, body);
+			soloMaillingService.sendEmailWithPdf(invoice.getEmail(), alwaysBcc, pdfUrl, subject, body);
 		} catch(Exception e) {
 			logger.error(e.getMessage(),e);
 		}

@@ -7,7 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.services.MailService.MailAttachment;
 import org.bytepoet.shopifysolo.services.MailService.MailReceipient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import okhttp3.OkHttpClient;
@@ -21,11 +20,8 @@ public class SoloMaillingService {
 	@Autowired
 	private MailService mailService;
 	
-	@Value("${email.always-bcc:}")
-	private String alwaysBcc;
 	
-	
-	public void sendEmailWithPdf(String email, String pdfUrl, String subject, String body) {
+	public void sendEmailWithPdf(String email, String bcc, String pdfUrl, String subject, String body) {
 		OkHttpClient client = new OkHttpClient();
 		Request request = new Request.Builder().url(pdfUrl).get().build();
 		try {
@@ -37,8 +33,8 @@ public class SoloMaillingService {
 					.content(response.body().byteStream());		
 			
 			MailReceipient to = new MailReceipient(email);
-			if (StringUtils.isNotBlank(alwaysBcc)) {
-				to.bcc(alwaysBcc);
+			if (StringUtils.isNotBlank(bcc)) {
+				to.bcc(bcc);
 			}
 			mailService.sendEmail(to, subject, body, Arrays.asList(attachment));
 		} catch (IOException e) {
