@@ -27,6 +27,9 @@ class SoloMapper {
 	MultiValueMap<String, String> map(SoloTender tender) {
 		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
 		addToMap(map, tender);
+		if (StringUtils.isNotBlank(tender.getNumber())) {
+			map.add("broj_ponude", tender.getNumber());
+		}
 		return map;
 	}
 

@@ -12,6 +12,9 @@ public class ShopifyOrder {
 	@JsonProperty("id")
 	private String id;
 	
+	@JsonProperty("order_number")
+	private String number;
+	
 	@JsonProperty("gateway")
 	private String gateway;
 	
@@ -44,6 +47,10 @@ public class ShopifyOrder {
 	
 	public String getId() {
 		return id;
+	}
+	
+	public String getNumber() {
+		return number;
 	}
 	
 	public String getGateway() {

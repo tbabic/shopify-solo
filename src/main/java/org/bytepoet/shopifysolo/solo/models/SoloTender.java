@@ -1,21 +1,28 @@
 package org.bytepoet.shopifysolo.solo.models;
 
+public class SoloTender extends SoloBillingObject {
 
+	private String number;
 
-public class SoloTender extends SoloBillingObject{
-	
 	private SoloTender(Builder builder) {
 		super(builder);
+		this.number = builder.number;
+	}
+	
+	public String getNumber() {
+		return number;
 	}
 
+	public static class Builder extends SoloBillingObject.Builder<SoloTender>{
+		private String number;
 
-	public static class Builder extends SoloBillingObject.Builder<SoloTender> {
+		public Builder number(String number) {
+			this.number = number;
+			return this;
+		}
 
-		@Override
 		public SoloTender build() {
 			return new SoloTender(this);
 		}
-		
 	}
-	
 }
