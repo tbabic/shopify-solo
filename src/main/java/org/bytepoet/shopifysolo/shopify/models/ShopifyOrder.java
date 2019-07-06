@@ -45,6 +45,9 @@ public class ShopifyOrder {
 	@JsonProperty("total_shipping_price_set")
 	private ShopifyPriceSet shipping;
 	
+	@JsonProperty("shipping_address")
+	private ShopifyShippingAddres shippingAddress;
+	
 	public String getId() {
 		return id;
 	}
@@ -76,8 +79,7 @@ public class ShopifyOrder {
 	public String getShippingPrice() {
 		return shipping.getPrice();
 	}
-	
-	
+
 	@JsonIgnore
 	public String getTaxPercent() {
 		double totalPrice = Double.parseDouble(this.totalPrice);
