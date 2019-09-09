@@ -3,7 +3,11 @@ package org.bytepoet.shopifysolo.controllers;
 import java.util.Arrays;
 import java.util.List;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.bytepoet.shopifysolo.authorization.AuthorizationService;
+import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
+import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.mappers.ShopifyToSoloInvoiceMapper;
 import org.bytepoet.shopifysolo.services.CachedFunctionalService;
 import org.bytepoet.shopifysolo.services.SoloMaillingService;
@@ -38,6 +42,9 @@ public class OrderController {
 	@Autowired
 	private SoloMaillingService soloMaillingService;
 	
+	@Autowired
+	private OrderRepository orderRepository;
+	
 	@Value("${email.subject}")
 	private String subject;
 	
@@ -67,11 +74,24 @@ public class OrderController {
 	}
 	
 	
-	private void createInvoice(ShopifyOrder order) {
-		SoloInvoice invoice = invoiceMapper.map(order);
-		String pdfUrl = soloApiClient.createInvoice(invoice);
+	private void createInvoice(ShopifyOrder shopifyOrder) {
+		SoloInvoice invoice = invoiceMapper.map(shopifyOrder);
+		SoloInvoice createdInvoice = soloApiClient.createInvoice(invoice);
 		try {
-			soloMaillingService.sendEmailWithPdf(invoice.getEmail(), alwaysBcc, pdfUrl, subject, body);
+			//soloMaillingService.sendEmailWithPdf(invoice.getEmail(), alwaysBcc, pdfUrl, subject, body);
+			//TODO: 
+			
+			/*CompletableFuture.runAsync(() -> {
+				soloMaillingService.sendEmailWithPdf(invoice.getEmail(), alwaysBcc, createdInvoice.getPdfUrl(), subject, body);
+			});*/
+			CompletableFuture.runAsync(() -> {
+				PaymentOrder order = new PaymentOrder(shopifyOrder, null, createdInvoice, null);
+				orderRepository.save(order);
+				//soloMaillingService.sendEmailWithPdf(invoice.getEmail(), alwaysBcc, createdInvoice.getPdfUrl(), subject, body);
+				order.setReceiptSent(true);
+				orderRepository.save(order);
+			});
+
 		} catch(Exception e) {
 			logger.error(e.getMessage(),e);
 		}

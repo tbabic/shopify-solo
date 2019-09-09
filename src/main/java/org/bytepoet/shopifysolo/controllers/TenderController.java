@@ -75,9 +75,9 @@ public class TenderController {
 			return;
 		}
 		SoloTender tender = tenderMapper.map(order);
-		String pdfUrl = soloApiClient.createTender(tender);
+		SoloTender createdTender = soloApiClient.createTender(tender);
 		try {
-			soloMaillingService.sendEmailWithPdf(tender.getEmail(), tenderBcc, pdfUrl, subject, body);
+			soloMaillingService.sendEmailWithPdf(tender.getEmail(), tenderBcc, createdTender.getPdfUrl(), subject, body);
 		} catch(Exception e) {
 			logger.error(e.getMessage(),e);
 		}

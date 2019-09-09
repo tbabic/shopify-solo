@@ -1,7 +1,12 @@
 package org.bytepoet.shopifysolo.solo.clients;
 
+import java.util.List;
 import java.util.Map;
+
+import org.bytepoet.shopifysolo.solo.models.SoloBillingObject;
 import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
+import org.bytepoet.shopifysolo.solo.models.SoloPaymentType;
+import org.bytepoet.shopifysolo.solo.models.SoloProduct;
 import org.bytepoet.shopifysolo.solo.models.SoloTender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,21 +41,22 @@ public class SoloApiClient {
 	@Autowired
 	private SoloMapper mapper;
 	
-	public String createInvoice(SoloInvoice receipt) {
+	public SoloInvoice createInvoice(SoloInvoice receipt) {
 		String endpoint = "/racun";
 		MultiValueMap<String, String> parameters = mapper.map(receipt);
 		parameters.add("token", apiToken);
 		SoloResponse response = executeRequest(endpoint, parameters);
-		return response.invoice.get("pdf").toString();
+		return (SoloInvoice) response.getInvoice();
 	}
 	
-	public String createTender(SoloTender tender) {
+	public SoloTender createTender(SoloTender tender) {
 		String endpoint = "/ponuda";
 		MultiValueMap<String, String> parameters = mapper.map(tender);
 		parameters.add("token", apiToken);
 		SoloResponse response = executeRequest(endpoint, parameters);
-		return response.tender.get("pdf").toString();
+		return (SoloTender) response.getTender();
 	}
+	
 
 	private SoloResponse executeRequest(String endpoint, MultiValueMap<String, String> parameters) {
 		
@@ -98,6 +104,65 @@ public class SoloApiClient {
 		
 		@JsonProperty("ponuda")
 		private Map<String, Object> tender;
+		
+		
+		private SoloInvoice getInvoice() {
+			SoloInvoice.Builder builder = new SoloInvoice.Builder();
+			//invoice specific fields
+			builder.number(invoice.get("broj_racuna").toString());
+			if (invoice.get("zki") != null && invoice.get("jri") != null) {
+				builder.isFiscal(true);
+			} else {
+				builder.isFiscal(false);
+			}
+						
+			// common fields
+			map(invoice, builder);
+			return builder.build();
+		}
+		
+		private SoloTender getTender() {
+			SoloTender.Builder builder = new SoloTender.Builder();
+			//invoice specific fields
+			builder.number(tender.get("broj_ponude").toString());
+						
+			// common fields
+			map(invoice, builder);
+			return builder.build();
+		}
+
+
+		private void map(Map<String, Object> response, SoloBillingObject.Builder<?> builder) {
+			builder.id(response.get("id").toString());
+			builder.serviceType(response.get("tip_usluge").toString());
+			builder.pdfUrl(response.get("pdf").toString());
+			builder.email(response.get("kupac_naziv").toString());
+			builder.note(response.get("napomene").toString());
+			builder.paymentType(SoloPaymentType.getFromValue(
+					Integer.parseInt(response.get("nacin_placanja").toString())));
+			
+			@SuppressWarnings("unchecked")
+			List<Map<String, String>> taxes = (List<Map<String, String>>) response.get("porezi");
+			builder.isTaxed(false);
+			for(Map<String, String> taxing : taxes) {
+				if (Integer.parseInt(taxing.get("stopa")) > 0) {
+					builder.isTaxed(true);
+				} 
+			}
+			
+			
+			@SuppressWarnings("unchecked")
+			List<Map<String, String>> products = (List<Map<String, String>>) response.get("usluge");
+			for (Map<String, String> product : products) {
+				builder.addProduct(new SoloProduct.Builder()
+						.name(product.get("opis_usluge"))
+						.quantity(Integer.parseInt(product.get("kolicina")))
+						.price(product.get("cijena"))
+						.discount(product.get("popust"))
+						.taxRate(product.get("porez_stopa"))
+						.build());
+			}
+		}
 	}
 
 }

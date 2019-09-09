@@ -4,6 +4,8 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -46,6 +48,13 @@ public class ShopifyLineItem {
 
 	public String getTotalDiscount() {
 		return totalDiscount;
+	}
+	
+	public String getFullTitle() {
+		if (StringUtils.isBlank(variantTitle)) {
+			return title;
+		}
+		return title + "/" + variantTitle;
 	}
 	
 	@JsonIgnore

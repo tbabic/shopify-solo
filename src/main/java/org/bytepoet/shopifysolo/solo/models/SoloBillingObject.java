@@ -5,6 +5,12 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class SoloBillingObject {
+	
+	private final String id;
+	
+	private final String pdfUrl;
+	
+	private final String number;
 
 	private final String serviceType;
 	
@@ -19,13 +25,27 @@ public abstract class SoloBillingObject {
 	private final List<SoloProduct> products;
 	
 	protected SoloBillingObject(Builder<? extends SoloBillingObject> builder) {
+		this.id = builder.id;
+		this.pdfUrl = builder.pdfUrl;
+		this.number = builder.number;
 		this.paymentType = builder.paymentType;
 		this.serviceType = builder.serviceType;
 		this.email = builder.email;
 		this.isTaxed = builder.isTaxed;
 		this.products = Collections.unmodifiableList(builder.products);
 		this.note = builder.note;
-		
+	}
+	
+	public String getId() {
+		return id;
+	}
+	
+	public String getPdfUrl() {
+		return pdfUrl;
+	}
+	
+	public String getNumber() {
+		return number;
 	}
 	
 	public String getServiceType() {
@@ -53,7 +73,9 @@ public abstract class SoloBillingObject {
 	}
 
 	public abstract static class Builder<T extends SoloBillingObject> {
-		
+		private String id;
+		private String pdfUrl;
+		private String number;
 		private String serviceType;
 		private SoloPaymentType paymentType;
 		private String email;
@@ -61,6 +83,20 @@ public abstract class SoloBillingObject {
 		private String note;
 		private List<SoloProduct> products = new ArrayList<>();
 		
+		public Builder<T> id(String id) {
+			this.id = id;
+			return this;
+		}
+		
+		public Builder<T> pdfUrl(String pdfUrl) {
+			this.pdfUrl = pdfUrl;
+			return this;
+		}
+		
+		public Builder<T> number(String number) {
+			this.number = number;
+			return this;
+		}
 
 		public Builder<T> serviceType(String serviceType) {
 			this.serviceType = serviceType;

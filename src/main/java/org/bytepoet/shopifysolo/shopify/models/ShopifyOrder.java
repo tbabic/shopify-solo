@@ -1,7 +1,9 @@
 package org.bytepoet.shopifysolo.shopify.models;
 
+import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -46,7 +48,11 @@ public class ShopifyOrder {
 	private ShopifyPriceSet shipping;
 	
 	@JsonProperty("shipping_address")
-	private ShopifyShippingAddres shippingAddress;
+	private ShopifyShippingAddress shippingAddress;
+	
+	@JsonProperty("created_at")
+	@JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ssX")
+	private Date created;
 	
 	public String getId() {
 		return id;
@@ -76,8 +82,16 @@ public class ShopifyOrder {
 		return lineItems;
 	}
 	
+	public String getTotalPrice() {
+		return totalPrice;
+	}
+
 	public String getShippingPrice() {
 		return shipping.getPrice();
+	}
+	
+	public Date getCreated() {
+		return created;
 	}
 
 	@JsonIgnore
@@ -87,6 +101,11 @@ public class ShopifyOrder {
 		String taxPercent = Long.toString(Math.round(100 * totalTax / totalPrice));
 		return taxPercent;
 	}
+	
+	@JsonProperty
+	public String getFullAddress() {
+		return shippingAddress.getFullAddress();
+	}
 
 	@Override
 	public String toString() {
@@ -94,5 +113,5 @@ public class ShopifyOrder {
 				+ subTotalPrice + ", totalTax=" + totalTax + ", taxesIncluded=" + taxesIncluded + ", currency="
 				+ currency + ", customer=" + customer + ", lineItems=" + lineItems + "]";
 	}
-	
+
 }

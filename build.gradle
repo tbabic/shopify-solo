@@ -16,6 +16,8 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter'
+	compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    compile("com.h2database:h2")
 	
 	// https://mvnrepository.com/artifact/com.google.guava/guava
 	compile group: 'com.google.guava', name: 'guava', version: '27.1-jre'
@@ -38,6 +40,9 @@ dependencies {
 	compile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.2'
 	
 	compile group: 'com.itextpdf', name: 'itextpdf', version: '5.5.13.1'
+
+	compile 'com.google.api-client:google-api-client:1.23.0'
+	compile 'com.google.apis:google-api-services-sheets:v4-rev516-1.23.0'
 	
 	
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
