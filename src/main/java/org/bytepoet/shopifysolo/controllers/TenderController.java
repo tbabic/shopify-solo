@@ -1,5 +1,8 @@
 package org.bytepoet.shopifysolo.controllers;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.bytepoet.shopifysolo.authorization.AuthorizationService;
 import org.bytepoet.shopifysolo.mappers.ShopifyToSoloTenderMapper;
 import org.bytepoet.shopifysolo.services.CachedFunctionalService;
@@ -46,12 +49,19 @@ public class TenderController {
 	
 	@Value("${email.tender-bcc:}")
 	private String tenderBcc;
+	
+	@Value("${ignore.tender}")
+	private String ignoreTenders;
 
 	
 	
 	@PostMapping
 	public void postOrder(@RequestBody ShopifyOrder order, ContentCachingRequestWrapper request) throws Exception {
 		logger.debug(order.toString());
+		List<String> ignoreTenderList = Arrays.asList(ignoreTenders.split(","));
+		if (ignoreTenderList.contains(order.getNumber())) {
+			return;
+		}
 		authorizationService.processRequest(request);
 		CachedFunctionalService.<ShopifyOrder>cacheAndExecute(
 				order, 

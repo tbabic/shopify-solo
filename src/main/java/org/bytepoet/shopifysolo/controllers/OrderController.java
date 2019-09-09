@@ -1,5 +1,8 @@
 package org.bytepoet.shopifysolo.controllers;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.bytepoet.shopifysolo.authorization.AuthorizationService;
 import org.bytepoet.shopifysolo.mappers.ShopifyToSoloInvoiceMapper;
 import org.bytepoet.shopifysolo.services.CachedFunctionalService;
@@ -41,12 +44,19 @@ public class OrderController {
 	@Value("${email.body}")
 	private String body;
 	
+	@Value("${ignore.receipt}")
+	private String ignoreReceipts;
+	
 	@Value("${email.always-bcc:}")
 	private String alwaysBcc;
 	
 	
 	@PostMapping
 	public void postOrder(@RequestBody ShopifyOrder order, ContentCachingRequestWrapper request) throws Exception {
+		List<String> ignoreReceiptsList = Arrays.asList(ignoreReceipts.split(","));
+		if (ignoreReceiptsList.contains(order.getNumber())) {
+			return;
+		}
 		logger.debug(order.toString());
 		authorizationService.processRequest(request);
 		CachedFunctionalService.<ShopifyOrder>cacheAndExecute(
