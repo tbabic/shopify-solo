@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 
 @Component
-public class OrderRepository extends AbstractSheetsRepository<Order, Long>{
+public class OrderRepository extends AbstractSheetsRepository<Order>{
 
 	@Autowired
 	public OrderRepository(@Value("${google.sheets.orders.id}") String sheetId) {
@@ -19,11 +19,5 @@ public class OrderRepository extends AbstractSheetsRepository<Order, Long>{
 		return Order.class;
 	}
 
-	@Override
-	protected Long getId(Order data) {
-		return data.getId();
-	}
-
-	
 	
 }

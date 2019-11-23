@@ -1,15 +1,13 @@
 package org.bytepoet.shopifysolo.mappers;
 
-import java.text.MessageFormat;
-
-import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
+import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.solo.models.SoloTender;
 import org.bytepoet.shopifysolo.solo.models.SoloTender.Builder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-public class OrderToSoloTenderMapper extends ShopifyToSoloMapper<SoloTender, SoloTender.Builder>{
+public class OrderToSoloTenderMapper extends OrderToSoloMapper<SoloTender, SoloTender.Builder>{
 
 
 	@Value("${soloapi.tender_note_format}")
@@ -24,12 +22,8 @@ public class OrderToSoloTenderMapper extends ShopifyToSoloMapper<SoloTender, Sol
 	}
 
 	@Override
-	protected void additionalMappings(ShopifyOrder order, Builder builder) {
-		builder.note(note + "\n" + getNoteFormat(order));
-	}
-	
-	private String getNoteFormat(ShopifyOrder order) {
-		return MessageFormat.format(tenderNoteFormat, order.getNumber());
+	protected void additionalMappings(PaymentOrder order, Builder builder) {
+		
 	}
 	
 }

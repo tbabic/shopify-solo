@@ -16,8 +16,8 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter'
-	compile("org.springframework.boot:spring-boot-starter-data-jpa")
-    compile("com.h2database:h2")
+	compile("org.springframework.boot:spring-boot-starter-cache")
+	
 	
 	// https://mvnrepository.com/artifact/com.google.guava/guava
 	compile group: 'com.google.guava', name: 'guava', version: '27.1-jre'
@@ -44,6 +44,21 @@ dependencies {
 	compile 'com.google.api-client:google-api-client:1.23.0'
 	compile 'com.google.apis:google-api-services-sheets:v4-rev516-1.23.0'
 	
+	compile group: 'commons-io', name: 'commons-io', version: '2.6'
 	
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// https://mvnrepository.com/artifact/io.rest-assured/rest-assured
+	testCompile group: 'io.rest-assured', name: 'rest-assured', version: '4.1.1'
+	// https://mvnrepository.com/artifact/io.rest-assured/rest-assured-common
+	testCompile group: 'io.rest-assured', name: 'rest-assured-common', version: '4.1.1'
+	// https://mvnrepository.com/artifact/io.rest-assured/json-path
+	testCompile group: 'io.rest-assured', name: 'json-path', version: '4.1.1'
+	// https://mvnrepository.com/artifact/io.rest-assured/xml-path
+	testCompile group: 'io.rest-assured', name: 'xml-path', version: '4.1.1'
+
+	
+	// https://mvnrepository.com/artifact/commons-io/commons-io
+	
+	
+	
 }

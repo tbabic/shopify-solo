@@ -10,28 +10,29 @@ public class Sorting {
 		DESC
 	}
 	
-	public static <T> Comparator<T> orderByAsc(Function<T, Integer> function) {
+	public static <T> Comparator<T> orderByAsc(Function<T, Comparable<?>> function) {
 		return orderBy(function, Direction.ASC);
 	}
 	
-	public static <T> Comparator<T> orderByDesc(Function<T, Integer> function) {
+	public static <T> Comparator<T> orderByDesc(Function<T, Comparable<?>> function) {
 		return orderBy(function, Direction.DESC);
 	}
 	
 
-	public static <T> Comparator<T> orderBy(Function<T, Integer> function, Direction direction) {
+	public static <T> Comparator<T> orderBy(Function<T, Comparable<?>> function, Direction direction) {
 		Comparator<T> comparator = new Comparator<T>() {
 			
+			@SuppressWarnings("unchecked")
 			@Override
 			public int compare(T o1, T o2) {
-				int o1Int = function.apply(o1);
-				int o2Int = function.apply(o2);
-				
+				Comparable<Object> o1Comp = (Comparable<Object>) function.apply(o1);
+				Comparable<Object> o2Comp = (Comparable<Object>) function.apply(o2);
+	
 				if (direction == Direction.ASC) {
-					return o2Int - o1Int;
+					return o2Comp.compareTo(o1Comp);
 				}
 				else {
-					return o1Int -o2Int;
+					return o1Comp.compareTo(o2Comp);
 				}
 				
 			}

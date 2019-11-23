@@ -4,7 +4,9 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.function.Function;
 
-interface Repository<T, ID> {
+import org.bytepoet.shopifysolo.manager.database.DatabaseTable.IdAccessor;
+
+interface Repository<T extends IdAccessor> {
 
 	
 	public T save(T data);
@@ -17,6 +19,14 @@ interface Repository<T, ID> {
 	
 	public Collection<T> getAllWhere(Function<T, Boolean> criteria);
 	
-	public T getById(ID id);
+	public T getSingleWhere(Function<T, Boolean> criteria);
+	
+	public T getById(Long id);
+	
+	public void deleteAll();
+	
+	public void deleteById(Long id);
+	
+	public void deleteAllWhere(Function<T, Boolean> criteria);
 	
 }

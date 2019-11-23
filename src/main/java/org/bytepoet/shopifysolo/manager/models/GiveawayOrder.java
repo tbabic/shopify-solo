@@ -11,6 +11,17 @@ public class GiveawayOrder extends Order {
 	public GiveawayOrder() {
 		
 	}
+
+	@Override
+	public boolean matchShopifyOrder(String shopifyOrderId) {
+		return false;
+	}
+
+	@Override
+	public void validate() {
+		// TODO Auto-generated method stub
+		
+	}
 	
 	
 	

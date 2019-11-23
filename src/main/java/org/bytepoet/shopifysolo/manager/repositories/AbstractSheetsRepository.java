@@ -7,11 +7,12 @@ import java.util.function.Function;
 import javax.annotation.PostConstruct;
 
 import org.bytepoet.shopifysolo.manager.database.DatabaseTable;
+import org.bytepoet.shopifysolo.manager.database.DatabaseTable.IdAccessor;
 import org.bytepoet.shopifysolo.services.GoogleSheetsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
-public abstract class AbstractSheetsRepository<T, ID> implements Repository<T, ID>{
+public abstract class AbstractSheetsRepository<T extends IdAccessor> implements Repository<T>{
 	
 	private String sheetId;
 	
@@ -34,7 +35,7 @@ public abstract class AbstractSheetsRepository<T, ID> implements Repository<T, I
 	
 	@Override
 	public T save(T data) {
-		ID id = getId(data);
+		Long id = data.getId();
 		if (getById(id) != null) {
 			return table.update(data);
 		}
@@ -60,10 +61,22 @@ public abstract class AbstractSheetsRepository<T, ID> implements Repository<T, I
 	public List<T> getAllWhere(Function<T, Boolean> criteria) {
 		return table.fetchQuery(criteria, getDefaultComparator());
 	}
+	
+	@Override
+	public T getSingleWhere(Function<T, Boolean> criteria) {
+		List<T> results = getAllWhere(criteria);
+		if (results.size() > 1) {
+			throw new RuntimeException("More than one result for specified criteria.");
+		}
+		if (results.isEmpty()) {
+			return null;
+		}
+		return results.get(0);
+	}
 
 	@Override
-	public T getById(ID id) {
-		List<T> results = table.fetchQuery(data -> getId(data) == id , getDefaultComparator());
+	public T getById(Long id) {
+		List<T> results = table.fetchQuery(data -> data.getId().equals(id) , getDefaultComparator());
 		if (results.size() > 1) {
 			throw new RuntimeException("found multiple elements by id: " + id.toString());
 		}
@@ -73,10 +86,27 @@ public abstract class AbstractSheetsRepository<T, ID> implements Repository<T, I
 		return results.get(0);
 	}
 	
+	@Override
+	public void deleteAll() {
+		table.deleteQuery(entry -> true);
+		
+	}
+
+	@Override
+	public void deleteById(Long id) {
+		table.deleteQuery(data -> data.getId().equals(id));
+		
+	}
+
+	@Override
+	public void deleteAllWhere(Function<T, Boolean> criteria) {
+		table.deleteQuery(criteria);
+		
+	}
+	
 	
 	protected abstract Class<T> getType();
 	
-	protected abstract ID getId(T data);
 	
 	protected Comparator<T> getDefaultComparator() {
 	    return (a1, a2) -> 0;

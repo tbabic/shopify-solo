@@ -1,5 +1,7 @@
 package org.bytepoet.shopifysolo.mappers;
 
+import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
+import org.bytepoet.shopifysolo.manager.models.PaymentType;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.solo.models.SoloPaymentType;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +21,16 @@ public class PaymentTypeMapper {
 	
 	public SoloPaymentType getPaymentType(ShopifyOrder order) {
 		return getPaymentType(order.getGateway());
+	}
+	
+	public SoloPaymentType getPaymentType(PaymentOrder order) {
+		if(order.getPaymentType() == PaymentType.CREDIT_CARD) {
+			return SoloPaymentType.CREDIT_CARD;
+		}
+		if(order.getPaymentType() == PaymentType.BANK_TRANSACTION) {
+			return SoloPaymentType.BANK_DEPOSIT;
+		}
+		throw new IllegalArgumentException("Unsupported payment type: " + order.getPaymentType());
 	}
 	
 	public SoloPaymentType getPaymentType(String paymentGateway) {

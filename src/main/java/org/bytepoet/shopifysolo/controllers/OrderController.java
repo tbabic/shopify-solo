@@ -66,36 +66,25 @@ public class OrderController {
 		}
 		logger.debug(order.toString());
 		authorizationService.processRequest(request);
-		CachedFunctionalService.<ShopifyOrder>cacheAndExecute(
-				order, 
+		SoloInvoice createdInvoice = CachedFunctionalService.<ShopifyOrder,SoloInvoice>cacheAndExecute(
+				shopifyOrder, 
 				o -> "orders/"+o.getId(), 
-				o -> this.createInvoice(o));
+				o -> {
+					SoloInvoice invoice = invoiceMapper.map(shopifyOrder);
+					return soloApiClient.createInvoice(invoice);
+				});
+		CompletableFuture.runAsync(() -> {
+			if (orderRepository.getAllWhere( o -> o.matchShopifyOrder(shopifyOrder.getId())).size() > 0) {
+				return;
+			}
+			PaymentOrder order = new PaymentOrder(shopifyOrder, createdInvoice);
+			orderRepository.save(order);
+			soloMaillingService.sendEmailWithPdf(createdInvoice.getEmail(), alwaysBcc, createdInvoice.getPdfUrl(), subject, body);
+			order.setReceiptSent(true);
+			orderRepository.save(order);
+		});
 		
-	}
-	
-	
-	private void createInvoice(ShopifyOrder shopifyOrder) {
-		SoloInvoice invoice = invoiceMapper.map(shopifyOrder);
-		SoloInvoice createdInvoice = soloApiClient.createInvoice(invoice);
-		try {
-			//soloMaillingService.sendEmailWithPdf(invoice.getEmail(), alwaysBcc, pdfUrl, subject, body);
-			//TODO: 
-			
-			/*CompletableFuture.runAsync(() -> {
-				soloMaillingService.sendEmailWithPdf(invoice.getEmail(), alwaysBcc, createdInvoice.getPdfUrl(), subject, body);
-			});*/
-			CompletableFuture.runAsync(() -> {
-				PaymentOrder order = new PaymentOrder(shopifyOrder, null, createdInvoice, null);
-				orderRepository.save(order);
-				//soloMaillingService.sendEmailWithPdf(invoice.getEmail(), alwaysBcc, createdInvoice.getPdfUrl(), subject, body);
-				order.setReceiptSent(true);
-				orderRepository.save(order);
-			});
-
-		} catch(Exception e) {
-			logger.error(e.getMessage(),e);
-		}
-		
+		return;
 	}
 	
 }

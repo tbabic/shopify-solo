@@ -1,5 +1,7 @@
 package org.bytepoet.shopifysolo.mappers;
 
+import java.text.MessageFormat;
+
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyLineItem;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
@@ -19,6 +21,9 @@ public abstract class ShopifyToSoloMapper<T extends SoloBillingObject, B extends
 	
 	@Value("${soloapi.shipping-title}")
 	private String shippingTitle;
+	
+	@Value("${soloapi.webshop_note_format}")
+	private String webshopNoteFormat;
 	
 	@Autowired
 	private PaymentTypeMapper paymentTypeMapper;
@@ -40,7 +45,7 @@ public abstract class ShopifyToSoloMapper<T extends SoloBillingObject, B extends
 		builder.paymentType(paymentTypeMapper.getPaymentType(order));
 		builder.email(order.getEmail());
 		builder.isTaxed(false);
-		builder.note(this.note);
+		builder.note(getNote(order));
 		
 		if (order.getLineItems() != null) {
 			for (ShopifyLineItem lineItem : order.getLineItems()) {
@@ -76,6 +81,10 @@ public abstract class ShopifyToSoloMapper<T extends SoloBillingObject, B extends
 			return lineItem.getTitle();
 		}
 		return lineItem.getTitle() + "/ " + lineItem.getVariantTitle();
+	}
+	
+	private String getNote(ShopifyOrder order) {
+		return MessageFormat.format(webshopNoteFormat, order.getNumber());
 	}
 	
 }

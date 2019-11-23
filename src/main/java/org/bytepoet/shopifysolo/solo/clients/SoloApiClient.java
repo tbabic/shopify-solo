@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponents;
@@ -41,6 +42,7 @@ public class SoloApiClient {
 	@Autowired
 	private SoloMapper mapper;
 	
+	@Cacheable("soloInvoice")
 	public SoloInvoice createInvoice(SoloInvoice receipt) {
 		String endpoint = "/racun";
 		MultiValueMap<String, String> parameters = mapper.map(receipt);
@@ -49,6 +51,7 @@ public class SoloApiClient {
 		return (SoloInvoice) response.getInvoice();
 	}
 	
+	@Cacheable("soloTender")
 	public SoloTender createTender(SoloTender tender) {
 		String endpoint = "/ponuda";
 		MultiValueMap<String, String> parameters = mapper.map(tender);

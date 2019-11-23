@@ -1,7 +1,5 @@
 package org.bytepoet.shopifysolo.mappers;
 
-import java.text.MessageFormat;
-
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.solo.models.SoloTender;
 import org.bytepoet.shopifysolo.solo.models.SoloTender.Builder;
@@ -25,11 +23,6 @@ public class ShopifyToSoloTenderMapper extends ShopifyToSoloMapper<SoloTender, S
 
 	@Override
 	protected void additionalMappings(ShopifyOrder order, Builder builder) {
-		builder.note(note + "\n" + getNoteFormat(order));
-	}
-	
-	private String getNoteFormat(ShopifyOrder order) {
-		return MessageFormat.format(tenderNoteFormat, order.getNumber());
 	}
 	
 }

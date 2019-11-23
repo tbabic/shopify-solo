@@ -22,8 +22,7 @@ public class ShopifyToSoloInvoiceMapper extends ShopifyToSoloMapper<SoloInvoice,
 	private String nonFiscalNote;
 	
 	@Autowired
-	private PaymentTypeMapper paymentTypeMapper;
-	
+	private PaymentTypeMapper paymentTypeMapper;	
 	
 	@Override
 	protected SoloInvoice.Builder getBuilder() {
@@ -38,7 +37,7 @@ public class ShopifyToSoloInvoiceMapper extends ShopifyToSoloMapper<SoloInvoice,
 		builder.isFiscal(isFiscal);
 		String note = this.note;
 		if (!isFiscal) {
-			note += "\n" + nonFiscalNote;
+			note = nonFiscalNote + "\n" + note;
 		}
 		builder.note(note);
 		

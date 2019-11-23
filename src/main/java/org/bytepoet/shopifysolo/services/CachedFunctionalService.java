@@ -26,12 +26,12 @@ public class CachedFunctionalService {
 		    .expireAfterWrite(48, TimeUnit.HOURS)
 		    .build();
 	
-	public static <IN, OUT> void cacheAndExecute(IN parameter, Function<IN,?> keyFunction, Function<IN, OUT> callback) {
+	public static <IN, OUT> OUT cacheAndExecute(IN parameter, Function<IN,?> keyFunction, Function<IN, OUT> callback) {
 		Object id = keyFunction.apply(parameter);
 		MapKey mapKey = new MapKey(parameter.getClass(), id);
 		Executor executor = getExecutor(mapKey);
-		executor.execute(mapKey, parameter, callback);
-		return;
+		OUT result = executor.execute(mapKey, parameter, callback);
+		return result;
 	}
 	
 	public static <IN> void cacheAndExecute(IN parameter, Function<IN,?> keyFunction, Consumer<IN> callback) {
@@ -59,17 +59,19 @@ public class CachedFunctionalService {
 	
 	private static class Executor {
 		
+		@SuppressWarnings("unchecked")
 		private synchronized <IN, OUT> OUT execute(MapKey mapKey, IN parameter, Function<IN, OUT> callback) {
 			try {
 				logger.debug("starting execution");
-				if (cache.getIfPresent(mapKey) != null) {
+				Object cached = cache.getIfPresent(mapKey);
+				if (cached != null) {
 					logger.debug("skipping execution");
 					// already executed
-					return null;
+					return (OUT) cached;
 				}
 				logger.debug("processing execution");
 				OUT result = callback.apply(parameter);
-				cache.put(mapKey, parameter);
+				cache.put(mapKey, result);
 				logger.debug("execution finished");
 				return result;
 			} catch (Exception e) {

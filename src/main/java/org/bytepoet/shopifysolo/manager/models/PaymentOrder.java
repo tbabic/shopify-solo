@@ -11,24 +11,25 @@ import org.bytepoet.shopifysolo.solo.models.SoloTender;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PaymentOrder extends Order {
 	
 	private static final int WAITING_LIST_PERIOD = 7;
 	
-	@JsonProperty
+	@JsonProperty(access = Access.READ_ONLY)
 	private String tenderId;
-	@JsonProperty
+	@JsonProperty(access = Access.READ_ONLY)
 	private String invoiceId;
-	@JsonProperty
+	@JsonProperty(access = Access.READ_ONLY)
 	private String shopifyOrderId;
 	
-	@JsonProperty
+	@JsonProperty(access = Access.READ_ONLY)
 	private String tenderNumber;
-	@JsonProperty
+	@JsonProperty(access = Access.READ_ONLY)
 	private String invoiceNumber;
-	@JsonProperty
+	@JsonProperty(access = Access.READ_ONLY)
 	private String shopifyOrderNumber;
 	
 	
@@ -37,15 +38,9 @@ public class PaymentOrder extends Order {
 	
 	@JsonProperty
 	private PaymentType paymentType;
-	
-	//TODO: extract to base class
-	//TODO: dates
 
 	@JsonProperty
 	private Date paymentDate;
-	
-	@JsonProperty
-	private Date sendingDate;
 	
 	//TODO: currency
 	@JsonProperty
@@ -54,67 +49,69 @@ public class PaymentOrder extends Order {
 	@JsonProperty
 	private String note;
 	
-	@JsonProperty
+	@JsonProperty(access = Access.READ_ONLY)
 	private boolean isPaid;
 	
 	
 	@JsonProperty
 	private boolean isReceiptSent;
 	
-	@JsonProperty
-	private boolean isFulfilled;
+	
 	
 	protected PaymentOrder() {
 		super();
 	};
 	
-	public PaymentOrder(ShopifyOrder shopifyOrder, SoloTender soloTender, SoloInvoice soloInvoice, String shippingAddress) {
-		if (soloTender == null && soloInvoice == null) {
-			throw new RuntimeException("both tender and invoice can not be null");
+	public PaymentOrder(ShopifyOrder shopifyOrder, SoloInvoice soloInvoice) {
+		if (shopifyOrder == null || soloInvoice == null) {
+			throw new RuntimeException("Shopify order and solo invoice can not be null");
 		}
 		this.creationDate = new Date();
 		
-		if (shopifyOrder != null) {
-			this.shopifyOrderId = shopifyOrder.getId();
-			this.shopifyOrderNumber = shopifyOrder.getNumber();
-			this.shippingAddress = shopifyOrder.getFullAddress();
-			this.email = shopifyOrder.getEmail();
-			this.creationDate = shopifyOrder.getCreated();
+		this.shopifyOrderId = shopifyOrder.getId();
+		this.shopifyOrderNumber = shopifyOrder.getNumber();
+		this.shippingAddress = shopifyOrder.getFullAddress();
+		this.email = shopifyOrder.getEmail();
+		this.creationDate = shopifyOrder.getCreated();
+
+		updateFromSoloInvoice(soloInvoice, new Date());
+	}
+	
+	public PaymentOrder(ShopifyOrder shopifyOrder, SoloTender soloTender) {
+		if (shopifyOrder == null || soloTender == null) {
+			throw new RuntimeException("Shopify order and solo tender can not be null");
 		}
-		if (shippingAddress != null) {
-			this.shippingAddress = shippingAddress;
-		}
-		if (this.shippingAddress == null) {
-			throw new RuntimeException("shipping address must not be empty, provide it directly or through shopify order");
-		}
+		this.creationDate = new Date();
 		
-		if (soloTender != null) {
-			updateFromSoloTender(soloTender);
-		}
-		
-		if (soloInvoice != null) {
-			updateFromSoloInvoice(soloInvoice);
-		}
-		
+		this.shopifyOrderId = shopifyOrder.getId();
+		this.shopifyOrderNumber = shopifyOrder.getNumber();
+		this.shippingAddress = shopifyOrder.getFullAddress();
+		this.email = shopifyOrder.getEmail();
+		this.creationDate = shopifyOrder.getCreated();
+
+		updateFromSoloTender(soloTender);
 	}
 
-	public void updateFromSoloTender(SoloTender soloTender) {
-		this.tenderId = soloTender.getId();
-		this.tenderNumber = soloTender.getNumber();
-		updateFromSoloBillingObject(soloTender);
-	}
-
-	public void updateFromSoloInvoice(SoloInvoice soloInvoice) {
+	public void updateFromSoloInvoice(SoloInvoice soloInvoice, Date paymentDate) {
 		this.invoiceId = soloInvoice.getId();
 		this.invoiceNumber = soloInvoice.getNumber();
-		this.paymentDate = new Date();
+		if (paymentDate == null) {
+			paymentDate = new Date();
+		}
 		this.isPaid = true;
+		this.paymentDate = paymentDate;
 		if (this.sendingDate != null) {
 			Calendar calendar = Calendar.getInstance();
 			calendar.add(Calendar.DATE, WAITING_LIST_PERIOD);
 			this.sendingDate = calendar.getTime();
 		}
 		updateFromSoloBillingObject(soloInvoice);
+	}
+	
+	private void updateFromSoloTender(SoloTender soloTender) {
+		this.tenderId = soloTender.getId();
+		this.tenderNumber = soloTender.getNumber();
+		updateFromSoloBillingObject(soloTender);
 	}
 	
 	private void updateFromSoloBillingObject(SoloBillingObject soloBillingObject) {
@@ -127,5 +124,41 @@ public class PaymentOrder extends Order {
 		this.isReceiptSent = isReceiptSent;
 	}
 
+	@Override
+	public boolean matchShopifyOrder(String shopifyOrderId) {
+		return shopifyOrderId.equals(this.shopifyOrderId);
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public PaymentType getPaymentType() {
+		return paymentType;
+	}
+
+	public Date getPaymentDate() {
+		return paymentDate;
+	}
 	
+	public String getCurrency() {
+		return currency;
+	}
+
+	public String getNote() {
+		return note;
+	}
+
+	public boolean isPaid() {
+		return isPaid;
+	}
+	
+	@Override
+	public void validate() {
+		if (!isPaid && paymentDate != null) {
+			throw new RuntimeException("Order is not yet paid");
+		}
+	}
+	
+
 }

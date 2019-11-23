@@ -118,6 +118,11 @@ public abstract class SoloBillingObject {
 			return this;
 		}
 		
+		public Builder<T> products(List<SoloProduct> products) {
+			this.products = products;
+			return this;
+		}
+		
 		public Builder<T> addProduct(SoloProduct product) {
 			products.add(product);
 			return this;

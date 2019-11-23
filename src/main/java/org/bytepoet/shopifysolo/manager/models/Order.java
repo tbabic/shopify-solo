@@ -3,7 +3,10 @@ package org.bytepoet.shopifysolo.manager.models;
 import java.util.Date;
 import java.util.List;
 
+import org.bytepoet.shopifysolo.manager.database.DatabaseTable.IdAccessor;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -16,26 +19,30 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
   @Type(value = GiveawayOrder.class, name = "GIVEAWAY"), 
   @Type(value = PaymentOrder.class, name = "PAYMENT") 
 })
-public abstract class Order {
+public abstract class Order extends IdAccessor {
 	
 	
-	@JsonProperty
+	@JsonProperty(access = Access.READ_ONLY)
 	private Long id;
-	
 	
 	@JsonProperty
 	protected String shippingAddress;
 	
 	@JsonProperty
-	protected List<Item> items;
-	
+	protected List<Item> items;	
 	
 	//TODO: dates
-	@JsonProperty
+	@JsonProperty(access = Access.READ_ONLY)
 	protected Date creationDate;
 	
 	@JsonProperty
 	protected Date sendingDate;
+	
+	@JsonProperty(access = Access.READ_ONLY)
+	private boolean isFulfilled;
+	
+	@JsonProperty(access = Access.READ_ONLY)
+	private boolean isCanceled;
 
 	public static enum Type {
 		
@@ -47,9 +54,11 @@ public abstract class Order {
 		return id;
 	}
 
-	public void setId(Long id) {
+	protected void setId(Long id) {
 		this.id = id;
 	}
+
+	public abstract void validate();
 
 	@Override
 	public int hashCode() {
@@ -75,6 +84,35 @@ public abstract class Order {
 			return false;
 		return true;
 	}
+	
+	public abstract boolean matchShopifyOrder(String shopifyOrderId);
+
+	public List<Item> getItems() {
+		return items;
+	}
+
+	public boolean isFulfilled() {
+		return isFulfilled;
+	}
+
+	public Date getCreationDate() {
+		return creationDate;
+	}
+
+	public Date getSendingDate() {
+		return sendingDate;
+	}
+
+	public boolean isCanceled() {
+		return isCanceled;
+	}
+	
+	
+	
+	
+	
+	
+	
 	
 	
 }

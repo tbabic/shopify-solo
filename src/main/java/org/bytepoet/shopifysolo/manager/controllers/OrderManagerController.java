@@ -1,45 +1,27 @@
 package org.bytepoet.shopifysolo.manager.controllers;
 
-import java.text.DateFormat;
-import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import org.bytepoet.shopifysolo.manager.database.DatabaseTable;
+import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
-import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
+import org.bytepoet.shopifysolo.manager.repositories.Sorting;
+import org.bytepoet.shopifysolo.mappers.OrderToSoloInvoiceMapper;
+import org.bytepoet.shopifysolo.solo.clients.SoloApiClient;
+import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import okhttp3.Credentials;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 @RestController
 @RequestMapping("/manager/orders")
 public class OrderManagerController {
-	
-	private static final String ENDPOINT_FORMAT = "https://{0}/admin/api/2019-04/orders.json";
-	
-	private static final String SHOPIFY_DATE_PATTERN = "";
 	
 	@Value("${shopify.api.host}")
 	private String clientHost;
@@ -53,60 +35,82 @@ public class OrderManagerController {
 	@Autowired
 	private OrderRepository orderRepository;
 	
-	private static class OrdersWrapper {
-		@JsonProperty
-		private List<ShopifyOrder> orders;
-	}
+	@Autowired
+	private SoloApiClient soloApiClient;
 	
-	@GetMapping
-	public List<PaymentOrder> getOrders(
-			@RequestParam(name="paid", required=false) Boolean isPaid, 
-			@RequestParam(name="open", required=false) Boolean isOpen, 
-			@RequestParam(name="after", required=false) Date afterDate, 
-			@RequestParam(name="before", required=false) Date beforeDate) throws Exception {
-		List<Order> orders = orderRepository.getAll();
-		String url = MessageFormat.format(ENDPOINT_FORMAT, clientHost);
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
-		if (isPaid != null && isPaid.booleanValue()) {
-			params.add("financial_status", "paid");
-		}
-		if (isPaid != null && !isPaid.booleanValue()) {
-			params.add("financial_status", "pending");
-		}
-		
-		if (isOpen != null && isOpen.booleanValue()) {
-			params.add("status", "open");
-		}
-		if (isOpen != null && !isOpen.booleanValue()) {
-			params.add("status", "closed");
-		}
-		DateFormat df = new SimpleDateFormat(SHOPIFY_DATE_PATTERN);
-		if(afterDate != null) {
-			params.add("created_at_min", df.format(afterDate));
-		}
-		if(beforeDate != null) {
-			params.add("created_at_max", df.format(beforeDate));
-		}
-		
-		OkHttpClient client = new OkHttpClient();
-		
-		Request request = new Request.Builder()
-			      .url(buildUri(url, params))
-			      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
-			      .build();
-		Response response = client.newCall(request).execute();
-		String responseBodyString = response.body().string();
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		OrdersWrapper wrapper = mapper.readValue(responseBodyString, OrdersWrapper.class);
-		return wrapper.orders.stream().map(o -> new PaymentOrder(o, null, null, null)).collect(Collectors.toList());
-	}
+	@Autowired
+	private OrderToSoloInvoiceMapper orderToSoloInvoiceMapper;
 	
-	private String buildUri(String url, MultiValueMap<String, String> params) {
-	    UriComponents uriComponents = UriComponentsBuilder.newInstance()
-	            .queryParams(params).build();
+	
 
-	   return url+uriComponents.toString();
+	
+	@RequestMapping(method=RequestMethod.GET)
+	public List<Order> getOrders(
+			@RequestParam(name="open", required=false) Boolean isOpen,
+			@RequestParam(name="paid", required=false) Boolean isPaid, 
+			@RequestParam(name="sortBy", required=false) String sortBy,
+			@RequestParam(name="sortDirection", required=false) Sorting.Direction sortDirection) throws Exception {
+		
+		Comparator<Order> sorter = getSorter(sortBy, sortDirection);
+		List<Order> orders;
+		if (sorter == null) {
+			orders = orderRepository.getAllWhere(o -> matchOrder(o, isOpen, isPaid));
+		} else {
+			orders = orderRepository.getAllOrderedWhere(sorter, o -> matchOrder(o, isOpen, isPaid));
+		}
+		return orders;
 	}
+	
+	
+	@RequestMapping(method=RequestMethod.POST)
+	public Order save(Order order) {
+		return orderRepository.save(order);
+	}
+	
+	@RequestMapping(path="/{id}/processPayment", method=RequestMethod.POST)
+	public Order processPayment(@PathVariable("id") Long orderId, @RequestParam(name="paymentDate", required=false) Date paymentDate) {
+		Order order = orderRepository.getById(orderId);
+		if (!(order instanceof PaymentOrder)) {
+			throw new RuntimeException("Order with id: " + orderId + " is not payment order");
+		}
+		PaymentOrder paymentOrder = (PaymentOrder) order;
+		SoloInvoice soloInvoice = soloApiClient.createInvoice(orderToSoloInvoiceMapper.map(paymentOrder));
+		paymentOrder.updateFromSoloInvoice(soloInvoice, paymentDate);
+		return paymentOrder;
+	}
+	
+	
+	private Comparator<Order> getSorter(String sortBy, Sorting.Direction sortDirection) {
+		if (StringUtils.isBlank(sortBy)) {
+			return null;
+		}
+		if (sortDirection == null) {
+			sortDirection = Sorting.Direction.ASC;
+		}
+		return Sorting.<Order>orderBy( order ->  {
+			if(sortBy.equals("id")) {
+				return order.getId();
+			}
+			if (sortBy.equals("creationDate")) {
+				return order.getCreationDate();
+			}
+			if (sortBy.equals("sendingDate")) {
+				return order.getSendingDate();
+			}
+			return 0;
+		}, sortDirection);
+	}
+	
+	private boolean matchOrder(Order order, Boolean isOpen, Boolean isPaid) {
+		if(isOpen != null && order.isFulfilled() != isOpen.booleanValue()) {
+			return false;
+		}
+		if(isPaid != null && ((PaymentOrder) order).isPaid() != isPaid.booleanValue()) {
+			return false;
+		}
+		return true;
+			
+	}
+
 	
 }

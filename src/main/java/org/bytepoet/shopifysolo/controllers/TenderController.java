@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.bytepoet.shopifysolo.authorization.AuthorizationService;
+import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
+import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.mappers.ShopifyToSoloTenderMapper;
 import org.bytepoet.shopifysolo.services.CachedFunctionalService;
 import org.bytepoet.shopifysolo.services.SoloMaillingService;
@@ -38,6 +40,9 @@ public class TenderController {
 	@Autowired
 	private SoloMaillingService soloMaillingService;
 	
+	@Autowired
+	private OrderRepository orderRepository;
+	
 	@Value("${shopify.bank-deposit-gateway}")
 	private String bankDepositGateway;
 	
@@ -54,33 +59,30 @@ public class TenderController {
 	private String ignoreTenders;
 
 	
-	
 	@PostMapping
-	public void postOrder(@RequestBody ShopifyOrder order, ContentCachingRequestWrapper request) throws Exception {
-		logger.debug(order.toString());
+	public void postOrder(@RequestBody ShopifyOrder shopifyOrder, ContentCachingRequestWrapper request) throws Exception {
+		logger.debug(shopifyOrder.toString());
 		List<String> ignoreTenderList = Arrays.asList(ignoreTenders.split(","));
 		if (ignoreTenderList.contains(order.getNumber())) {
 			return;
 		}
 		authorizationService.processRequest(request);
-		CachedFunctionalService.<ShopifyOrder>cacheAndExecute(
-				order, 
+		SoloTender createdTender = CachedFunctionalService.<ShopifyOrder,SoloTender>cacheAndExecute(
+				shopifyOrder, 
 				o -> "tenders/"+o.getId(), 
-				o -> this.createTender(o));
+				o -> {
+					SoloTender tender = tenderMapper.map(shopifyOrder);
+					return soloApiClient.createTender(tender);
+				});
+		CompletableFuture.runAsync(() -> {
+			if (orderRepository.getAllWhere( o -> o.matchShopifyOrder(shopifyOrder.getId())).size() > 0) {
+				return;
+			}
+			PaymentOrder order = new PaymentOrder(shopifyOrder, createdTender);
+			orderRepository.save(order);
+			soloMaillingService.sendEmailWithPdf(createdTender.getEmail(), tenderBcc, createdTender.getPdfUrl(), subject, body);
+		});
 		
-	}
-	
-	private void createTender(ShopifyOrder order) {
-		if (!bankDepositGateway.equals(order.getGateway())) {
-			return;
-		}
-		SoloTender tender = tenderMapper.map(order);
-		SoloTender createdTender = soloApiClient.createTender(tender);
-		try {
-			soloMaillingService.sendEmailWithPdf(tender.getEmail(), tenderBcc, createdTender.getPdfUrl(), subject, body);
-		} catch(Exception e) {
-			logger.error(e.getMessage(),e);
-		}
 	}
 
 	

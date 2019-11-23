@@ -1,9 +1,7 @@
 package org.bytepoet.shopifysolo.mappers;
 
-import org.apache.commons.lang3.StringUtils;
+import org.bytepoet.shopifysolo.manager.models.Item;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
-import org.bytepoet.shopifysolo.shopify.models.ShopifyLineItem;
-import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.solo.models.SoloProduct;
 import org.bytepoet.shopifysolo.solo.models.SoloBillingObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +22,7 @@ public abstract class OrderToSoloMapper<T extends SoloBillingObject, B extends S
 	@Autowired
 	private PaymentTypeMapper paymentTypeMapper;
 	
-	public T map(ShopifyOrder order) {
+	public T map(PaymentOrder order) {
 		B builder = getBuilder();
 		baseMappings(order, builder);
 		additionalMappings(order, builder);
@@ -43,40 +41,20 @@ public abstract class OrderToSoloMapper<T extends SoloBillingObject, B extends S
 		builder.isTaxed(false);
 		builder.note(this.note);
 		
-		if (order.getLineItems() != null) {
-			for (ShopifyLineItem lineItem : order.getLineItems()) {
-				builder.addProduct(map(lineItem, "0"));
+		if (order.getItems() != null) {
+			for (Item item : order.getItems()) {
+				builder.addProduct(map(item));
 			}
 		}
-		if (!order.getShippingPrice().equals("0.00")) {
-			builder.addProduct( new SoloProduct.Builder()
-					.name(shippingTitle)
-					.quantity(1)
-					.price(order.getShippingPrice())
-					.taxRate("0")
-					.discount("0")
-					.build());
-		}
-
-
 	}
 	
-	
-	private SoloProduct map(ShopifyLineItem lineItem, String taxRate) {
+	private SoloProduct map(Item item) {
 		return new SoloProduct.Builder()
-				.name(productName(lineItem))
-				.quantity(lineItem.getQuantity())
-				.price(lineItem.getPricePerItem())
-				.discount(lineItem.getDiscountPercent())
-				.taxRate(taxRate)
+				.name(item.getName())
+				.quantity(item.getQuantity())
+				.price(item.getPrice())
+				.discount(item.getDiscount())
+				.taxRate(item.getTaxRate())
 				.build();
 	}
-	
-	private String productName(ShopifyLineItem lineItem) {
-		if (StringUtils.isBlank(lineItem.getVariantTitle())) {
-			return lineItem.getTitle();
-		}
-		return lineItem.getTitle() + "/ " + lineItem.getVariantTitle();
-	}
-	
 }

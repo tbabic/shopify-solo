@@ -1,13 +1,13 @@
 package org.bytepoet.shopifysolo.mappers;
 
-import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
+import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-public class OrderToSoloInvoiceMapper extends ShopifyToSoloMapper<SoloInvoice, SoloInvoice.Builder>{
+public class OrderToSoloInvoiceMapper extends OrderToSoloMapper<SoloInvoice, SoloInvoice.Builder>{
 
 	@Value("${soloapi.receipt-type}")
 	private String receiptType;
@@ -24,14 +24,13 @@ public class OrderToSoloInvoiceMapper extends ShopifyToSoloMapper<SoloInvoice, S
 	@Autowired
 	private PaymentTypeMapper paymentTypeMapper;
 	
-	
 	@Override
 	protected SoloInvoice.Builder getBuilder() {
 		return new SoloInvoice.Builder();
 	}
 
 	@Override
-	protected void additionalMappings(ShopifyOrder order,
+	protected void additionalMappings(PaymentOrder order,
 			org.bytepoet.shopifysolo.solo.models.SoloInvoice.Builder builder) {
 		builder.receiptType(receiptType);
 		boolean isFiscal = isFiscal(order);
@@ -44,7 +43,7 @@ public class OrderToSoloInvoiceMapper extends ShopifyToSoloMapper<SoloInvoice, S
 		
 	}
 	
-	private boolean isFiscal(ShopifyOrder order) {
+	private boolean isFiscal(PaymentOrder order) {
 		return fiscalization && paymentTypeMapper.getPaymentType(order).isFiscal();
 	}
 

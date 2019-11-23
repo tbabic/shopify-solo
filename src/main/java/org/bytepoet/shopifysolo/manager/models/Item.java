@@ -28,4 +28,26 @@ public class Item {
 		this.discount = soloProduct.getDiscount();
 		this.taxRate = soloProduct.getTaxRate();
 	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getPrice() {
+		return price;
+	}
+
+	public int getQuantity() {
+		return quantity;
+	}
+
+	public String getDiscount() {
+		return discount;
+	}
+
+	public String getTaxRate() {
+		return taxRate;
+	}
+	
+	
 }
