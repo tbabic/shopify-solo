@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<script src="https://unpkg.com/vue@2.5.16/dist/vue.js"></script>
+<script src="https://unpkg.com/vue-router@3.0.1/dist/vue-router.js"></script>
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="js/http-vue.js"></script>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.css">
+	
+	<link rel="stylesheet" type="text/css" href="css/main.css"/>
+
+    <title></title>
+    <!-- Main scripts-->
+    
+
+</head>
+<body>
+
+	<div id="app" class="container-fluid">
+		<h1 class="text-center"> Print adresa</h1>
+		<div class="row">
+			<div id="multiple-address-component" class="col-sm-3">
+				<div>Sve adrese:</div>
+				<textarea  class="multiple-address-input" v-model="multipleAddressString"></textarea>
+				
+				<button type="button" class="btn btn-primary" v-on:click="processMultipleAddressString">Obradi</button>
+			</div>
+			<div class="col-sm-9">
+				<div>Pregled za ispis:</div>
+				<div class="row table-header">
+					<div class="col-sm-1">Rbr.</div>
+					<div class="col-sm-4">Primatelj</div>
+					<div class="col-sm-4">Adresa primatelja</div>
+					<div class="col-sm-3">Odrediste</div>
+				</div>
+				<div v-for="(address, i) in addressList" class="row table-row">
+					<div class="col-sm-1">
+						{{ i + 1}}
+					</div>
+					<div class="col-sm-4">
+						<textarea v-model="address.fullRecepient" class="table-cell-input"></textarea>
+					</div>
+					<div class="col-sm-4">
+						<textarea v-model="address.fullAddress" class="table-cell-input"></textarea>
+					</div>
+					<div class="col-sm-3">
+						<textarea v-model="address.fullDestination" class="table-cell-input"></textarea>
+					</div>
+				</div>
+				
+				<div class="row">
+					<button type="button" class="btn btn-primary" v-on:click="printToPdf">Preuzmi pdf</button>
+				</div>
+				
+			</div>
+		</div>
+	</div>
+</body>
+
+
+<script src="js/model/address.js"></script>
+<script src="js/components/mainComponent.js"></script>
+
+<script>
+
+
+
+</script>
