@@ -86,7 +86,7 @@ public class Address {
 			list.add(new Address(addressString.trim()));
 			
 			//remove matched address
-			processingString = processingString.replaceFirst(addressString, "").trim();
+			processingString = processingString.substring(processingString.indexOf("\"")).trim();
 			//remove ending quotes and trim
 			processingString = processingString.replaceFirst("\"", "").trim();
 			
