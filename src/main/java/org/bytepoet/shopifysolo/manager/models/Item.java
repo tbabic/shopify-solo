@@ -1,12 +1,22 @@
 package org.bytepoet.shopifysolo.manager.models;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
 import org.bytepoet.shopifysolo.solo.models.SoloProduct;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Entity
 public class Item {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private String id;
 	
 	@JsonProperty
 	private String name;

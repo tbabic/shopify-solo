@@ -4,6 +4,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.stream.Collectors;
 
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import javax.persistence.Transient;
+
+import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.solo.models.SoloBillingObject;
 import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
@@ -14,15 +20,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Entity
+@DiscriminatorValue(OrderType.PAYMENT_ORDER)
 public class PaymentOrder extends Order {
 	
 	private static final int WAITING_LIST_PERIOD = 7;
 	
 	@JsonProperty(access = Access.READ_ONLY)
+	@Column(unique = true)
 	private String tenderId;
 	@JsonProperty(access = Access.READ_ONLY)
+	@Column(unique = true)
 	private String invoiceId;
 	@JsonProperty(access = Access.READ_ONLY)
+	@Column(unique = true)
 	private String shopifyOrderId;
 	
 	@JsonProperty(access = Access.READ_ONLY)
@@ -31,10 +42,6 @@ public class PaymentOrder extends Order {
 	private String invoiceNumber;
 	@JsonProperty(access = Access.READ_ONLY)
 	private String shopifyOrderNumber;
-	
-	
-	@JsonProperty("contact")
-	private String email;
 	
 	@JsonProperty
 	private PaymentType paymentType;
@@ -56,40 +63,25 @@ public class PaymentOrder extends Order {
 	@JsonProperty
 	private boolean isReceiptSent;
 	
-	
-	
+	@JsonProperty
+	private boolean isTenderSent;
+
 	protected PaymentOrder() {
 		super();
 	};
 	
-	public PaymentOrder(ShopifyOrder shopifyOrder, SoloInvoice soloInvoice) {
-		if (shopifyOrder == null || soloInvoice == null) {
-			throw new RuntimeException("Shopify order and solo invoice can not be null");
+	public PaymentOrder(ShopifyOrder shopifyOrder, GatewayToPaymentTypeMapper paymentTypeMapper) {
+		if (shopifyOrder == null) {
+			throw new RuntimeException("Shopify order can not be null");
 		}
 		this.creationDate = new Date();
 		
 		this.shopifyOrderId = shopifyOrder.getId();
 		this.shopifyOrderNumber = shopifyOrder.getNumber();
-		this.shippingAddress = shopifyOrder.getFullAddress();
-		this.email = shopifyOrder.getEmail();
+		this.shippingInfo = new Address(shopifyOrder.getShippingAddress());
+		this.contact = shopifyOrder.getEmail();
 		this.creationDate = shopifyOrder.getCreated();
-
-		updateFromSoloInvoice(soloInvoice, new Date());
-	}
-	
-	public PaymentOrder(ShopifyOrder shopifyOrder, SoloTender soloTender) {
-		if (shopifyOrder == null || soloTender == null) {
-			throw new RuntimeException("Shopify order and solo tender can not be null");
-		}
-		this.creationDate = new Date();
-		
-		this.shopifyOrderId = shopifyOrder.getId();
-		this.shopifyOrderNumber = shopifyOrder.getNumber();
-		this.shippingAddress = shopifyOrder.getFullAddress();
-		this.email = shopifyOrder.getEmail();
-		this.creationDate = shopifyOrder.getCreated();
-
-		updateFromSoloTender(soloTender);
+		this.paymentType = paymentTypeMapper.getPaymentType(shopifyOrder);
 	}
 
 	public void updateFromSoloInvoice(SoloInvoice soloInvoice, Date paymentDate) {
@@ -108,29 +100,21 @@ public class PaymentOrder extends Order {
 		updateFromSoloBillingObject(soloInvoice);
 	}
 	
-	private void updateFromSoloTender(SoloTender soloTender) {
+	public void updateFromSoloTender(SoloTender soloTender) {
 		this.tenderId = soloTender.getId();
 		this.tenderNumber = soloTender.getNumber();
 		updateFromSoloBillingObject(soloTender);
 	}
 	
 	private void updateFromSoloBillingObject(SoloBillingObject soloBillingObject) {
-		this.email = soloBillingObject.getEmail();
+		this.contact = soloBillingObject.getEmail();
 		this.paymentType = PaymentType.fromSoloPaymentType(soloBillingObject.getPaymentType());
 		this.items = soloBillingObject.getProducts().stream().map(product -> new Item(product)).collect(Collectors.toList());
 	}
-	
-	public void setReceiptSent(boolean isReceiptSent) {
-		this.isReceiptSent = isReceiptSent;
-	}
 
-	@Override
-	public boolean matchShopifyOrder(String shopifyOrderId) {
-		return shopifyOrderId.equals(this.shopifyOrderId);
-	}
-
+	@Transient
 	public String getEmail() {
-		return email;
+		return contact;
 	}
 
 	public PaymentType getPaymentType() {
@@ -153,12 +137,36 @@ public class PaymentOrder extends Order {
 		return isPaid;
 	}
 	
-	@Override
-	public void validate() {
-		if (!isPaid && paymentDate != null) {
-			throw new RuntimeException("Order is not yet paid");
-		}
+	public boolean isReceiptSent() {
+		return isReceiptSent;
 	}
 	
+	public void setReceiptSent(boolean isReceiptSent) {
+		this.isReceiptSent = isReceiptSent;
+	}
+	
+	public boolean isReceiptCreated() {
+		return invoiceId != null;
+	}
+	
+	public boolean isTenderSent() {
+		return isTenderSent;
+	}
+	
+	public void setTenderSent(boolean isTenderSent) {
+		this.isTenderSent = isTenderSent;
+	}
 
+	public boolean isTenderCreated() {
+		return tenderId != null;
+	}
+
+	public String getTenderId() {
+		return tenderId;
+	}
+
+	public String getInvoiceId() {
+		return invoiceId;
+	}	
+	
 }

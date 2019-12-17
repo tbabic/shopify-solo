@@ -1,14 +1,13 @@
 package org.bytepoet.shopifysolo.controllers;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
-
-import java.util.concurrent.CompletableFuture;
-
 import org.bytepoet.shopifysolo.authorization.AuthorizationService;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
-import org.bytepoet.shopifysolo.mappers.ShopifyToSoloInvoiceMapper;
+import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
+import org.bytepoet.shopifysolo.mappers.OrderToSoloInvoiceMapper;
 import org.bytepoet.shopifysolo.services.CachedFunctionalService;
 import org.bytepoet.shopifysolo.services.SoloMaillingService;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
@@ -34,7 +33,7 @@ public class OrderController {
 	private SoloApiClient soloApiClient;
 	
 	@Autowired
-	private ShopifyToSoloInvoiceMapper invoiceMapper;
+	private OrderToSoloInvoiceMapper invoiceMapper;
 
 	@Autowired
 	private AuthorizationService authorizationService;
@@ -44,6 +43,9 @@ public class OrderController {
 	
 	@Autowired
 	private OrderRepository orderRepository;
+	
+	@Autowired
+	private GatewayToPaymentTypeMapper paymentTypeMapper;
 	
 	@Value("${email.subject}")
 	private String subject;
@@ -59,31 +61,42 @@ public class OrderController {
 	
 	
 	@PostMapping
-	public void postOrder(@RequestBody ShopifyOrder order, ContentCachingRequestWrapper request) throws Exception {
+	public void postOrder(@RequestBody ShopifyOrder shopifyOrder, ContentCachingRequestWrapper request) throws Exception {
+		authorizationService.processRequest(request);
 		List<String> ignoreReceiptsList = Arrays.asList(ignoreReceipts.split(","));
-		if (ignoreReceiptsList.contains(order.getNumber())) {
+		if (ignoreReceiptsList.contains(shopifyOrder.getNumber())) {
 			return;
 		}
-		logger.debug(order.toString());
-		authorizationService.processRequest(request);
-		SoloInvoice createdInvoice = CachedFunctionalService.<ShopifyOrder,SoloInvoice>cacheAndExecute(
-				shopifyOrder, 
-				o -> "orders/"+o.getId(), 
-				o -> {
-					SoloInvoice invoice = invoiceMapper.map(shopifyOrder);
-					return soloApiClient.createInvoice(invoice);
-				});
-		CompletableFuture.runAsync(() -> {
-			if (orderRepository.getAllWhere( o -> o.matchShopifyOrder(shopifyOrder.getId())).size() > 0) {
-				return;
-			}
-			PaymentOrder order = new PaymentOrder(shopifyOrder, createdInvoice);
-			orderRepository.save(order);
-			soloMaillingService.sendEmailWithPdf(createdInvoice.getEmail(), alwaysBcc, createdInvoice.getPdfUrl(), subject, body);
+		logger.debug(shopifyOrder.toString());
+		PaymentOrder order;
+		synchronized(this.getClass()) {
+			order = orderRepository.getOrderWithShopifyId(shopifyOrder.getId()).orElseGet(() -> {
+				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, paymentTypeMapper));
+			});
+		}
+		
+		
+		if (!order.isReceiptCreated()) {
+			SoloInvoice createdInvoice = CachedFunctionalService.<ShopifyOrder,SoloInvoice>cacheAndExecute(
+					shopifyOrder, 
+					o -> "orders/"+o.getId(), 
+					o -> {
+						SoloInvoice invoice = invoiceMapper.map(order);
+						return soloApiClient.createInvoice(invoice);
+					});
+			order.updateFromSoloInvoice(createdInvoice, new Date());
+			orderRepository.saveAndFlush(order);
+			soloMaillingService.sendEmailWithPdf(order.getEmail(), alwaysBcc, createdInvoice.getPdfUrl(), subject, body);
 			order.setReceiptSent(true);
 			orderRepository.save(order);
-		});
+		}
 		
+		if(!order.isReceiptSent()) {
+			SoloInvoice createdInvoice = soloApiClient.getInvoice(order.getInvoiceId());
+			soloMaillingService.sendEmailWithPdf(order.getEmail(), alwaysBcc, createdInvoice.getPdfUrl(), subject, body);
+			order.setReceiptSent(true);
+			orderRepository.save(order);
+		}
 		return;
 	}
 	

@@ -12,8 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -42,26 +42,42 @@ public class SoloApiClient {
 	@Autowired
 	private SoloMapper mapper;
 	
-	@Cacheable("soloInvoice")
 	public SoloInvoice createInvoice(SoloInvoice receipt) {
 		String endpoint = "/racun";
 		MultiValueMap<String, String> parameters = mapper.map(receipt);
 		parameters.add("token", apiToken);
-		SoloResponse response = executeRequest(endpoint, parameters);
+		SoloResponse response = executePostRequest(endpoint, parameters);
 		return (SoloInvoice) response.getInvoice();
 	}
 	
-	@Cacheable("soloTender")
 	public SoloTender createTender(SoloTender tender) {
 		String endpoint = "/ponuda";
 		MultiValueMap<String, String> parameters = mapper.map(tender);
 		parameters.add("token", apiToken);
-		SoloResponse response = executeRequest(endpoint, parameters);
+		SoloResponse response = executePostRequest(endpoint, parameters);
+		return (SoloTender) response.getTender();
+	}
+	
+	public SoloInvoice getInvoice(String invoiceId) {
+		String endpoint = "/racun";
+		MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+		parameters.add("id", invoiceId);
+		parameters.add("token", apiToken);
+		SoloResponse response = executeGetRequest(endpoint, parameters);
+		return (SoloInvoice) response.getInvoice();
+	}
+	
+	public SoloTender getTender(String tenderId) {
+		String endpoint = "/ponuda";
+		MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+		parameters.add("id", tenderId);
+		parameters.add("token", apiToken);
+		SoloResponse response = executeGetRequest(endpoint, parameters);
 		return (SoloTender) response.getTender();
 	}
 	
 
-	private SoloResponse executeRequest(String endpoint, MultiValueMap<String, String> parameters) {
+	private SoloResponse executePostRequest(String endpoint, MultiValueMap<String, String> parameters) {
 		
 		String url = buildUri(rootUrl+endpoint,parameters);
 		OkHttpClient client = new OkHttpClient();
@@ -86,6 +102,33 @@ public class SoloApiClient {
 			throw new RuntimeException( e.getMessage(), e);
 		}
 	}
+	
+private SoloResponse executeGetRequest(String endpoint, MultiValueMap<String, String> parameters) {
+		
+		String url = buildUri(rootUrl+endpoint,parameters);
+		OkHttpClient client = new OkHttpClient();
+		RequestBody body = RequestBody.create(null, new byte[]{});
+		Request request = new Request.Builder().url(url).post(body).build();
+		try {
+			logger.debug("Calling url: " + url);
+			Response response = client.newCall(request).execute();
+			if (!response.isSuccessful()) {
+				throw new RuntimeException("statusCode: " + response.code() + " body: " + response.body().string());
+			}
+			ObjectMapper mapper = new ObjectMapper();
+			String responseBody = response.body().string();
+			SoloResponse soloResponse = mapper.readValue(responseBody, SoloResponse.class);
+			if (soloResponse.status != 0) {
+				throw new RuntimeException("statusCode: " + response.code() + " body: " + responseBody);
+			}
+			return soloResponse;
+
+			
+		} catch (Exception e) {
+			throw new RuntimeException( e.getMessage(), e);
+		}
+	}
+
 
 	private String buildUri(String url, MultiValueMap<String, String> params) {
 	    UriComponents uriComponents = UriComponentsBuilder.newInstance()

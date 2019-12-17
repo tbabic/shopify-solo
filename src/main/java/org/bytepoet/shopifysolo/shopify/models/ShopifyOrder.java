@@ -49,7 +49,7 @@ public class ShopifyOrder {
 	
 	@JsonProperty("shipping_address")
 	private ShopifyShippingAddress shippingAddress;
-	
+
 	@JsonProperty("created_at")
 	@JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ssX")
 	private Date created;
@@ -100,6 +100,10 @@ public class ShopifyOrder {
 		double totalTax = Double.parseDouble(this.totalTax);
 		String taxPercent = Long.toString(Math.round(100 * totalTax / totalPrice));
 		return taxPercent;
+	}
+	
+	public ShopifyShippingAddress getShippingAddress() {
+		return shippingAddress;
 	}
 	
 	@JsonProperty

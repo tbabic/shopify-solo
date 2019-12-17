@@ -17,13 +17,13 @@ public enum PaymentType {
 		throw new IllegalArgumentException("Unsupported payment type: " + soloPaymentType);
 	}
 	
-	public static PaymentType fromShopifyGateway (String paymentGateway) {
-		if ("corvuspay".equals(paymentGateway)) {
-			return PaymentType.CREDIT_CARD;
+	public SoloPaymentType toSoloPaymentType() {
+		if(this == PaymentType.CREDIT_CARD) {
+			return SoloPaymentType.CREDIT_CARD;
 		}
-		if ("Uplata na racun".equals(paymentGateway)) {
-			return PaymentType.BANK_TRANSACTION;
+		if (this == PaymentType.BANK_TRANSACTION) {
+			return SoloPaymentType.BANK_DEPOSIT;
 		}
-		throw new IllegalArgumentException("Unsupported payment type: " + paymentGateway);
+		throw new RuntimeException("Can not convert to soloPaymentType: " + this);
 	}
 }

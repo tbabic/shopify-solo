@@ -1,18 +1,29 @@
 package org.bytepoet.shopifysolo.manager.controllers;
 
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
+import org.bytepoet.shopifysolo.manager.models.GiveawayOrder;
 import org.bytepoet.shopifysolo.manager.models.Order;
+import org.bytepoet.shopifysolo.manager.models.OrderType;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
-import org.bytepoet.shopifysolo.manager.repositories.Sorting;
 import org.bytepoet.shopifysolo.mappers.OrderToSoloInvoiceMapper;
 import org.bytepoet.shopifysolo.solo.clients.SoloApiClient;
 import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -33,43 +44,79 @@ public class OrderManagerController {
 	private String clientPassword;
 	
 	@Autowired
-	private OrderRepository orderRepository;
-	
-	@Autowired
 	private SoloApiClient soloApiClient;
 	
 	@Autowired
 	private OrderToSoloInvoiceMapper orderToSoloInvoiceMapper;
 	
+	@Autowired
+	private OrderRepository orderRepository;
+	
 	
 
 	
 	@RequestMapping(method=RequestMethod.GET)
-	public List<Order> getOrders(
+	public Page<Order> getOrders(
 			@RequestParam(name="open", required=false) Boolean isOpen,
-			@RequestParam(name="paid", required=false) Boolean isPaid, 
+			@RequestParam(name="paid", required=false) Boolean isPaid,
+			@RequestParam(name="personalTakeover", required=false) Boolean isPersonalTakeover,
+			@RequestParam(name="type", required=false) OrderType type,
+			@RequestParam(name="page", required=false, defaultValue = "0") int page,
+			@RequestParam(name="size", required=false, defaultValue = "20") int size,
 			@RequestParam(name="sortBy", required=false) String sortBy,
-			@RequestParam(name="sortDirection", required=false) Sorting.Direction sortDirection) throws Exception {
+			@RequestParam(name="sortDirection", required=false) Direction direction) throws Exception {
 		
-		Comparator<Order> sorter = getSorter(sortBy, sortDirection);
-		List<Order> orders;
-		if (sorter == null) {
-			orders = orderRepository.getAllWhere(o -> matchOrder(o, isOpen, isPaid));
+		Specification<Order> spec = new Specification<Order>() {
+			
+			private static final long serialVersionUID = -7241789667400058644L;
+
+			@Override
+			public Predicate toPredicate(Root<Order> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+				if((query.getResultType() != Long.class) && (query.getResultType() != long.class)) {
+					root.fetch("items");
+				}
+				
+				Root<?> actualRoot = root;
+				List<Predicate> predicates = new ArrayList<>();
+				if((type != null && type == OrderType.PAYMENT) || (type == null && isPaid != null)) {
+					actualRoot = criteriaBuilder.treat(root, PaymentOrder.class);
+					if (isPaid != null) {
+						predicates.add(criteriaBuilder.equal(actualRoot.get("isPaid"), isPaid.booleanValue()));
+					}
+				} else if (type == OrderType.GIVEAWAY) {
+					actualRoot = criteriaBuilder.treat(root, GiveawayOrder.class);
+				}				
+				if(isOpen != null) {
+					predicates.add(criteriaBuilder.equal(actualRoot.get("isFulfilled"), !isOpen.booleanValue()));
+				}
+				if(isPersonalTakeover != null) {
+					predicates.add(criteriaBuilder.equal(actualRoot.get("isPersonalTakeover"), isPersonalTakeover.booleanValue()));
+				}
+				
+				return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+			}
+		};
+		Pageable pageable;
+		if (sortBy == null) {
+			pageable = PageRequest.of(page, size);
+		} else if (direction == null) {
+			pageable = PageRequest.of(page, size, Sort.by(sortBy));
 		} else {
-			orders = orderRepository.getAllOrderedWhere(sorter, o -> matchOrder(o, isOpen, isPaid));
+			pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 		}
-		return orders;
+		return orderRepository.findAll(spec, pageable);
 	}
 	
 	
 	@RequestMapping(method=RequestMethod.POST)
 	public Order save(Order order) {
-		return orderRepository.save(order);
+		orderRepository.save(order);
+		return order;
 	}
 	
 	@RequestMapping(path="/{id}/processPayment", method=RequestMethod.POST)
 	public Order processPayment(@PathVariable("id") Long orderId, @RequestParam(name="paymentDate", required=false) Date paymentDate) {
-		Order order = orderRepository.getById(orderId);
+		Order order = orderRepository.getOne(orderId);
 		if (!(order instanceof PaymentOrder)) {
 			throw new RuntimeException("Order with id: " + orderId + " is not payment order");
 		}
@@ -78,39 +125,5 @@ public class OrderManagerController {
 		paymentOrder.updateFromSoloInvoice(soloInvoice, paymentDate);
 		return paymentOrder;
 	}
-	
-	
-	private Comparator<Order> getSorter(String sortBy, Sorting.Direction sortDirection) {
-		if (StringUtils.isBlank(sortBy)) {
-			return null;
-		}
-		if (sortDirection == null) {
-			sortDirection = Sorting.Direction.ASC;
-		}
-		return Sorting.<Order>orderBy( order ->  {
-			if(sortBy.equals("id")) {
-				return order.getId();
-			}
-			if (sortBy.equals("creationDate")) {
-				return order.getCreationDate();
-			}
-			if (sortBy.equals("sendingDate")) {
-				return order.getSendingDate();
-			}
-			return 0;
-		}, sortDirection);
-	}
-	
-	private boolean matchOrder(Order order, Boolean isOpen, Boolean isPaid) {
-		if(isOpen != null && order.isFulfilled() != isOpen.booleanValue()) {
-			return false;
-		}
-		if(isPaid != null && ((PaymentOrder) order).isPaid() != isPaid.booleanValue()) {
-			return false;
-		}
-		return true;
-			
-	}
-
 	
 }

@@ -5,9 +5,6 @@ import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;

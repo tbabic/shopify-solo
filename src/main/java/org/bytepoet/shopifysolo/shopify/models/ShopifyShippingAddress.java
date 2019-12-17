@@ -50,4 +50,42 @@ public class ShopifyShippingAddress {
     			.append(country)
     			.toString();
     }
+
+	public String getName() {
+		return name;
+	}
+
+	public String getAddress1() {
+		return address1;
+	}
+
+	public String getAddress2() {
+		return address2;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public String getZip() {
+		return zip;
+	}
+
+	public String getProvince() {
+		return province;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public String getCompany() {
+		return company;
+	}
+    
+    
 }

@@ -2,8 +2,20 @@ package org.bytepoet.shopifysolo.manager.models;
 
 import java.util.Date;
 import java.util.List;
+import javax.persistence.CascadeType;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 
-import org.bytepoet.shopifysolo.manager.database.DatabaseTable.IdAccessor;
+import javax.persistence.DiscriminatorType;
+import javax.persistence.Embedded;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
@@ -16,19 +28,33 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 		  include = JsonTypeInfo.As.PROPERTY, 
 		  property = "type")
 @JsonSubTypes({ 
-  @Type(value = GiveawayOrder.class, name = "GIVEAWAY"), 
-  @Type(value = PaymentOrder.class, name = "PAYMENT") 
+  @Type(value = GiveawayOrder.class, name = OrderType.GIVEAWAY_ORDER), 
+  @Type(value = PaymentOrder.class, name = OrderType.PAYMENT_ORDER) 
 })
-public abstract class Order extends IdAccessor {
+@Entity(name="ManagedOrder")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name="type", discriminatorType = DiscriminatorType.STRING)
+public abstract class Order {
 	
 	
 	@JsonProperty(access = Access.READ_ONLY)
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
 	@JsonProperty
-	protected String shippingAddress;
+	protected String contact;
 	
 	@JsonProperty
+	@Embedded
+	protected Address shippingInfo;
+	
+	@JsonProperty
+	protected boolean personalTakeover;
+	
+	@JsonProperty
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+	@JoinColumn(name = "orderId")
 	protected List<Item> items;	
 	
 	//TODO: dates
@@ -53,12 +79,10 @@ public abstract class Order extends IdAccessor {
 	public Long getId() {
 		return id;
 	}
-
-	protected void setId(Long id) {
+	
+	public void setId(Long id) {
 		this.id = id;
 	}
-
-	public abstract void validate();
 
 	@Override
 	public int hashCode() {
@@ -85,8 +109,6 @@ public abstract class Order extends IdAccessor {
 		return true;
 	}
 	
-	public abstract boolean matchShopifyOrder(String shopifyOrderId);
-
 	public List<Item> getItems() {
 		return items;
 	}
@@ -106,6 +128,13 @@ public abstract class Order extends IdAccessor {
 	public boolean isCanceled() {
 		return isCanceled;
 	}
+
+	public String getContact() {
+		return contact;
+	}
+	
+	
+	
 	
 	
 	
