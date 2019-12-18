@@ -103,7 +103,7 @@ public class SoloApiClient {
 		}
 	}
 	
-private SoloResponse executeGetRequest(String endpoint, MultiValueMap<String, String> parameters) {
+	private SoloResponse executeGetRequest(String endpoint, MultiValueMap<String, String> parameters) {
 		
 		String url = buildUri(rootUrl+endpoint,parameters);
 		OkHttpClient client = new OkHttpClient();

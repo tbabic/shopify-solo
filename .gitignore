@@ -1,4 +1,5 @@
 application-localhost.properties
+application-prod.properties
 # Compiled class file
 *.class
 
