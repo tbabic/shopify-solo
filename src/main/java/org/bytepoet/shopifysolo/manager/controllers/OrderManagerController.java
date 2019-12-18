@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -73,7 +74,7 @@ public class OrderManagerController {
 			@Override
 			public Predicate toPredicate(Root<Order> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
 				if((query.getResultType() != Long.class) && (query.getResultType() != long.class)) {
-					root.fetch("items");
+					root.fetch("items", JoinType.LEFT);
 				}
 				
 				Root<?> actualRoot = root;

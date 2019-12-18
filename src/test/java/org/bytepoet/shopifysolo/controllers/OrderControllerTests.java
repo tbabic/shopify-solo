@@ -2,6 +2,7 @@ package org.bytepoet.shopifysolo.controllers;
 
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 import java.lang.reflect.Field;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bytepoet.shopifysolo.authorization.AuthorizationService;
+import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.services.CachedFunctionalService;
 import org.bytepoet.shopifysolo.services.SoloMaillingService;
@@ -68,6 +70,7 @@ public class OrderControllerTests {
 		ShopifyOrder order = ShopifyOrderCreator.createOrder("1");
 		orderController.postOrder(order, null);
 		Mockito.verify(soloApiClient).createInvoice(Mockito.any());
+		assertValidOrder("1");
 	}
 	
 	@Test
@@ -78,6 +81,7 @@ public class OrderControllerTests {
 		orderController.postOrder(order1, null);
 		orderController.postOrder(order2, null);
 		Mockito.verify(soloApiClient, Mockito.times(2)).createInvoice(Mockito.any());
+		assertValidOrder("1");
 		
 	}
 	
@@ -89,6 +93,7 @@ public class OrderControllerTests {
 		orderController.postOrder(order1, null);
 		orderController.postOrder(order2, null);
 		Mockito.verify(soloApiClient, Mockito.times(1)).createInvoice(Mockito.any());
+		assertValidOrder("1");
 		
 	}
 	
@@ -109,6 +114,7 @@ public class OrderControllerTests {
 		orderController.postOrder(order2, null);
 		orderController.postOrder(order3, null);
 		Mockito.verify(soloApiClient, Mockito.times(2)).createInvoice(Mockito.any());
+		assertValidOrder("1");
 	}
 
 	
@@ -126,6 +132,7 @@ public class OrderControllerTests {
 		
 		orderController.postOrder(order2, null);
 		Mockito.verify(soloApiClient, Mockito.times(1)).createInvoice(Mockito.any());
+		assertValidOrder("1");
 		
 	}
 	
@@ -142,6 +149,7 @@ public class OrderControllerTests {
 		assertThat(result1.get(), equalTo(true));
 		assertThat(result2.get(), equalTo(true));
 		Mockito.verify(soloApiClient, Mockito.times(2)).createInvoice(Mockito.any());
+		assertValidOrder("1");
 		
 	}
 	
@@ -165,6 +173,19 @@ public class OrderControllerTests {
 	@Test
 	public void postOrder_TenSameAsyncOrdersFirstFiveFails_SecondExecutedThirdSkipped() throws Exception {
 		executeMultipleAsyncOrders(10, 5, 1000, new Expectations().invocations(6).errors(5).successes(5));
+	}
+	
+	@Test
+	public void postOrder_SimulateShopifyFiveErrors() throws Exception {
+		simulateShopify(new ShopifyTestSpec().errors(5).timeBetweenCalls(1000).invocationTime(5000));
+	}
+	
+	private void assertValidOrder(String id) {
+		PaymentOrder paymentOrder = orderRepository.getOrderWithShopifyId(id).get();
+		Assert.assertThat(paymentOrder.getInvoiceId(), notNullValue());
+		Assert.assertThat(paymentOrder.isReceiptCreated(), equalTo(true));
+		Assert.assertThat(paymentOrder.isReceiptSent(), equalTo(true));
+		Assert.assertThat(paymentOrder.isPaid(), equalTo(true));
 	}
 	
 	private static class AnswerSpec {
@@ -213,12 +234,10 @@ public class OrderControllerTests {
 		Mockito.verify(soloApiClient, Mockito.times(expected.invocations)).createInvoice(Mockito.any());
 		assertThat("Expected two succesful calls", successCount, equalTo(expected.succeses));
 		assertThat("Expected one failed calls", failCount, equalTo(expected.errors));
+		assertValidOrder("1");
 	}
 	
-	@Test
-	public void postOrder_SimulateShopifyFiveErrors() throws Exception {
-		simulateShopify(new ShopifyTestSpec().errors(5).timeBetweenCalls(1000).invocationTime(5000));
-	}
+	
 	
 	private void simulateShopify(ShopifyTestSpec testSpec) throws Exception {
 		
@@ -254,6 +273,7 @@ public class OrderControllerTests {
 		Assert.assertThat(failures, equalTo(testSpec.errors));
 		Assert.assertThat(successes, equalTo(executions-testSpec.errors));
 		Mockito.verify(soloApiClient, Mockito.times(testSpec.errors+1)).createInvoice(Mockito.any());
+		assertValidOrder("1");
 	}
 	
 	private static class ShopifyTestSpec {

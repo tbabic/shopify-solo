@@ -117,6 +117,10 @@ public class PaymentOrder extends Order {
 		return contact;
 	}
 
+	public String getShopifyOrderId() {
+		return shopifyOrderId;
+	}
+
 	public PaymentType getPaymentType() {
 		return paymentType;
 	}

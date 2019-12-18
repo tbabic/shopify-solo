@@ -79,7 +79,7 @@ public class TenderController {
 		if (!order.isTenderCreated()) {
 			SoloTender createdTender = CachedFunctionalService.<ShopifyOrder,SoloTender>cacheAndExecute(
 					shopifyOrder, 
-					o -> "orders/"+o.getId(), 
+					o -> "tenders/"+o.getId(), 
 					o -> {
 						SoloTender tender = tenderMapper.map(order);
 						return soloApiClient.createTender(tender);
