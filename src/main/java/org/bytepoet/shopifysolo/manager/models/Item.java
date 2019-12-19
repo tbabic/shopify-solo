@@ -5,6 +5,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import org.bytepoet.shopifysolo.shopify.models.ShopifyLineItem;
 import org.bytepoet.shopifysolo.solo.models.SoloProduct;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -37,6 +38,14 @@ public class Item {
 		this.quantity = soloProduct.getQuantity();
 		this.discount = soloProduct.getDiscount();
 		this.taxRate = soloProduct.getTaxRate();
+	}
+	
+	Item(ShopifyLineItem lineItem, String taxRate) {
+		this.name = lineItem.getFullTitle();
+		this.price = lineItem.getPricePerItem();
+		this.quantity = lineItem.getQuantity();
+		this.discount = lineItem.getDiscountPercent();
+		this.taxRate = taxRate;
 	}
 
 	public String getName() {

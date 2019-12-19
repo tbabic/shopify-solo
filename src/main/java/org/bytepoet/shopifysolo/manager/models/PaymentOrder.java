@@ -70,7 +70,7 @@ public class PaymentOrder extends Order {
 		super();
 	};
 	
-	public PaymentOrder(ShopifyOrder shopifyOrder, GatewayToPaymentTypeMapper paymentTypeMapper) {
+	public PaymentOrder(ShopifyOrder shopifyOrder, GatewayToPaymentTypeMapper paymentTypeMapper, String taxRate) {
 		if (shopifyOrder == null) {
 			throw new RuntimeException("Shopify order can not be null");
 		}
@@ -82,6 +82,8 @@ public class PaymentOrder extends Order {
 		this.contact = shopifyOrder.getEmail();
 		this.creationDate = shopifyOrder.getCreated();
 		this.paymentType = paymentTypeMapper.getPaymentType(shopifyOrder);
+		
+		this.items = shopifyOrder.getLineItems().stream().map(lineItem -> new Item(lineItem, taxRate)).collect(Collectors.toList());
 	}
 
 	public void updateFromSoloInvoice(SoloInvoice soloInvoice, Date paymentDate) {

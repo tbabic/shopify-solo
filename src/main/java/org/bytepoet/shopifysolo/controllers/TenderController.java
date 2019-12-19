@@ -59,6 +59,9 @@ public class TenderController {
 	
 	@Value("${ignore.tender}")
 	private String ignoreTenders;
+	
+	@Value("${solofy.tax-rate:}")
+	private String taxRate;
 
 	
 	@PostMapping
@@ -71,7 +74,7 @@ public class TenderController {
 		PaymentOrder order;
 		synchronized(this.getClass()) {
 			order = orderRepository.getOrderWithShopifyId(shopifyOrder.getId()).orElseGet(() -> {
-				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, paymentTypeMapper));
+				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, paymentTypeMapper, taxRate));
 			});
 		}
 		

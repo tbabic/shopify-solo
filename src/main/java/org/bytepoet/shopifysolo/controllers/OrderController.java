@@ -59,6 +59,9 @@ public class OrderController {
 	@Value("${email.always-bcc:}")
 	private String alwaysBcc;
 	
+	@Value("${solofy.tax-rate:}")
+	private String taxRate;
+	
 	
 	@PostMapping
 	public void postOrder(@RequestBody ShopifyOrder shopifyOrder, ContentCachingRequestWrapper request) throws Exception {
@@ -71,7 +74,7 @@ public class OrderController {
 		PaymentOrder order;
 		synchronized(this.getClass()) {
 			order = orderRepository.getOrderWithShopifyId(shopifyOrder.getId()).orElseGet(() -> {
-				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, paymentTypeMapper));
+				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, paymentTypeMapper, taxRate));
 			});
 		}
 		
