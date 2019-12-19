@@ -232,8 +232,8 @@ public class OrderControllerTests {
 		}
 		
 		Mockito.verify(soloApiClient, Mockito.times(expected.invocations)).createInvoice(Mockito.any());
-		assertThat("Expected two succesful calls", successCount, equalTo(expected.succeses));
-		assertThat("Expected one failed calls", failCount, equalTo(expected.errors));
+		assertThat("Expected succesful calls", successCount, equalTo(expected.succeses));
+		assertThat("Expected failed calls", failCount, equalTo(expected.errors));
 		assertValidOrder("1");
 	}
 	
@@ -326,19 +326,21 @@ public class OrderControllerTests {
 			
 			@Override
 			public SoloInvoice answer(InvocationOnMock invocation) throws Throwable {
-				if (answerSpec.invocationTime > 0) {
-					Thread.sleep(answerSpec.invocationTime);
+				synchronized(this) {
+					if (answerSpec.invocationTime > 0) {
+						Thread.sleep(answerSpec.invocationTime);
+					}
+					if (executedErrors < answerSpec.successiveErrors) {
+						executedErrors++;
+						throw new RuntimeException();
+					}
+					SoloInvoice invoice = invocation.getArgument(0);
+					Field field = SoloBillingObject.class.getDeclaredField("id");
+					field.setAccessible(true);
+					field.set(invoice, RandomStringUtils.randomAlphanumeric(10));
+					
+					return invoice;
 				}
-				if (executedErrors < answerSpec.successiveErrors) {
-					executedErrors++;
-					throw new RuntimeException();
-				}
-				SoloInvoice invoice = invocation.getArgument(0);
-				Field field = SoloBillingObject.class.getDeclaredField("id");
-				field.setAccessible(true);
-				field.set(invoice, RandomStringUtils.randomAlphanumeric(10));
-				
-				return invoice;
 			}
 		};
 	}

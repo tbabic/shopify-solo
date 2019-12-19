@@ -332,19 +332,21 @@ public class TenderControllerTests {
 			
 			@Override
 			public SoloTender answer(InvocationOnMock invocation) throws Throwable {
-				if (answerSpec.invocationTime > 0) {
-					Thread.sleep(answerSpec.invocationTime);
+				synchronized(this) {
+					if (answerSpec.invocationTime > 0) {
+						Thread.sleep(answerSpec.invocationTime);
+					}
+					if (executedErrors < answerSpec.successiveErrors) {
+						executedErrors++;
+						throw new RuntimeException();
+					}
+					SoloTender tender = invocation.getArgument(0);
+					Field field = SoloBillingObject.class.getDeclaredField("id");
+					field.setAccessible(true);
+					field.set(tender, RandomStringUtils.randomAlphanumeric(10));
+					
+					return tender;
 				}
-				if (executedErrors < answerSpec.successiveErrors) {
-					executedErrors++;
-					throw new RuntimeException();
-				}
-				SoloTender tender = invocation.getArgument(0);
-				Field field = SoloBillingObject.class.getDeclaredField("id");
-				field.setAccessible(true);
-				field.set(tender, RandomStringUtils.randomAlphanumeric(10));
-				
-				return tender;
 			}
 		};
 	}
