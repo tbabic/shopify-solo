@@ -54,7 +54,7 @@ public abstract class Order {
 	
 	@JsonProperty
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-	@JoinColumn(name = "orderId")
+	@JoinColumn(name = "orderId", referencedColumnName = "id", nullable = false, insertable=true, updatable=false)
 	protected List<Item> items;	
 	
 	//TODO: dates

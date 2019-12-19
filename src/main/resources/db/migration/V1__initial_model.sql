@@ -1,12 +1,11 @@
-
 create table item (
-   id  serial not null,
+   id  bigserial not null,
 	discount varchar(255),
 	name varchar(255),
 	price varchar(255),
 	quantity int4 not null,
 	tax_rate varchar(255),
-	order_id int8,
+	order_id int8 not null,
 	primary key (id)
 )
 ; 
@@ -36,7 +35,7 @@ create table managed_order (
 	is_tender_sent boolean,
 	note varchar(255),
 	payment_date timestamp,
-	payment_type int4,
+	payment_type varchar(255),
 	shopify_order_id varchar(255),
 	shopify_order_number varchar(255),
 	tender_id varchar(255),
@@ -47,19 +46,19 @@ create table managed_order (
 ; 
 
 alter table if exists managed_order 
-   add constraint managed_order_invoice_id_unique unique (invoice_id)
+   add constraint UK_managed_order_invoice_id unique (invoice_id)
 ; 
 
 alter table if exists managed_order 
-   add constraint managed_order_shopify_order_id_unique unique (shopify_order_id)
+   add constraint UK_managed_order_shopify_order_id unique (shopify_order_id)
 ; 
 
 alter table if exists managed_order 
-   add constraint managed_order_tender_id_unique unique (tender_id)
+   add constraint UK_managed_order_tender_id unique (tender_id)
 ; 
 
 alter table if exists item 
-   add constraint item_managed_order_fk 
+   add constraint FK_item_managed_order
    foreign key (order_id) 
    references managed_order
 ;

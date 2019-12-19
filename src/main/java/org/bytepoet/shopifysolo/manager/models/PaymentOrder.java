@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Transient;
 
 import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
@@ -44,6 +46,7 @@ public class PaymentOrder extends Order {
 	private String shopifyOrderNumber;
 	
 	@JsonProperty
+	@Enumerated(EnumType.STRING)
 	private PaymentType paymentType;
 
 	@JsonProperty
@@ -82,7 +85,7 @@ public class PaymentOrder extends Order {
 		this.contact = shopifyOrder.getEmail();
 		this.creationDate = shopifyOrder.getCreated();
 		this.paymentType = paymentTypeMapper.getPaymentType(shopifyOrder);
-		
+		this.contact = shopifyOrder.getEmail();
 		this.items = shopifyOrder.getLineItems().stream().map(lineItem -> new Item(lineItem, taxRate)).collect(Collectors.toList());
 	}
 
@@ -109,9 +112,7 @@ public class PaymentOrder extends Order {
 	}
 	
 	private void updateFromSoloBillingObject(SoloBillingObject soloBillingObject) {
-		this.contact = soloBillingObject.getEmail();
 		this.paymentType = PaymentType.fromSoloPaymentType(soloBillingObject.getPaymentType());
-		this.items = soloBillingObject.getProducts().stream().map(product -> new Item(product)).collect(Collectors.toList());
 	}
 
 	@Transient
