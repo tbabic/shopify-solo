@@ -70,7 +70,7 @@ public abstract class Order {
 	private boolean isFulfilled;
 	
 	@JsonProperty
-	private String tackingNumber;
+	private String trackingNumber;
 	
 	@JsonProperty(access = Access.READ_ONLY)
 	private boolean isCanceled;
@@ -151,7 +151,7 @@ public abstract class Order {
 		if (this.personalTakeover) {
 			this.isFulfilled = true;
 		} else {
-			this.tackingNumber = trackingNumber;
+			this.trackingNumber = trackingNumber;
 		}
 	}
 	

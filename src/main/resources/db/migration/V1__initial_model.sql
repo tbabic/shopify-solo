@@ -27,6 +27,7 @@ create table managed_order (
 	phone_number varchar(255),
 	postal_code varchar(255),
 	street_and_number varchar(255),
+	tracking_number varchar(255),
 	currency varchar(255),
 	invoice_id varchar(255),
 	invoice_number varchar(255),
