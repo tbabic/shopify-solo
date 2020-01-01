@@ -65,12 +65,47 @@ var orderTableComponent = new Vue({
 			}
 			
 		},
+		createPostalForm : function() {
+			let addressList = [];
+			for (let orderId in this.shippingOrders) {
+				order = this.shippingOrders[orderId];
+				addressList.push(order.shippingInfo)
+			}
+			$.ajax(
+					{
+						url: "/adresses/postal-form",
+						type: "POST",
+						data: JSON.stringify(addressList),
+						dataType: 'json',
+						contentType: 'application/json; charset=utf-8',  
+						async: false,
+						success: function(response) {
+							
+							var binaryString = window.atob(response.value);
+						    var binaryLen = binaryString.length;
+						    var bytes = new Uint8Array(binaryLen);
+						    for (var i = 0; i < binaryLen; i++) {
+						       var ascii = binaryString.charCodeAt(i);
+						       bytes[i] = ascii;
+						    }
+							
+						    var blob = new Blob([bytes], {type: "application/pdf"});
+						    var link = document.createElement('a');
+						    link.href = window.URL.createObjectURL(blob);
+						    var fileName = "Prijamna knjiga";
+						    link.download = fileName;
+						    link.click();
+						}
+					}
+			);
+			
+		},
 		print : function() {
 			window.print();
 		}
 	},
 	mounted : function () {
-		this.loadOrders(0,20);
+		this.loadOrders(0,50);
 	}
 });
 

@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ArrayUtils;
-import org.bytepoet.shopifysolo.print.models.Address;
 import org.bytepoet.shopifysolo.print.models.Base64Wrapper;
+import org.bytepoet.shopifysolo.print.models.PostalFormAddress;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -52,7 +52,7 @@ public class PrintAddressService {
 	@Autowired
 	private EncryptionService encryptionService;
 	
-	public Base64Wrapper printToPostalFormPdf(List<Address> addressList) throws Exception {
+	public Base64Wrapper printToPostalFormPdf(List<? extends PostalFormAddress> addressList) throws Exception {
 		Document document = new Document(PageSize.A4.rotate(), mmToUnit(LEFT_MARGIN), 10f, mmToUnit(TOP_MARGIN), 0f);
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		PdfWriter writer = PdfWriter.getInstance(document, outputStream);
@@ -74,7 +74,7 @@ public class PrintAddressService {
 			if (addressList.size() < end) {
 				end = addressList.size();
 			}
-			List<Address> adressesOnPage = addressList.subList(start, end);
+			List<? extends PostalFormAddress> adressesOnPage = addressList.subList(start, end);
 			addPage(document, adressesOnPage, page);
 		}
 		
@@ -88,7 +88,9 @@ public class PrintAddressService {
 		
 	}
 	
-	private void addPage(Document document, List<Address> adressesOnPage, int page) throws Exception {
+	
+	
+	private void addPage(Document document, List<? extends PostalFormAddress> adressesOnPage, int page) throws Exception {
 		document.newPage();
 		List<Float> widthList = Arrays.asList(COLUMN_WIDTHS_IN_MM).stream().map(f -> mmToUnit(f)).collect(Collectors.toList());
 		float[] columnWidths = ArrayUtils.toPrimitive(widthList.toArray(new Float[0]));
@@ -105,7 +107,7 @@ public class PrintAddressService {
 	}
 	
 	
-	private void addRow(PdfPTable table, Address address, int rowNumber) {
+	private void addRow(PdfPTable table, PostalFormAddress address, int rowNumber) {
 	    addToTable(table, new Integer(rowNumber).toString(), 5, ROW_HEIGHT);
 	    addToTable(table, "", 34f, ROW_HEIGHT);
 	    

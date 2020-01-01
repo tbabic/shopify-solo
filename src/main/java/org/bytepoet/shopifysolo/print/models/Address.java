@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Address {
+public class Address implements PostalFormAddress {
 
 	@JsonProperty
 	private String fullName;
@@ -136,6 +136,7 @@ public class Address {
 		return false;
 	}
 	
+	@Override
 	public String getFullRecepient() {
 		if (StringUtils.isNotBlank(fullRecepient)) {
 			return fullRecepient;
@@ -154,6 +155,7 @@ public class Address {
 		return fullRecepient;
 	}
 	
+	@Override
 	public String getFullAddress() {
 		if (StringUtils.isNotBlank(fullAddress)) {
 			return fullAddress;
@@ -167,6 +169,7 @@ public class Address {
 		return fullAddress;
 	}
 	
+	@Override
 	public String getFullDestination() {
 		if (StringUtils.isNotBlank(fullDestination)) {
 			return fullDestination;

@@ -24,9 +24,9 @@
 		<div id="app">
 			<div id="ordersTable" class="row">
 				<div class="col">
-					<table class="table">
+					<table class="table small">
 						<thead class="thead-dark">
-							<tr><th colspan="9">
+							<tr><th colspan="10">
 									<div id="ordersFilters" class="row">
 										<div class="col">
 											<span class="label label-default">Poslano:</span>
@@ -86,6 +86,7 @@
 									</div>
 							</th></tr>
 							<tr>
+								<th>rbr</th>
 								<th>racun</th>
 								<th>e-mail</th>
 								<th>ponuda</th>
@@ -101,6 +102,7 @@
 							<tr v-for="order in orders"
 									v-bind:class="'clickable-row ' + (isSelected(order) ? 'highlight' : '')"
 									v-on:click="selectOrder(order)">
+								<td class="invoice_number">{{ order.id }}</td>
 								<td class="invoice_number">{{ order.invoiceNumber }}</td>
 								<td class="contact">{{ order.contact }}</td>
 								<td>{{ order.tenderNumber }}</td>
@@ -132,6 +134,7 @@
 						</div>
 					</div>
 					<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#printModal">Ispis adresa</button>
+					<button type="button" class="btn btn-primary" v-on:click="createPostalForm">Prijamna knjiga</button>
 				</div>
 				<div class="modal fade" id=printModal role="dialog">
 					<div class="modal-dialog" role="document">

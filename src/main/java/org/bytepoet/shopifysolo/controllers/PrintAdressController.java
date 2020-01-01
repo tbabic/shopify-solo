@@ -28,4 +28,9 @@ public class PrintAdressController {
 	public Base64Wrapper parseAddress(@RequestBody List<Address> addressList) throws Exception {
 		return printAddressService.printToPostalFormPdf(addressList);
 	}
+	
+	@PostMapping("/postal-form") 
+	public Base64Wrapper printAddresses(@RequestBody List<org.bytepoet.shopifysolo.manager.models.Address> addressList) throws Exception {
+		return printAddressService.printToPostalFormPdf(addressList);
+	}
 }
