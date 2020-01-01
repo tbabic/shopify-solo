@@ -16,6 +16,11 @@ public class GiveawayOrder extends Order {
 	public GiveawayOrder() {
 		
 	}
+
+	@Override
+	public String getShippingSnapshot() {
+		return giveawayPlatform + ": " + contact;
+	}
 	
 	
 	

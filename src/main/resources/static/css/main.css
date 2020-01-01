@@ -1,3 +1,11 @@
+#printModal .modal-dialog {
+	max-width: 700px;
+}
+
+.modal-wide {
+	max-width: 1000px;
+}
+
 .multiple-address-input {
 	min-width: 100%;
 	min-height: 500px;
@@ -6,4 +14,57 @@
 .table-cell-input {
 	min-width: 100%;
 	min-height: 100%;
+}
+
+
+.clickable-row.highlight {
+	background-color: lightgray !important;
+}
+
+.btn-filter {
+	background-color: lightgray;
+}
+
+.btn-filter.active {
+	background-color: gray;
+}
+
+.chevron::before {
+	color: black;
+	border-style: solid;
+	border-width: 0.25em 0.25em 0 0;
+	content: '';
+	display: inline-block;
+	height: 0.45em;
+	left: 0.15em;
+	position: relative;
+	top: 0.15em;
+	transform: rotate(-45deg);
+	vertical-align: top;
+	width: 0.45em;
+}
+
+.chevron.right:before {
+	left: 0;
+	transform: rotate(45deg);
+}
+
+.chevron.bottom:before {
+	top: 0;
+	transform: rotate(135deg);
+}
+
+.chevron.left:before {
+	left: 0.25em;
+	transform: rotate(-135deg);
+}
+
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable * {
+    visibility: visible !important;
+  }
 }

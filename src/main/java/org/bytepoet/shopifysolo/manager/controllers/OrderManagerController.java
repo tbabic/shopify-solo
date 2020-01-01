@@ -91,7 +91,7 @@ public class OrderManagerController {
 					predicates.add(criteriaBuilder.equal(actualRoot.get("isFulfilled"), !isOpen.booleanValue()));
 				}
 				if(isPersonalTakeover != null) {
-					predicates.add(criteriaBuilder.equal(actualRoot.get("isPersonalTakeover"), isPersonalTakeover.booleanValue()));
+					predicates.add(criteriaBuilder.equal(actualRoot.get("personalTakeover"), isPersonalTakeover.booleanValue()));
 				}
 				
 				return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
@@ -115,8 +115,16 @@ public class OrderManagerController {
 		return order;
 	}
 	
+	@RequestMapping(path="/{id}/processFulfillment", method=RequestMethod.POST)
+	public void fullfilment(@PathVariable("id") Long orderId, @RequestParam(name="trackingNumber", required=false) String trackingNumber) {
+		Order order = orderRepository.getOne(orderId);
+		order.fulfill(trackingNumber);
+		//TODO: send email if it's not personal takeover
+		
+	}
+	
 	@RequestMapping(path="/{id}/processPayment", method=RequestMethod.POST)
-	public Order processPayment(@PathVariable("id") Long orderId, @RequestParam(name="paymentDate", required=false) Date paymentDate) {
+	public void processPayment(@PathVariable("id") Long orderId, @RequestParam(name="paymentDate", required=false) Date paymentDate) {
 		Order order = orderRepository.getOne(orderId);
 		if (!(order instanceof PaymentOrder)) {
 			throw new RuntimeException("Order with id: " + orderId + " is not payment order");
@@ -124,7 +132,7 @@ public class OrderManagerController {
 		PaymentOrder paymentOrder = (PaymentOrder) order;
 		SoloInvoice soloInvoice = soloApiClient.createInvoice(orderToSoloInvoiceMapper.map(paymentOrder));
 		paymentOrder.updateFromSoloInvoice(soloInvoice, paymentDate);
-		return paymentOrder;
+		//TODO: send email
 	}
 	
 }

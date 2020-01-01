@@ -2,6 +2,8 @@ package org.bytepoet.shopifysolo.manager.models;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.persistence.CascadeType;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
@@ -13,7 +15,7 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
-
+import javax.persistence.Transient;
 import javax.persistence.DiscriminatorType;
 import javax.persistence.Embedded;
 
@@ -66,6 +68,9 @@ public abstract class Order {
 	
 	@JsonProperty(access = Access.READ_ONLY)
 	private boolean isFulfilled;
+	
+	@JsonProperty
+	private String tackingNumber;
 	
 	@JsonProperty(access = Access.READ_ONLY)
 	private boolean isCanceled;
@@ -133,8 +138,22 @@ public abstract class Order {
 		return contact;
 	}
 	
+	public double getTotalPrice() {
+		return items.stream().map(i -> Double.parseDouble(i.getPrice())).collect(Collectors.summingDouble(Double::doubleValue));
+	}
+	
+	@Transient
+	@JsonProperty(access = Access.READ_ONLY)
+	public abstract String getShippingSnapshot();
 	
 	
+	public void fulfill(String trackingNumber) {
+		if (this.personalTakeover) {
+			this.isFulfilled = true;
+		} else {
+			this.tackingNumber = trackingNumber;
+		}
+	}
 	
 	
 	

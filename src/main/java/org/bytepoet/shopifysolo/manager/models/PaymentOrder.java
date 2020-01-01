@@ -97,7 +97,7 @@ public class PaymentOrder extends Order {
 		}
 		this.isPaid = true;
 		this.paymentDate = paymentDate;
-		if (this.sendingDate != null) {
+		if (this.sendingDate == null) {
 			Calendar calendar = Calendar.getInstance();
 			calendar.add(Calendar.DATE, WAITING_LIST_PERIOD);
 			this.sendingDate = calendar.getTime();
@@ -174,6 +174,11 @@ public class PaymentOrder extends Order {
 
 	public String getInvoiceId() {
 		return invoiceId;
+	}
+
+	@Override
+	public String getShippingSnapshot() {
+		return invoiceNumber + " " + contact;
 	}	
 	
 }

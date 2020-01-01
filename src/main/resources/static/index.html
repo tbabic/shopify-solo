@@ -2,14 +2,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
+	<link rel="stylesheet" type="text/css" href="css/main.css"/>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
 	<script src="https://unpkg.com/vue@2.5.16/dist/vue.js"></script>
 	<script src="https://unpkg.com/vue-router@3.0.1/dist/vue-router.js"></script>
-	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
 	<script src="js/http-vue.js"></script>
+	<script src="js/main.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/4.4.0/font/octicons.css"/>
 	
 	
 	
@@ -18,38 +21,154 @@
 <body>
 	<div class="container-fluid">
 		<div id="app">
-			<div id="ordersTable">
-				<table class="table table-striped">
-					<thead class="thead-dark">
-						<tr>
-							<th>racun</th>
-							<th>e-mail</th>
-							<th>ponuda</th>
-							<th>webshop narudzba</th>
-							<th>adresa</th>
-							<th>model</th>
-							<th>uplata</th>
-							<th>nacin placanja</th>
-						</tr>
-					<thead>
-					<tbody>
-						<tr v-for="order in orders">
-							<td>?</td>
-							<td>{{ order.email }}</td>
-							<td>?</td>
-							<td>{{ order.orderNumber }}</td>
-							<td><pre>{{ order.shippingAddress }}</pre></td>
-							<td>
-								<span v-for="item in order.itemNames">
-									{{ item }},
-								</span>
-							</td>
-							<td>{{ order.totalPrice }}</td>
-							<td>{{ order.paymentGateway }}</td>
-						</tr>
-						
-					</tbody>
-				</table>
+			<div id="ordersTable" class="row">
+				<div class="col">
+					<table class="table">
+						<thead class="thead-dark">
+							<tr><th colspan="9">
+									<div id="ordersFilters" class="row">
+										<div class="col">
+											<span class="label label-default">Poslano:</span>
+											<div class="btn-group" role="group">
+												<button type="button" data-value="false" v-on:click="filtering('open', $event)" v-bind:class="'btn btn-filter ' + (filters.open == false ? 'active' : '')">
+													Da
+												</button>
+												<button type="button" data-value="true" v-on:click="filtering('open', $event)" v-bind:class="'btn btn-filter ' + (filters.open == true ? 'active' : '')">
+													Ne
+												</button>
+											</div>
+										</div>
+										
+										<div class="col">
+											<span class="label label-default">Placeno:</span>
+											<div class="btn-group" role="group">
+												<button type="button" data-value="true" v-on:click="filtering('paid', $event)" v-bind:class="'btn btn-filter ' + (filters.paid == true ? 'active' : '')">
+													Da
+												</button>
+												<button type="button" data-value="false" v-on:click="filtering('paid', $event)" v-bind:class="'btn btn-filter ' + (filters.paid == false ? 'active' : '')">
+													Ne
+												</button>
+											</div>
+										</div>
+										
+										<div class="col">
+											<span class="label label-default">Osobno preuzimanje:</span>
+											<div class="btn-group" role="group">
+												<button type="button" data-value="true" v-on:click="filtering('personalTakeover', $event)" v-bind:class="'btn btn-filter ' + (filters.personalTakeover == true ? 'active' : '')">
+													Da
+												</button>
+												<button type="button" data-value="false" v-on:click="filtering('personalTakeover', $event)" v-bind:class="'btn btn-filter ' + (filters.personalTakeover == false ? 'active' : '')">
+													Ne
+												</button>
+											</div>
+										</div>
+										
+										<div class="col">
+											<span class="label label-default">Tip:</span>
+											<div class="btn-group" role="group">
+												<button type="button" data-value="PAYMENT" v-on:click="filtering('type', $event)" v-bind:class="'btn btn-filter ' + (filters.type == 'PAYMENT' ? 'active' : '')">
+													Narudzba
+												</button>
+												<button type="button" data-value="GIVEAWAY" v-on:click="filtering('type', $event)" v-bind:class="'btn btn-filter ' + (filters.type == 'GIVEAWAY' ? 'active' : '')">
+													Giveaway
+												</button>
+											</div>
+										</div>
+										
+										<div class="col-1">
+											<button type="button" class="btn btn-default" data-toggle="collapse" data-target="#shippingDrawer">
+												
+												<img src="/icons/reply.svg" alt="" width="32" height="32" title="left">
+											</button>
+										</div>
+										
+									</div>
+							</th></tr>
+							<tr>
+								<th>racun</th>
+								<th>e-mail</th>
+								<th>ponuda</th>
+								<th>webshop narudzba</th>
+								<th>model</th>
+								<th>uplata</th>
+								<th>nacin placanja</th>
+								<th>naruceno</th>
+								<th>poslati</th>
+							</tr>
+						</thead>
+						<tbody class="">
+							<tr v-for="order in orders"
+									v-bind:class="'clickable-row ' + (isSelected(order) ? 'highlight' : '')"
+									v-on:click="selectOrder(order)">
+								<td class="invoice_number">{{ order.invoiceNumber }}</td>
+								<td class="contact">{{ order.contact }}</td>
+								<td>{{ order.tenderNumber }}</td>
+								<td>{{ order.shopifyOrderNumber }}</td>
+								<td>
+									<span v-for="item in order.items">
+										{{ item.name }},
+									</span>
+								</td>
+								<td>{{ order.totalPrice }}</td>
+								<td>{{ order.paymentType }}</td>
+								<td>{{ formatDate(order.paymentDate) }}</td>
+								<td class="">{{ formatDate(order.sendingDate) }}</td>
+							</tr>
+							
+						</tbody>
+					</table>
+					<button type="button" class="btn btn-primary" v-on:click="loadOrders(0,20)">Ucitaj</button>
+					<button type="button" class="btn btn-primary" v-on:click="addOrdersForShipping">Salji</button>
+				</div>
+				<div id="shippingDrawer" class="col-2 collapse">
+					<div v-for="shippingOrder in shippingOrders" class="row">
+						<div class="col">
+							{{ shippingOrder.shippingSnapshot }}
+						</div>
+						<div class="col-2">
+							<button type="button" class="btn btn-primary" v-on:click="removeShippingOrder(shippingOrder)">-</button>
+						</div>
+					</div>
+					<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#printModal">Ispis adresa</button>
+				</div>
+				<div class="modal fade" id=printModal role="dialog">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Print</h5>
+								<button type="button" class="close" data-dismiss="modal">
+									<span>&times;</span>
+								</button>
+							</div>
+							<div id="printContent" class="modal-body printable">
+								<div  class="row">
+									<div v-for="shippingOrder in shippingOrders" class="col-4">
+										<div class="row">
+											{{ shippingOrder.shippingInfo.fullName }}
+										</div>
+										<div class="row">
+											{{ shippingOrder.shippingInfo.streetAndNumber }}
+										</div>
+										<div class="row">
+											{{ shippingOrder.shippingInfo.other }}
+										</div>
+										<div class="row">
+											{{ shippingOrder.shippingInfo.postalCode }}, {{ shippingOrder.shippingInfo.city }}
+										</div>
+										<div class="row" v-if="shippingOrder.shippingInfo.country != 'Croatia' ">
+											{{ shippingOrder.shippingInfo.country }}
+										</div>
+									</div>
+								</div>
+							
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Zatvori</button>
+								<button type="button" class="btn btn-primary" v-on:click="print" >Ispisi adrese</button>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
