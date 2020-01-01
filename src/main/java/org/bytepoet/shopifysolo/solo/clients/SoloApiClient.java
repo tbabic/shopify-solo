@@ -173,7 +173,7 @@ public class SoloApiClient {
 			builder.number(tender.get("broj_ponude").toString());
 						
 			// common fields
-			map(invoice, builder);
+			map(tender, builder);
 			return builder.build();
 		}
 
