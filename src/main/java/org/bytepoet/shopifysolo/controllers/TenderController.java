@@ -62,6 +62,9 @@ public class TenderController {
 	
 	@Value("${solofy.tax-rate:}")
 	private String taxRate;
+	
+	@Value("${soloapi.shipping-title}")
+	private String shippingTitle;
 
 	
 	@PostMapping
@@ -74,7 +77,7 @@ public class TenderController {
 		PaymentOrder order;
 		synchronized(this.getClass()) {
 			order = orderRepository.getOrderWithShopifyId(shopifyOrder.getId()).orElseGet(() -> {
-				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, paymentTypeMapper, taxRate));
+				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, paymentTypeMapper, taxRate, shippingTitle));
 			});
 		}
 		

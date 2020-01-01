@@ -47,6 +47,16 @@ public class Item {
 		this.discount = lineItem.getDiscountPercent();
 		this.taxRate = taxRate;
 	}
+	
+	
+
+	Item(String name, String price, int quantity, String discount, String taxRate) {
+		this.name = name;
+		this.price = price;
+		this.quantity = quantity;
+		this.discount = discount;
+		this.taxRate = taxRate;
+	}
 
 	public String getName() {
 		return name;
