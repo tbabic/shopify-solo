@@ -41,7 +41,7 @@ var orderTableComponent = new Vue({
 			if (dateString == undefined || dateString == null) {
 				return "";
 			}
-			return (new Date(dateString)).toLocaleDateString('hr');
+			return (new Date(dateString)).toLocaleString('hr');
 		},
 		selectOrder : function(order) {
 			if(this.isSelected(order)) {
