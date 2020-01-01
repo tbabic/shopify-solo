@@ -2,6 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
+	<meta http-equiv="Content-type" content="text/html; charset=UTF-8">
 	<link rel="stylesheet" type="text/css" href="css/main.css"/>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -106,7 +107,8 @@
 								<td>{{ order.shopifyOrderNumber }}</td>
 								<td>
 									<span v-for="item in order.items">
-										{{ item.name }},
+										<span v-if="item.name !== 'Preporučena poštarina'">{{ item.name }}, </span>
+										
 									</span>
 								</td>
 								<td>{{ order.totalPrice }}</td>
