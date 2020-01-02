@@ -102,6 +102,9 @@ public class ShopifyApiClient {
 			      .build();
 		Response response = client.newCall(request).execute();
 		String responseBodyString = response.body().string();
+		if (!response.isSuccessful()) {
+			throw new RuntimeException("Could not fetch shopify transactions: " + responseBodyString);
+		}
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		TransactionsWrapper wrapper = mapper.readValue(responseBodyString, TransactionsWrapper.class);
