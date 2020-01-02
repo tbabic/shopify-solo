@@ -15,4 +15,7 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 	
 	@Query(value="select order from PaymentOrder order where order.shopifyOrderId = :shopifyId")
 	Optional<PaymentOrder> getOrderWithShopifyId(@Param("shopifyId") String shopifyId);
+	
+	@Query(value="select order from PaymentOrder order where order.id = :id")
+	Optional<PaymentOrder> getPaymentOrderById(@Param("id") Long id);
 }

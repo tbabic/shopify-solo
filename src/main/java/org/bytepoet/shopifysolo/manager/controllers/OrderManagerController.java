@@ -1,5 +1,6 @@
 package org.bytepoet.shopifysolo.manager.controllers;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -15,6 +16,9 @@ import org.bytepoet.shopifysolo.manager.models.OrderType;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.mappers.OrderToSoloInvoiceMapper;
+import org.bytepoet.shopifysolo.services.SoloMaillingService;
+import org.bytepoet.shopifysolo.shopify.clients.ShopifyApiClient;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
 import org.bytepoet.shopifysolo.solo.clients.SoloApiClient;
 import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,14 +39,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/manager/orders")
 public class OrderManagerController {
 	
-	@Value("${shopify.api.host}")
-	private String clientHost;
-	
-	@Value("${shopify.api.key}")
-	private String clientUsername;
-	
-	@Value("${shopify.api.password}")
-	private String clientPassword;
+	@Autowired
+	private ShopifyApiClient shopifyApiClient;
 	
 	@Autowired
 	private SoloApiClient soloApiClient;
@@ -52,6 +50,18 @@ public class OrderManagerController {
 	
 	@Autowired
 	private OrderRepository orderRepository;
+	
+	@Autowired
+	private SoloMaillingService soloMaillingService;
+	
+	@Value("${email.subject}")
+	private String subject;
+	
+	@Value("${email.body}")
+	private String body;
+	
+	@Value("${email.always-bcc:}")
+	private String alwaysBcc;
 	
 	
 
@@ -115,7 +125,7 @@ public class OrderManagerController {
 		return order;
 	}
 	
-	@RequestMapping(path="/{id}/processFulfillment", method=RequestMethod.POST)
+	@RequestMapping(path="/{id}/process-fulfillment", method=RequestMethod.POST)
 	public void fullfilment(@PathVariable("id") Long orderId, @RequestParam(name="trackingNumber", required=false) String trackingNumber) {
 		Order order = orderRepository.getOne(orderId);
 		order.fulfill(trackingNumber);
@@ -123,16 +133,31 @@ public class OrderManagerController {
 		
 	}
 	
-	@RequestMapping(path="/{id}/processPayment", method=RequestMethod.POST)
-	public void processPayment(@PathVariable("id") Long orderId, @RequestParam(name="paymentDate", required=false) Date paymentDate) {
-		Order order = orderRepository.getOne(orderId);
-		if (!(order instanceof PaymentOrder)) {
-			throw new RuntimeException("Order with id: " + orderId + " is not payment order");
+	@RequestMapping(path="/{id}/process-payment", method=RequestMethod.POST)
+	public void processPayment(@PathVariable("id") Long orderId, @RequestParam(name="paymentDate", required=false) Date paymentDate) throws Exception {
+		PaymentOrder paymentOrder = orderRepository.getPaymentOrderById(orderId).get();
+		if (paymentOrder.isPaid()) {
+			throw new RuntimeException("Order is already paid for"); 
 		}
-		PaymentOrder paymentOrder = (PaymentOrder) order;
+		
+		List<ShopifyTransaction> transactions  = shopifyApiClient.getTransactions(paymentOrder.getShopifyOrderId());
+		if (transactions.size() != 1) {
+			throw new RuntimeException(MessageFormat.format("Order has {0} tranasctions but must have 1", transactions.size())); 
+		}
+		ShopifyTransaction transaction = transactions.get(0);
+		if (!"pending".equalsIgnoreCase(transaction.getStatus())) {
+			throw new RuntimeException(MessageFormat.format("Transaction status is {0} but must be 'pending'", transaction.getStatus())); 
+		}
+		
 		SoloInvoice soloInvoice = soloApiClient.createInvoice(orderToSoloInvoiceMapper.map(paymentOrder));
 		paymentOrder.updateFromSoloInvoice(soloInvoice, paymentDate);
-		//TODO: send email
+		
+		orderRepository.save(paymentOrder);
+		soloMaillingService.sendEmailWithPdf(paymentOrder.getEmail(), alwaysBcc, soloInvoice.getPdfUrl(), subject, body);
+		paymentOrder.setReceiptSent(true);
+		orderRepository.save(paymentOrder);
+		
+		shopifyApiClient.createTransaction(transaction.createNewTransaction(), paymentOrder.getShopifyOrderId());
 	}
 	
 }

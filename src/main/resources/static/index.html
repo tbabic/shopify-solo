@@ -26,7 +26,7 @@
 				<div class="col">
 					<table class="table small">
 						<thead class="thead-dark">
-							<tr><th colspan="10">
+							<tr><th colspan="11">
 									<div id="ordersFilters" class="row">
 										<div class="col">
 											<span class="label label-default">Poslano:</span>
@@ -96,6 +96,7 @@
 								<th>nacin placanja</th>
 								<th>naruceno</th>
 								<th>poslati</th>
+								<th>akcije</th>
 							</tr>
 						</thead>
 						<tbody class="">
@@ -120,6 +121,9 @@
 								</td>
 								<td>{{ formatDate(order.paymentDate) }}</td>
 								<td class="">{{ formatDate(order.sendingDate) }}</td>
+								<td>
+									<button  v-if="!order.isPaid " type="button" class="btn btn-primary" v-on:click="processPayment(order)">P</button>
+								</td>
 							</tr>
 							
 						</tbody>
@@ -168,8 +172,7 @@
 										</div>
 									</div>
 								</div>
-							
-<!-- 							</div> -->
+							</div>
 							<div class="modal-footer">
 								<button type="button" class="btn btn-secondary" data-dismiss="modal">Zatvori</button>
 								<button type="button" class="btn btn-primary" v-on:click="print" >Ispisi adrese</button>

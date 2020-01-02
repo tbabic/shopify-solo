@@ -102,6 +102,12 @@ var orderTableComponent = new Vue({
 		},
 		print : function() {
 			window.print();
+		},
+		processPayment: function(order) {
+			let url = '/manager/orders/' + order.id + '/process-payment'
+			axios.post(url).then(function(response) {
+				console.log(response);
+			});
 		}
 	},
 	mounted : function () {

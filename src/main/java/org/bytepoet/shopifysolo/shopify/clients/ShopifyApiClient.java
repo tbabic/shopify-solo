@@ -5,7 +5,9 @@ import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateTransaction;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -19,14 +21,18 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import okhttp3.Credentials;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 @Service
 public class ShopifyApiClient {
 	
-private static final String ENDPOINT_FORMAT = "https://{0}/admin/api/2019-04/orders.json";
+	private static final String ENDPOINT_FORMAT = "https://{0}/admin/api/2019-04/orders.json";
+	
+	private static final String TRANSACTION_ENDPOINT_FORMAT = "https://{0}/admin/api/2020-01/orders/{1}/transactions.json";
 	
 	private static final String SHOPIFY_DATE_PATTERN = "";
 	
@@ -82,12 +88,49 @@ private static final String ENDPOINT_FORMAT = "https://{0}/admin/api/2019-04/ord
 		return wrapper.orders;
 	}
 	
+	private static class TransactionsWrapper {
+		@JsonProperty
+		private List<ShopifyTransaction> transactions;
+	}
+	
+	public List<ShopifyTransaction> getTransactions(String orderId) throws Exception {
+		OkHttpClient client = new OkHttpClient();
+		String url = MessageFormat.format(TRANSACTION_ENDPOINT_FORMAT, clientHost, orderId);
+		Request request = new Request.Builder()
+			      .url(url)
+			      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+			      .build();
+		Response response = client.newCall(request).execute();
+		String responseBodyString = response.body().string();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		TransactionsWrapper wrapper = mapper.readValue(responseBodyString, TransactionsWrapper.class);
+		return wrapper.transactions;
+	}
+	
+	public void createTransaction(ShopifyCreateTransaction shopifyCreateTransaction, String orderId) throws Exception {
+		OkHttpClient client = new OkHttpClient();
+		String url = MessageFormat.format(TRANSACTION_ENDPOINT_FORMAT, clientHost, orderId);
+		
+		ObjectMapper mapper = new ObjectMapper();
+		String requestBody = mapper.writeValueAsString(shopifyCreateTransaction);
+		Request request = new Request.Builder()
+				.url(url)
+				.header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+				.post(RequestBody.create(MediaType.get("application/json"), requestBody))
+				.build();
+		Response response = client.newCall(request).execute();
+		String responseBody = response.body().string();
+		if (!response.isSuccessful()) {
+			throw new RuntimeException("Could not create shopify transaction: " + responseBody);
+		}
+	}
+	
 	private String buildUri(String url, MultiValueMap<String, String> params) {
 	    UriComponents uriComponents = UriComponentsBuilder.newInstance()
 	            .queryParams(params).build();
 
 	   return url+uriComponents.toString();
 	}
-	
 	
 }
