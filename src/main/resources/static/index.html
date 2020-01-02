@@ -114,7 +114,10 @@
 									</span>
 								</td>
 								<td>{{ order.totalPrice }} kn</td>
-								<td>{{ order.paymentType }}</td>
+								<td>
+									<img v-if="order.paymentType == 'CREDIT_CARD' " src="/icons/credit-card.svg" alt="" width="32" height="32" title="left"/>
+									<img v-if="order.paymentType == 'BANK_TRANSACTION' " src="/icons/document-diff.svg" alt="" width="32" height="32" title="left"/>
+								</td>
 								<td>{{ formatDate(order.paymentDate) }}</td>
 								<td class="">{{ formatDate(order.sendingDate) }}</td>
 							</tr>
