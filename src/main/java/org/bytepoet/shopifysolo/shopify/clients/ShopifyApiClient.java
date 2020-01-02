@@ -8,6 +8,9 @@ import java.util.List;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateTransaction;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
+import org.bytepoet.shopifysolo.solo.clients.SoloApiClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,8 @@ import okhttp3.Response;
 
 @Service
 public class ShopifyApiClient {
+	
+	private static final Logger logger = LoggerFactory.getLogger(ShopifyApiClient.class);
 	
 	private static final String ENDPOINT_FORMAT = "https://{0}/admin/api/2019-04/orders.json";
 	
@@ -103,6 +108,11 @@ public class ShopifyApiClient {
 		Response response = client.newCall(request).execute();
 		String responseBodyString = response.body().string();
 		if (!response.isSuccessful()) {
+			logger.error("Url: " + url);
+			logger.error("Authorization: " + Credentials.basic(clientUsername, clientPassword));
+			logger.error("Client host: " + clientHost);
+			logger.error("Client username: " + clientUsername);
+			logger.error("Client password: " + clientPassword);
 			throw new RuntimeException("Could not fetch shopify transactions: " + responseBodyString);
 		}
 		ObjectMapper mapper = new ObjectMapper();
