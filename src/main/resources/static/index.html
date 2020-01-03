@@ -24,9 +24,10 @@
 		<div id="app">
 			<div id="ordersTable" class="row">
 				<div class="col">
-					<table class="table small">
+					<table class="table small table-fix-header">
 						<thead class="thead-dark">
-							<tr><th colspan="11">
+							<tr class="sticky-header">
+								<th colspan="11">
 									<div id="ordersFilters" class="row">
 										<div class="col">
 											<span class="label label-default">Poslano:</span>
@@ -84,7 +85,26 @@
 										</div>
 										
 									</div>
-							</th></tr>
+									
+									<div class="row">
+										<div class="col-1">
+											<button type="button" class="btn btn-default" v-on:click="previousPage" v-bind:disabled="pagination.isFirst">
+												
+												<img src="/icons/arrow-left.svg" alt="" width="16" height="16" title="left">
+											</button>
+										</div>
+										<div class="col-1">
+											{{ pagination.startElement }} - {{ pagination.endElement }} / {{ pagination.totalElements }}
+										</div>
+										<div class="col-1">
+											<button type="button" class="btn btn-default" v-on:click="nextPage" v-bind:disabled="pagination.isLast">
+												
+												<img src="/icons/arrow-right.svg" alt="" width="16" height="16" title="left">
+											</button>
+										</div>
+									</div>
+								</th>
+							</tr>
 							<tr>
 								<th>rbr</th>
 								<th>racun</th>
@@ -122,7 +142,7 @@
 								<td>{{ formatDate(order.paymentDate) }}</td>
 								<td class="">{{ formatDate(order.sendingDate) }}</td>
 								<td>
-									<button  v-if="!order.isPaid " type="button" class="btn btn-primary" v-on:click="processPayment(order)">P</button>
+									<button  v-if="!order.isPaid " type="button" class="btn btn-primary" v-on:click.stop="selectOrderForPayment(order, '#paymentModal')">P</button>
 								</td>
 							</tr>
 							
@@ -143,6 +163,30 @@
 					<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#printModal">Ispis adresa</button>
 					<button type="button" class="btn btn-primary" v-on:click="createPostalForm">Prijamna knjiga</button>
 				</div>
+				<div class="modal fade" id=paymentModal role="dialog">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Print</h5>
+								<button type="button" class="close" data-dismiss="modal">
+									<span>&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<div  class="row">
+									<div class="col">
+										Označi ponudu: {{ paymentOrder.tenderNumber }} kao plaćenu?
+									</div>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button  type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="confirmPayment(paymentOrder)">Potvrdi</button>
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				
 				<div class="modal fade" id=printModal role="dialog">
 					<div class="modal-dialog" role="document">
 						<div class="modal-content">

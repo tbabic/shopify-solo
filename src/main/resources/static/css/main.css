@@ -17,6 +17,19 @@
 }
 
 
+
+
+.table-fix-header {
+	position: relative;
+	overflow-y: auto;
+}
+
+.table-fix-header thead tr.sticky-header th { 
+	position: sticky; 
+	top: 0; 
+}
+
+
 .clickable-row.highlight {
 	background-color: lightgray !important;
 }

@@ -3,9 +3,20 @@ var orderTableComponent = new Vue({
 	el:"#ordersTable",
 	data: {
 		filters: {},
+		pagination: {
+			page: 0,
+			size: 50,
+			startElement: 0,
+			endElement: 0,
+			totalElements: 0,
+			totalPages: 0,
+			isFirst: true,
+			isLast: true
+		},
 		orders: [],
 		selectedOrders: {},
-		shippingOrders: {}
+		shippingOrders: {},
+		paymentOrder: {}
 	},
 	methods: {
 		filtering(property, event) {
@@ -15,12 +26,27 @@ var orderTableComponent = new Vue({
 			} else {
 				Vue.set(this.filters, property, value);
 			}
+			this.loadOrders();
 	
 		},
-		loadOrders : function(page, size) {
+		nextPage : function() {
+			if (this.pagination.isLast) {
+				return;
+			}
+			this.pagination.page++;
+			this.loadOrders();
+		},
+		previousPage : function() {
+			if (this.pagination.isFirst) {
+				return;
+			}
+			this.pagination.page--;
+			this.loadOrders();
+		},
+		loadOrders : function() {
 			params = {
-				page : page,
-				size : size
+				page : this.pagination.page,
+				size : this.pagination.size
 			}
 			for (let prop in this.filters){
 				if(this.filters.hasOwnProperty(prop)){
@@ -32,6 +58,17 @@ var orderTableComponent = new Vue({
 			axios.get('/manager/orders', {
 				params: params
 			}).then(response => {
+				this.pagination.page = response.data.number;
+				this.pagination.size = response.data.size;
+				this.pagination.totalElements = response.data.totalElements;
+				this.pagination.totalPages = response.data.totalPages;
+				this.pagination.isLast = response.data.last;
+				this.pagination.isFirst = response.data.first;
+				
+				this.pagination.startElement = this.pagination.page * this.pagination.size +1; 
+				
+				this.pagination.endElement = (!this.pagination.isLast) ? this.pagination.startElement +this.pagination.size-1 : this.pagination.totalElements;
+				
 				this.orders.splice(0,this.orders.length);
 				response.data.content.forEach(order => this.orders.push(order));
 			});
@@ -103,7 +140,11 @@ var orderTableComponent = new Vue({
 		print : function() {
 			window.print();
 		},
-		processPayment: function(order) {
+		selectOrderForPayment : function(order, modalId) {
+			this.paymentOrder = order;
+			$(modalId).modal('show');
+		},
+		confirmPayment: function(order) {
 			let url = '/manager/orders/' + order.id + '/process-payment'
 			axios.post(url).then(function(response) {
 				console.log(response);
