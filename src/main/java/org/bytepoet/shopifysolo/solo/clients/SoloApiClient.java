@@ -107,8 +107,7 @@ public class SoloApiClient {
 		
 		String url = buildUri(rootUrl+endpoint,parameters);
 		OkHttpClient client = new OkHttpClient();
-		RequestBody body = RequestBody.create(null, new byte[]{});
-		Request request = new Request.Builder().url(url).post(body).build();
+		Request request = new Request.Builder().url(url).get().build();
 		try {
 			logger.debug("Calling url: " + url);
 			Response response = client.newCall(request).execute();
