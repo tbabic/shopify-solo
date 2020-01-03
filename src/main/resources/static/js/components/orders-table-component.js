@@ -138,6 +138,7 @@ var orderTableComponent = new Vue({
 			$(modalId).modal('show');
 		},
 		confirmPayment: function(order) {
+			this.startLoader();
 			let url = '/manager/orders/' + order.id + '/process-payment'
 			axios.post(url).then(response => {
 				console.log(response);
@@ -149,11 +150,14 @@ var orderTableComponent = new Vue({
 					for (let prop in response.data) {
 						Vue.set(order, prop, response.data[prop]);
 					}
+					this.endLoader();
 					
 				}).catch(error => {
+					this.endLoader();
 					this.showError(error.response.data.message);
 				});
 			}).catch(error => {
+				this.endLoader();
 				this.showError(error.response.data.message);
 			});
 		},
@@ -163,6 +167,12 @@ var orderTableComponent = new Vue({
 			}
 			$("#errorContent").text(errorMsg);
 			$("#errorModal").modal('show');
+		},
+		startLoader : function() {
+			document.getElementById("overlay").style.display = "flex";
+		},
+		endLoader : function() {
+			document.getElementById("overlay").style.display = "none";
 		}
 	},
 	mounted : function () {
