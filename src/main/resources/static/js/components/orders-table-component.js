@@ -108,33 +108,26 @@ var orderTableComponent = new Vue({
 				order = this.shippingOrders[orderId];
 				addressList.push(order.shippingInfo)
 			}
-			$.ajax(
-					{
-						url: "/adresses/postal-form",
-						type: "POST",
-						data: JSON.stringify(addressList),
-						dataType: 'json',
-						contentType: 'application/json; charset=utf-8',  
-						async: false,
-						success: function(response) {
+			
+			axios.post("/adresses/postal-form", addressList).then(function(response) {
 							
-							var binaryString = window.atob(response.value);
-						    var binaryLen = binaryString.length;
-						    var bytes = new Uint8Array(binaryLen);
-						    for (var i = 0; i < binaryLen; i++) {
-						       var ascii = binaryString.charCodeAt(i);
-						       bytes[i] = ascii;
-						    }
-							
-						    var blob = new Blob([bytes], {type: "application/pdf"});
-						    var link = document.createElement('a');
-						    link.href = window.URL.createObjectURL(blob);
-						    var fileName = "Prijamna knjiga";
-						    link.download = fileName;
-						    link.click();
-						}
-					}
-			);
+				var binaryString = window.atob(response.data.value);
+			    var binaryLen = binaryString.length;
+			    var bytes = new Uint8Array(binaryLen);
+			    for (var i = 0; i < binaryLen; i++) {
+			       var ascii = binaryString.charCodeAt(i);
+			       bytes[i] = ascii;
+			    }
+				
+			    var blob = new Blob([bytes], {type: "application/pdf"});
+			    var link = document.createElement('a');
+			    link.href = window.URL.createObjectURL(blob);
+			    var fileName = "Prijamna knjiga";
+			    link.download = fileName;
+			    link.click();
+			}).catch(error => {
+				this.showError(error.response.data.message);
+			});
 			
 		},
 		print : function() {
@@ -146,9 +139,30 @@ var orderTableComponent = new Vue({
 		},
 		confirmPayment: function(order) {
 			let url = '/manager/orders/' + order.id + '/process-payment'
-			axios.post(url).then(function(response) {
+			axios.post(url).then(response => {
 				console.log(response);
+				axios.get('/manager/orders/' + order.id).then(response => {
+					for (let prop in order) {
+						Vue.delete(order, prop);
+						
+					}
+					for (let prop in response.data) {
+						Vue.set(order, prop, response.data[prop]);
+					}
+					
+				}).catch(error => {
+					this.showError(error.response.data.message);
+				});
+			}).catch(error => {
+				this.showError(error.response.data.message);
 			});
+		},
+		showError: function(errorMsg) {
+			if (errorMsg === undefined) {
+				errorMsg = "Unexpected error";
+			}
+			$("#errorContent").text(errorMsg);
+			$("#errorModal").modal('show');
 		}
 	},
 	mounted : function () {

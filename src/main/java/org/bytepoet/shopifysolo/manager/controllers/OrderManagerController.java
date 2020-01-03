@@ -64,7 +64,7 @@ public class OrderManagerController {
 	private String alwaysBcc;
 	
 	
-
+	
 	
 	@RequestMapping(method=RequestMethod.GET)
 	public Page<Order> getOrders(
@@ -123,6 +123,11 @@ public class OrderManagerController {
 	public Order save(Order order) {
 		orderRepository.save(order);
 		return order;
+	}
+	
+	@RequestMapping(path="/{id}", method=RequestMethod.GET)
+	public Order getOrder(@PathVariable("id") Long orderId) {
+		return orderRepository.findById(orderId).get();
 	}
 	
 	@RequestMapping(path="/{id}/process-fulfillment", method=RequestMethod.POST)
