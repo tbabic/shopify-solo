@@ -1,12 +1,8 @@
 package org.bytepoet.shopifysolo.manager.controllers;
 
 import java.text.MessageFormat;
-import java.time.LocalDate;
-import java.time.Month;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -14,7 +10,6 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.manager.models.GiveawayOrder;
 import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.OrderType;
@@ -23,7 +18,6 @@ import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.mappers.OrderToSoloInvoiceMapper;
 import org.bytepoet.shopifysolo.services.SoloMaillingService;
 import org.bytepoet.shopifysolo.shopify.clients.ShopifyApiClient;
-import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
 import org.bytepoet.shopifysolo.solo.clients.SoloApiClient;
 import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
@@ -81,8 +75,8 @@ public class OrderManagerController {
 			@RequestParam(name="type", required=false) OrderType type,
 			@RequestParam(name="page", required=false, defaultValue = "0") int page,
 			@RequestParam(name="size", required=false, defaultValue = "20") int size,
-			@RequestParam(name="sortBy", required=false) String sortBy,
-			@RequestParam(name="sortDirection", required=false) Direction direction) throws Exception {
+			@RequestParam(name="sortBy", required=false, defaultValue ="id") String sortBy,
+			@RequestParam(name="sortDirection", required=false, defaultValue ="ASC") Direction direction) throws Exception {
 		
 		Specification<Order> spec = new Specification<Order>() {
 			
@@ -114,14 +108,7 @@ public class OrderManagerController {
 				return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
 			}
 		};
-		Pageable pageable;
-		if (sortBy == null) {
-			pageable = PageRequest.of(page, size);
-		} else if (direction == null) {
-			pageable = PageRequest.of(page, size, Sort.by(sortBy));
-		} else {
-			pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-		}
+		Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 		Page<Order> orders = orderRepository.findAll(spec, pageable);
 		return orders;
 	}
