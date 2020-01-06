@@ -39,7 +39,7 @@ public class ShopifyApiClient {
 	
 	private static final String TRANSACTION_ENDPOINT_FORMAT = "https://{0}/admin/api/2020-01/orders/{1}/transactions.json";
 	
-	private static final String SHOPIFY_DATE_PATTERN = "";
+	private static final String SHOPIFY_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 	
 	@Value("${shopify.api.host}")
 	private String clientHost;

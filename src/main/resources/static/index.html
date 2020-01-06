@@ -27,7 +27,7 @@
 					<table class="table small table-fix-header">
 						<thead class="thead-dark">
 							<tr class="sticky-header">
-								<th colspan="11">
+								<th colspan="12">
 									<div id="ordersFilters" class="row">
 										<div class="col">
 											<span class="label label-default">Poslano:</span>
@@ -112,6 +112,7 @@
 								<th>ponuda</th>
 								<th>webshop narudzba</th>
 								<th>model</th>
+								<th>Napomena</th>
 								<th>uplata</th>
 								<th>nacin placanja</th>
 								<th>naruceno</th>
@@ -130,9 +131,13 @@
 								<td>{{ order.shopifyOrderNumber }}</td>
 								<td>
 									<span v-for="item in order.items">
-										<span v-if="item.name !== 'Preporučena poštarina'">{{ item.name }}, </span>
-										
+										<span v-if="item.name !== 'Preporučena poštarina'">{{ item.name }}<span v-if="item.quantity > 1">(x{{ item.quantity }})</span>, </span>
 									</span>
+								</td>
+								<td>
+									<button v-if="hasNote(order)" type="button" class="btn btn-secondary" data-toggle="tooltip" data-placement="top" v-bind:title="order.note">
+									  N
+									</button>
 								</td>
 								<td>{{ order.totalPrice }} kn</td>
 								<td>
@@ -142,7 +147,10 @@
 								<td>{{ formatDate(order.paymentDate) }}</td>
 								<td class="">{{ formatDate(order.sendingDate) }}</td>
 								<td>
-									<button  v-if="!order.isPaid " type="button" class="btn btn-primary" v-on:click.stop="selectOrderForPayment(order, '#paymentModal')">P</button>
+									<div class="btn-group" role="group">
+										<button  v-if="!order.isPaid " type="button" class="btn btn-primary" v-on:click.stop="selectOrderForPayment(order, '#paymentModal')">P</button>
+										<button  type="button" class="btn btn-primary" v-on:click.stop="selectOrderForEditing(order, '#editOrderModal')">E</button>
+									</div>
 								</td>
 							</tr>
 							
@@ -245,6 +253,78 @@
 						</div>
 					</div>
 				</div>
+				
+				<div class="modal fade" id=editOrderModal role="dialog">
+					<div class="modal-dialog modal-lg" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Narudžba</h5>
+								<button type="button" class="close" data-dismiss="modal">
+									<span>&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<div  class="row">
+									<div class="col">
+										Rbr: {{ editingOrder.id }}
+									</div>
+									<div class="col">
+										Račun: {{ editingOrder.invoiceNumber }}
+									</div>
+									<div class="col">
+										e-mail: {{ editingOrder.contact }}
+									</div>
+									<div class="col">
+										Ponuda: {{ editingOrder.tenderNumber }}
+									</div>
+								</div>
+								<div  class="row">
+									<div class="col">
+										Napomena:
+										<textarea v-model="editingOrder.note" rows="4" cols="50"></textarea>
+									</div>
+								</div>
+								<div  class="row">
+									<div class="col-3">
+										Osobno preuzimanje:
+									</div>
+									<div class="col">
+										<input class="form-check-input" type="checkbox" v-model="editingOrder.personalTakeover">
+									</div>
+								</div>
+								
+								<div  class="row">
+									<div class="col">
+										<table class="table">
+											<thead>
+												<tr>
+													<th>Model</th>
+													<th>Cijena</th>
+													<th>Kolicina</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr v-for="item in editingOrder.items">
+													<td> {{ item.name }}</td>
+													<td> {{ item.price }} </td>
+													<td> {{ item.quantity }} </td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</div>
+								
+								
+								
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-dismiss="modal" v-on:click="saveEditOrder">Spremi</button>
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				
 				
 				<div id= "overlay">
 					<div class="w-100 d-flex justify-content-center align-items-center">

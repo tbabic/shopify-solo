@@ -23,6 +23,9 @@ public class ShopifyOrder {
 	@JsonProperty("email")
 	private String email;
 	
+	@JsonProperty("note")
+	private String note;
+	
 	@JsonProperty("total_price")
 	private String totalPrice;
 	
@@ -92,6 +95,10 @@ public class ShopifyOrder {
 	
 	public Date getCreated() {
 		return created;
+	}
+	
+	public String getNote() {
+		return note;
 	}
 
 	@JsonIgnore

@@ -16,7 +16,8 @@ var orderTableComponent = new Vue({
 		orders: [],
 		selectedOrders: {},
 		shippingOrders: {},
-		paymentOrder: {}
+		paymentOrder: {},
+		editingOrder: {}
 	},
 	methods: {
 		filtering(property, event) {
@@ -90,6 +91,9 @@ var orderTableComponent = new Vue({
 		isSelected : function(order) {
 			return this.selectedOrders.hasOwnProperty(order.id);
 		},
+		hasNote : function(order) {
+			return order.note != undefined && order.note != null && order.note.length > 0;
+		},
 		addOrdersForShipping : function() {
 			for (let orderId in this.selectedOrders) {
 				Vue.set(this.shippingOrders, orderId, this.selectedOrders[orderId]);
@@ -132,6 +136,20 @@ var orderTableComponent = new Vue({
 		},
 		print : function() {
 			window.print();
+		},
+		selectOrderForEditing : function(order, modalId) {
+			this.editingOrder = order;
+			$(modalId).modal('show');
+		},
+		saveEditOrder : function() {
+			this.startLoader();
+			axios.post('/manager/orders/', this.editingOrder).then(response => {
+				console.log(response);
+				this.endLoader();
+			}).catch(error => {
+				this.endLoader();
+				this.showError(error.response.data.message);
+			});
 		},
 		selectOrderForPayment : function(order, modalId) {
 			this.paymentOrder = order;

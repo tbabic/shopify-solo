@@ -16,9 +16,14 @@ import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
+
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
 import javax.persistence.DiscriminatorType;
 import javax.persistence.Embedded;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -27,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(
 		  use = JsonTypeInfo.Id.NAME, 
-		  include = JsonTypeInfo.As.PROPERTY, 
+		  include = JsonTypeInfo.As.EXISTING_PROPERTY, 
 		  property = "type")
 @JsonSubTypes({ 
   @Type(value = GiveawayOrder.class, name = OrderType.GIVEAWAY_ORDER), 
@@ -36,10 +41,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @Entity(name="ManagedOrder")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="type", discriminatorType = DiscriminatorType.STRING)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class Order {
 	
 	
-	@JsonProperty(access = Access.READ_ONLY)
+	@JsonProperty
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -56,6 +62,7 @@ public abstract class Order {
 	
 	@JsonProperty
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+	@Fetch(FetchMode.JOIN)
 	@JoinColumn(name = "orderId", referencedColumnName = "id", nullable = false, insertable=true, updatable=false)
 	protected List<Item> items;	
 	
@@ -74,6 +81,9 @@ public abstract class Order {
 	
 	@JsonProperty(access = Access.READ_ONLY)
 	private boolean isCanceled;
+	
+	@JsonProperty
+	protected String note;
 
 	public static enum Type {
 		
@@ -139,12 +149,18 @@ public abstract class Order {
 	}
 	
 	public double getTotalPrice() {
+		if (items == null) {
+			return 0;
+		}
 		return items.stream().map(i -> Double.parseDouble(i.getPrice())).collect(Collectors.summingDouble(Double::doubleValue));
 	}
 	
 	@Transient
 	@JsonProperty(access = Access.READ_ONLY)
 	public abstract String getShippingSnapshot();
+	
+	@Transient
+	public abstract OrderType getType();
 	
 	
 	public void fulfill(String trackingNumber) {
@@ -153,6 +169,10 @@ public abstract class Order {
 		} else {
 			this.trackingNumber = trackingNumber;
 		}
+	}
+	
+	public void setNote(String note) {
+		this.note = note;
 	}
 	
 	

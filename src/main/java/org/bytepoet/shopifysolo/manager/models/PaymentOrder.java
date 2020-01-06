@@ -19,11 +19,13 @@ import org.bytepoet.shopifysolo.solo.models.SoloTender;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
 @DiscriminatorValue(OrderType.PAYMENT_ORDER)
+@JsonTypeName(OrderType.PAYMENT_ORDER)
 public class PaymentOrder extends Order {
 	
 	private static final int WAITING_LIST_PERIOD = 7;
@@ -55,9 +57,6 @@ public class PaymentOrder extends Order {
 	//TODO: currency
 	@JsonProperty
 	private String currency = "HRK";
-	// TODO: note
-	@JsonProperty
-	private String note;
 	
 	@JsonProperty(access = Access.READ_ONLY)
 	private boolean isPaid;
@@ -91,6 +90,7 @@ public class PaymentOrder extends Order {
 		if (!shopifyOrder.getShippingPrice().equals("0.00")) {
 			items.add(new Item(shippingTitle, shopifyOrder.getShippingPrice(), 1, "0", taxRate));
 		}
+		this.note = shopifyOrder.getNote();
 			
 		
 		
@@ -143,10 +143,6 @@ public class PaymentOrder extends Order {
 		return currency;
 	}
 
-	public String getNote() {
-		return note;
-	}
-
 	public boolean isPaid() {
 		return isPaid;
 	}
@@ -186,6 +182,12 @@ public class PaymentOrder extends Order {
 	@Override
 	public String getShippingSnapshot() {
 		return invoiceNumber + " " + contact;
+	}
+
+	@Override
+	@Transient
+	public OrderType getType() {
+		return OrderType.PAYMENT;
 	}	
 	
 }

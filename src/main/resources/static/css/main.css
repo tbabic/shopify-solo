@@ -23,7 +23,8 @@
 
 .table-fix-header thead tr.sticky-header th { 
 	position: sticky; 
-	top: 0; 
+	top: 0;
+	z-index: 1;
 }
 
 

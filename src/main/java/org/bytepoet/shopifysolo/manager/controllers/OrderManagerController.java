@@ -1,8 +1,12 @@
 package org.bytepoet.shopifysolo.manager.controllers;
 
 import java.text.MessageFormat;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -10,6 +14,7 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.manager.models.GiveawayOrder;
 import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.OrderType;
@@ -18,6 +23,7 @@ import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.mappers.OrderToSoloInvoiceMapper;
 import org.bytepoet.shopifysolo.services.SoloMaillingService;
 import org.bytepoet.shopifysolo.shopify.clients.ShopifyApiClient;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
 import org.bytepoet.shopifysolo.solo.clients.SoloApiClient;
 import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
@@ -30,6 +36,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -115,14 +122,15 @@ public class OrderManagerController {
 		} else {
 			pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 		}
-		return orderRepository.findAll(spec, pageable);
+		Page<Order> orders = orderRepository.findAll(spec, pageable);
+		return orders;
 	}
 	
 	
 	@RequestMapping(method=RequestMethod.POST)
-	public Order save(Order order) {
-		orderRepository.save(order);
-		return order;
+	public Order save(@RequestBody Order order) {
+		Order savedOrder = orderRepository.save(order);
+		return savedOrder;
 	}
 	
 	@RequestMapping(path="/{id}", method=RequestMethod.GET)
