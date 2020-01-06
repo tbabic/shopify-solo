@@ -168,7 +168,7 @@ var orderTableComponent = new Vue({
 			$(modalId).modal('show');
 		},
 		saveEditOrder : function() {
-			this.saveOrder(this.editOrder)
+			this.saveOrder(this.editingOrder)
 		},
 		saveOrder(order) {
 			this.startLoader();
