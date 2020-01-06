@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 import javax.persistence.CascadeType;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -75,6 +77,10 @@ public abstract class Order {
 	
 	@JsonProperty
 	private boolean isFulfilled;
+	
+	@JsonProperty
+	@Enumerated(EnumType.STRING)
+	private OrderStatus status = OrderStatus.INITIAL;
 	
 	@JsonProperty
 	private String trackingNumber;
