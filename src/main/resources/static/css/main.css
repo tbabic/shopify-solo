@@ -1,5 +1,11 @@
+.btn-primary {
+    color: #fff !important;
+    background-color: #a07801 !important;
+    border-color: a07801 !important;
+}
+
 .order-in-process .order-id {
-	background-color: indianred;
+	background-color: #e4cd86;
 }
 
 .order-fulfilled .order-id {
@@ -7,7 +13,11 @@
 }
 
 .order-in-post .order-id {
-	background-color: lightblue;
+	background-color: #9c8c5a;
+}
+
+.shipping-drawer {
+	z-index: 2;
 }
 
 #printModal .modal-dialog {

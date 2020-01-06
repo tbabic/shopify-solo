@@ -13,6 +13,10 @@ var orderTableComponent = new Vue({
 			isFirst: true,
 			isLast: true
 		},
+		sorting : {
+			sortBy: "id",
+			direction: "ASC"
+		},
 		orders: [],
 		selectedOrders: {},
 		shippingOrders: {},
@@ -48,7 +52,9 @@ var orderTableComponent = new Vue({
 		loadOrders : function() {
 			params = {
 				page : this.pagination.page,
-				size : this.pagination.size
+				size : this.pagination.size,
+				sortBy : this.sorting.sortBy,
+				direction: this.sorting.direction
 			}
 			for (let prop in this.filters){
 				if(this.filters.hasOwnProperty(prop)){
