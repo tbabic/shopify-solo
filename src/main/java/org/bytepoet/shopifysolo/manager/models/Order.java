@@ -67,19 +67,19 @@ public abstract class Order {
 	protected List<Item> items;	
 	
 	//TODO: dates
-	@JsonProperty(access = Access.READ_ONLY)
+	@JsonProperty
 	protected Date creationDate;
 	
 	@JsonProperty
 	protected Date sendingDate;
 	
-	@JsonProperty(access = Access.READ_ONLY)
+	@JsonProperty
 	private boolean isFulfilled;
 	
 	@JsonProperty
 	private String trackingNumber;
 	
-	@JsonProperty(access = Access.READ_ONLY)
+	@JsonProperty
 	private boolean isCanceled;
 	
 	@JsonProperty

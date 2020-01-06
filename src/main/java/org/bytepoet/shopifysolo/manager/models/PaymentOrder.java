@@ -30,21 +30,21 @@ public class PaymentOrder extends Order {
 	
 	private static final int WAITING_LIST_PERIOD = 7;
 	
-	@JsonProperty(access = Access.READ_ONLY)
+	@JsonProperty
 	@Column(unique = true)
 	private String tenderId;
-	@JsonProperty(access = Access.READ_ONLY)
+	@JsonProperty
 	@Column(unique = true)
 	private String invoiceId;
-	@JsonProperty(access = Access.READ_ONLY)
+	@JsonProperty
 	@Column(unique = true)
 	private String shopifyOrderId;
 	
-	@JsonProperty(access = Access.READ_ONLY)
+	@JsonProperty
 	private String tenderNumber;
-	@JsonProperty(access = Access.READ_ONLY)
+	@JsonProperty
 	private String invoiceNumber;
-	@JsonProperty(access = Access.READ_ONLY)
+	@JsonProperty
 	private String shopifyOrderNumber;
 	
 	@JsonProperty
@@ -58,7 +58,7 @@ public class PaymentOrder extends Order {
 	@JsonProperty
 	private String currency = "HRK";
 	
-	@JsonProperty(access = Access.READ_ONLY)
+	@JsonProperty
 	private boolean isPaid;
 	
 	
