@@ -17,7 +17,8 @@ var orderTableComponent = new Vue({
 		selectedOrders: {},
 		shippingOrders: {},
 		paymentOrder: {},
-		editingOrder: {}
+		editingOrder: {},
+		loadingCount: 0
 	},
 	methods: {
 		filtering(property, event) {
@@ -56,7 +57,7 @@ var orderTableComponent = new Vue({
 			}
 			
 			console.log('get orders');
-			axios.get('/manager/orders', {
+			return axios.get('/manager/orders', {
 				params: params
 			}).then(response => {
 				this.pagination.page = response.data.number;
@@ -71,7 +72,12 @@ var orderTableComponent = new Vue({
 				this.pagination.endElement = (!this.pagination.isLast) ? this.pagination.startElement +this.pagination.size-1 : this.pagination.totalElements;
 				
 				this.orders.splice(0,this.orders.length);
-				response.data.content.forEach(order => this.orders.push(order));
+				response.data.content.forEach(order => { 
+					this.orders.push(order);
+					if (order.status === 'IN_PROCESS') {
+						Vue.set(this.shippingOrders, order.id, order);
+					}
+				});
 			});
 			
 		},
@@ -96,15 +102,35 @@ var orderTableComponent = new Vue({
 		},
 		addOrdersForShipping : function() {
 			for (let orderId in this.selectedOrders) {
-				Vue.set(this.shippingOrders, orderId, this.selectedOrders[orderId]);
+				if (this.shippingOrders[orderId] == this.selectedOrders[orderId]) {
+					Vue.delete(this.selectedOrders, orderId);
+					$("#shippingDrawer").collapse("show");
+					return;
+				}
+				this.changeStatus(this.selectedOrders[orderId], 'IN_PROCESS').then(() => {
+					Vue.set(this.shippingOrders, orderId, this.selectedOrders[orderId]);
+					Vue.delete(this.selectedOrders, orderId);
+					$("#shippingDrawer").collapse("show");
+				});
 			}
-			$("#shippingDrawer").collapse("show");
+			
 		},
 		removeShippingOrder : function(shippingOrder) {
 			if (this.shippingOrders.hasOwnProperty(shippingOrder.id)) {
-				Vue.delete(this.shippingOrders, shippingOrder.id);
+				this.revertStatus(shippingOrder).then(() => {
+					Vue.delete(this.shippingOrders, shippingOrder.id);
+				});
+				
 			}
 			
+		},
+		ordersInPost : function() {
+			for (let orderId in this.shippingOrders) {
+				let order = this.shippingOrders[orderId];
+				this.changeStatus(order, "IN_POST").then(() => {
+					Vue.delete(this.shippingOrders, shippingOrder.id);
+				});
+			}
 		},
 		createPostalForm : function() {
 			let addressList = [];
@@ -142,8 +168,11 @@ var orderTableComponent = new Vue({
 			$(modalId).modal('show');
 		},
 		saveEditOrder : function() {
+			this.saveOrder(this.editOrder)
+		},
+		saveOrder(order) {
 			this.startLoader();
-			axios.post('/manager/orders/', this.editingOrder).then(response => {
+			return axios.post('/manager/orders/', order).then(response => {
 				console.log(response);
 				this.endLoader();
 			}).catch(error => {
@@ -186,15 +215,101 @@ var orderTableComponent = new Vue({
 			$("#errorContent").text(errorMsg);
 			$("#errorModal").modal('show');
 		},
+		changeStatus(order, newStatus) {
+			let previousStatus = order.status;
+			order.status = newStatus;
+			return this.saveOrder(order).then(result => {
+				order.previousStatus=previousStatus;
+			}).catch(error => {
+				order.status = previousStatus;
+				delete order.previousStatus;
+			});
+		},
+		revertStatus(order) {
+			let revertingStatus = order.status
+			if (order.previousStatus != undefined && order.previousStatus != null) {
+				order.status = order.previousStatus;
+			} else {
+				order.status = 'INITIAL';
+			}
+			
+			delete order.previousStatus;
+			return this.saveOrder(order).catch(error => {
+				order.previousStatus = order.status;
+				order.status = revertingStatus;
+			});
+		},
 		startLoader : function() {
-			document.getElementById("overlay").style.display = "flex";
+			this.loadingCount++;
+			if (this.loadingCount > 0) {
+				document.getElementById("overlay").style.display = "flex";
+			}
+			
 		},
 		endLoader : function() {
-			document.getElementById("overlay").style.display = "none";
-		}
+			this.loadingCount--;
+			if (this.loadingCount <= 0) {
+				document.getElementById("overlay").style.display = "none";
+				this.loadingCount = 0;
+			}
+			
+		},
+		orderStatusCssClass : function(order) {
+			if (order.status == "INITIAL") {
+				return "order-initial"
+			}
+			if (order.status == "IN_PROCESS") {
+				return "order-in-process"
+			}
+			if (order.status == "IN_POST") {
+				return "order-in-post"
+			}
+			if (order.status == "FULFILLED") {
+				return "order-fulfilled"
+			}
+			if (order.status == "CANCELED") {
+				return "order-canceled"
+			}
+			return "";
+		},
+		orderStatusTooltip : function(order) {
+			if (order.status == "IN_PROCESS") {
+				return "Za izradu"
+			}
+			if (order.status == "IN_POST") {
+				return "U pošti"
+			}
+			if (order.status == "FULFILLED") {
+				return "Poslano"
+			}
+			if (order.status == "CANCELED") {
+				return "Otkazano"
+			}
+			return "";
+		},
+		orderContactTooltip : function(order) {
+			return order.shippingInfo.fullName;
+		},
 	},
 	mounted : function () {
-		this.loadOrders(0,50);
+		this.startLoader();
+		return axios.get('/manager/orders', {
+			params : {
+				status : 'IN_PROCESS',
+				page : 0,
+				size : 1000
+			}
+		}).then(response => {
+			response.data.content.forEach(order => { 
+				Vue.set(this.shippingOrders, order.id, order);
+			});
+			
+		}).then( () => {
+			this.loadOrders(0,50).finally( () => {
+				this.endLoader();
+			});
+		});
+		
 	}
 });
 

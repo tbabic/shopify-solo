@@ -1,3 +1,15 @@
+.order-in-process .order-id {
+	background-color: indianred;
+}
+
+.order-fulfilled .order-id {
+	background-color: olive;
+}
+
+.order-in-post .order-id {
+	background-color: lightblue;
+}
+
 #printModal .modal-dialog {
 	max-width: 700px;
 }

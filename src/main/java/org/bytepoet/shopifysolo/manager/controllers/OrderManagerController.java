@@ -12,6 +12,7 @@ import javax.persistence.criteria.Root;
 
 import org.bytepoet.shopifysolo.manager.models.GiveawayOrder;
 import org.bytepoet.shopifysolo.manager.models.Order;
+import org.bytepoet.shopifysolo.manager.models.OrderStatus;
 import org.bytepoet.shopifysolo.manager.models.OrderType;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
@@ -73,6 +74,7 @@ public class OrderManagerController {
 			@RequestParam(name="paid", required=false) Boolean isPaid,
 			@RequestParam(name="personalTakeover", required=false) Boolean isPersonalTakeover,
 			@RequestParam(name="type", required=false) OrderType type,
+			@RequestParam(name="status", required=false) OrderStatus status,
 			@RequestParam(name="page", required=false, defaultValue = "0") int page,
 			@RequestParam(name="size", required=false, defaultValue = "20") int size,
 			@RequestParam(name="sortBy", required=false, defaultValue ="id") String sortBy,
@@ -100,6 +102,9 @@ public class OrderManagerController {
 				}				
 				if(isOpen != null) {
 					predicates.add(criteriaBuilder.equal(actualRoot.get("isFulfilled"), !isOpen.booleanValue()));
+				}
+				if (status != null) {
+					predicates.add(criteriaBuilder.equal(actualRoot.get("status"), status));
 				}
 				if(isPersonalTakeover != null) {
 					predicates.add(criteriaBuilder.equal(actualRoot.get("personalTakeover"), isPersonalTakeover.booleanValue()));

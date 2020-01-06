@@ -102,6 +102,9 @@
 												<img src="/icons/arrow-right.svg" alt="" width="16" height="16" title="left">
 											</button>
 										</div>
+										<div class="col">
+											<button type="button" class="btn btn-primary" v-on:click="addOrdersForShipping">Za izradu</button>
+										</div>
 									</div>
 								</th>
 							</tr>
@@ -122,13 +125,13 @@
 						</thead>
 						<tbody class="">
 							<tr v-for="order in orders"
-									v-bind:class="'clickable-row ' + (isSelected(order) ? 'highlight' : '')"
+									v-bind:class="orderStatusCssClass(order) + ' clickable-row ' + (isSelected(order) ? 'highlight' : '')"
 									v-on:click="selectOrder(order)">
-								<td class="invoice_number">{{ order.id }}</td>
-								<td class="invoice_number">{{ order.invoiceNumber }}</td>
-								<td class="contact">{{ order.contact }}</td>
-								<td>{{ order.tenderNumber }}</td>
-								<td>{{ order.shopifyOrderNumber }}</td>
+								<td class="order-id" data-toggle="tooltip" data-placement="top" v-bind:title="orderStatusTooltip(order)" >{{ order.id }}</td>
+								<td class="invoice-number">{{ order.invoiceNumber }}</td>
+								<td class="contact" data-toggle="tooltip" data-placement="top" v-bind:title="orderContactTooltip(order)" >{{ order.contact }}</td>
+								<td class="tender-number">{{ order.tenderNumber }}</td>
+								<td class="shopify-number">{{ order.shopifyOrderNumber }}</td>
 								<td>
 									<span v-for="item in order.items">
 										<span v-if="item.name !== 'Preporučena poštarina'">{{ item.name }}<span v-if="item.quantity > 1">(x{{ item.quantity }})</span>, </span>
@@ -160,6 +163,9 @@
 					<button type="button" class="btn btn-primary" v-on:click="addOrdersForShipping">Salji</button>
 				</div>
 				<div id="shippingDrawer" class="col-2 collapse">
+					<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#printModal">Ispis adresa</button>
+					<button type="button" class="btn btn-primary" v-on:click="createPostalForm">Prijamna knjiga</button>
+					<button type="button" class="btn btn-primary" v-on:click="ordersInPost">U pošti</button>
 					<div v-for="shippingOrder in shippingOrders" class="row">
 						<div class="col">
 							{{ shippingOrder.shippingSnapshot }}
@@ -168,8 +174,7 @@
 							<button type="button" class="btn btn-primary" v-on:click="removeShippingOrder(shippingOrder)">-</button>
 						</div>
 					</div>
-					<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#printModal">Ispis adresa</button>
-					<button type="button" class="btn btn-primary" v-on:click="createPostalForm">Prijamna knjiga</button>
+					
 				</div>
 				<div class="modal fade" id=paymentModal role="dialog">
 					<div class="modal-dialog" role="document">

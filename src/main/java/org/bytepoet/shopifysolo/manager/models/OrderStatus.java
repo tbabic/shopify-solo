@@ -4,7 +4,7 @@ public enum OrderStatus {
 
 	INITIAL,
 	IN_PROCESS,
-	FOR_SHIPPING,
+	IN_POST,
 	FULFILLED,
 	CANCELED
 }
