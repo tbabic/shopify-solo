@@ -206,13 +206,13 @@
 					</div>
 					
 				</div>
-				<div id="inProcessDrawer" class="col-2 collapse shipping-drawer">
+				<div id="inProcessDrawer" class="col-3 collapse shipping-drawer">
 					<div v-for="item in itemsOfSelectedOrders">
-						<div v-if="item.name !== 'Preporučena poštarina'" class="row">
-							<div class="col">
+						<div v-if="item.name !== 'Preporučena poštarina'" class="row border">
+							<div class="col-10">
 								{{ item.name}}
 							</div>
-							<div class="col">
+							<div class="col-2">
 								x{{ item.quantity}}
 							</div>
 						</div>
