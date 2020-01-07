@@ -128,8 +128,8 @@
 										</div>
 										
 										<div class="col">
-											<button type="button" class="btn btn-primary" v-on:click="selectAll">Odaberi sve</button>
-											<button type="button" class="btn btn-primary" v-on:click="deselectAll">Makni sve</button>
+											<button type="button" class="btn btn-primary" v-on:click="selectAll">Select all</button>
+											<button type="button" class="btn btn-primary" v-on:click="deselectAll">Deselect all</button>
 											{{ Object.keys(selectedOrders).length }}
 										</div>
 										
@@ -256,7 +256,7 @@
 							</div>
 							<div id="printContent" class="modal-body printable">
 								<div  class="row">
-									<div v-for="shippingOrder in selectedOrders" class="col-3 address-element" contenteditable="true">
+									<div v-for="shippingOrder in selectedOrders" class="col-3 address-element border" contenteditable="true">
 										<div class="row">
 											{{ shippingOrder.shippingInfo.fullName }}
 										</div>
