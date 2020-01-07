@@ -103,12 +103,17 @@
 											</button>
 										</div>
 										<div class="col">
-											<select class="custom-select">
-												<option>Open this select menu</option>
-												<option value="1">One</option>
-												<option value="2">Two</option>
-												<option value="3">Three</option>
-											</select>
+											<div class="dropdown">
+												<button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+													Sortiraj
+												</button>
+												<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+													<button class="dropdown-item" v-on:click="sort('id','ASC')">Rbr (najmanji prvo)</button>
+													<button class="dropdown-item" v-on:click="sort('id','DESC')">Rbr (najveći prvo)</button>
+													<button class="dropdown-item" v-on:click="sort('sendingDate','ASC')">Poslati (najranije prvo)</button>
+													<button class="dropdown-item" v-on:click="sort('sendingDate','DESC')">Poslati (najkasnije prvo)</button>
+												</div>
+											</div>
 										</div>
 										
 										<div class="col">
@@ -160,8 +165,8 @@
 								<td class="">{{ formatDate(order.sendingDate) }}</td>
 								<td>
 									<div class="btn-group" role="group">
-										<button  v-if="!order.isPaid " type="button" class="btn btn-primary" v-on:click.stop="selectOrderForPayment(order, '#paymentModal')">P</button>
 										<button  type="button" class="btn btn-primary" v-on:click.stop="selectOrderForEditing(order, '#editOrderModal')">E</button>
+										<button  v-if="!order.isPaid " type="button" class="btn btn-primary" v-on:click.stop="selectOrderForPayment(order, '#paymentModal')">P</button>
 									</div>
 								</td>
 							</tr>

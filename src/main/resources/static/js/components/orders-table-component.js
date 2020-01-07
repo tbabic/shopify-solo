@@ -2,7 +2,10 @@
 var orderTableComponent = new Vue({
 	el:"#ordersTable",
 	data: {
-		filters: {},
+		filters: {
+			paid : true,
+			open : true
+		},
 		pagination: {
 			page: 0,
 			size: 50,
@@ -49,12 +52,18 @@ var orderTableComponent = new Vue({
 			this.pagination.page--;
 			this.loadOrders();
 		},
+		sort : function(sortBy, direction) {
+			this.sorting.sortBy = sortBy;
+			this.sorting.direction = direction;
+			return this.loadOrders();
+		},
 		loadOrders : function() {
+			this.startLoader();
 			params = {
 				page : this.pagination.page,
 				size : this.pagination.size,
 				sortBy : this.sorting.sortBy,
-				direction: this.sorting.direction
+				sortDirection: this.sorting.direction
 			}
 			for (let prop in this.filters){
 				if(this.filters.hasOwnProperty(prop)){
@@ -84,6 +93,8 @@ var orderTableComponent = new Vue({
 						Vue.set(this.shippingOrders, order.id, order);
 					}
 				});
+			}).finally(() => {
+				this.endLoader();
 			});
 			
 		},
