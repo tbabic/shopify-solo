@@ -220,6 +220,7 @@ var orderTableComponent = new Vue({
 			}
 		},
 		createPostalForm : function() {
+			this.startLoader();
 			let addressList = [];
 			for (let orderId in this.selectedOrders) {
 				order = this.selectedOrders[orderId];
@@ -244,6 +245,8 @@ var orderTableComponent = new Vue({
 			    link.click();
 			}).catch(error => {
 				this.showError(error.response.data.message);
+			}).finally(() => {
+				this.endLoader();
 			});
 			
 		},
