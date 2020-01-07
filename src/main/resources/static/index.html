@@ -18,9 +18,9 @@
 	
 	
 </head>
+
 <body>
-<body>
-	<div class="container-fluid">
+	<div id="noPrintSection" class="container-fluid">
 		<div id="app">
 			<div id="ordersTable" class="row">
 				<div class="col">
@@ -246,7 +246,7 @@
 				</div>
 				
 				<div class="modal fade" id=printModal role="dialog">
-					<div class="modal-dialog" role="document">
+					<div class="modal-dialog modal-lg" role="document">
 						<div class="modal-content">
 							<div class="modal-header">
 								<h5 class="modal-title" id="exampleModalLabel">Print</h5>
@@ -256,7 +256,7 @@
 							</div>
 							<div id="printContent" class="modal-body printable">
 								<div  class="row">
-									<div v-for="shippingOrder in selectedOrders" class="col-4" contenteditable="true">
+									<div v-for="shippingOrder in selectedOrders" class="col-3 address-element" contenteditable="true">
 										<div class="row">
 											{{ shippingOrder.shippingInfo.fullName }}
 										</div>
@@ -385,7 +385,10 @@
 			</div>
 				
 		</div>
+		
 	</div>
+	<div id="printSection" class="container"></div>
+	
 <script src="js/components/orders-table-component.js"></script>
 </body>
 </html>

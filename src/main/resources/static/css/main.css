@@ -1,3 +1,5 @@
+
+
 .btn-primary {
     color: #fff !important;
     background-color: #a07801 !important;
@@ -28,6 +30,9 @@
 	background-color: olive;
 }
 
+.address-element {
+	margin-bottom: 20px;
+}
 
 
 .shipping-drawer {
@@ -45,6 +50,10 @@
 .multiple-address-input {
 	min-width: 100%;
 	min-height: 500px;
+}
+
+.scrollable {
+	overflow-y: scroll;
 }
 
 .table-cell-input {
@@ -171,12 +180,27 @@
 	cursor: pointer;
 }
 
+#printSection {
+	display:none;
+}
+
 
 @media print {
-	body * {
-		visibility: hidden;
+	
+	#noPrintSection {
+		display:none;
 	}
-	.printable * {
-		visibility: visible !important;
+	
+	#printSection {
+		display:block;
+	}	
+	
+	.modal-backdrop {
+		display: none;
 	}
+	
+	.address-element {
+		margin-bottom: 25px;
+	}
+	
 }

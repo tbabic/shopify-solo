@@ -44,7 +44,15 @@ var orderTableComponent = new Vue({
 					}
 				});
 			}
-			return itemsMap;
+			return Object.values(itemsMap).sort(function(item1, item2){
+				if (item1.name > item2.name) {
+			        return 1;
+			    }
+			    if (item2.name > item1.name) {
+			        return -1;
+			    }
+			    return 0;
+			});
 			
 		},
 	},
@@ -235,7 +243,12 @@ var orderTableComponent = new Vue({
 			
 		},
 		print : function() {
+			$('#printSection').empty();
+			$('.printable').each( (i, el) => {
+				$('#printSection').append($(el).clone());
+			});
 			window.print();
+			//$('#printSection').empty();
 		},
 		selectOrderForEditing : function(order, modalId) {
 			this.editingOrder = order;
