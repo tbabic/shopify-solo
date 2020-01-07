@@ -1,4 +1,25 @@
+.btn {
+	text-transform: uppercase;
+}
 
+th {
+	text-transform: uppercase;
+}
+
+.extra-small {
+	font-size: 12px;
+	font-weight: 400;
+}
+
+.extra-small * {
+	font-size: 12px;
+	font-weight: 400;
+}
+
+.extra-small .btn {
+	font-size: 12px;
+	font-weight: 400;
+}
 
 .btn-primary {
     color: #fff !important;
