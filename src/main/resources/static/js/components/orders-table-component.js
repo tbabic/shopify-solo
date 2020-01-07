@@ -3,8 +3,10 @@ var orderTableComponent = new Vue({
 	el:"#ordersTable",
 	data: {
 		filters: {
-			paid : true,
-			open : true
+			paid : true
+		},
+		listFilters : {
+			status : ['INITIAL', 'IN_PROCESS', 'IN_POST']
 		},
 		pagination: {
 			page: 0,
@@ -27,6 +29,25 @@ var orderTableComponent = new Vue({
 		editingOrder: {},
 		loadingCount: 0
 	},
+	computed : {
+		itemsOfSelectedOrders : function() {
+			let itemsMap = {};
+			for (let orderId in this.selectedOrders) {
+				this.selectedOrders[orderId].items.forEach( item => {
+					if (!itemsMap.hasOwnProperty(item.name)) {
+						Vue.set(itemsMap, item.name, {
+							name : item.name,
+							quantity : item.quantity
+						});
+					} else {
+						itemsMap[item.name].quantity += +1;
+					}
+				});
+			}
+			return itemsMap;
+			
+		},
+	},
 	methods: {
 		filtering(property, event) {
 			let value = $(event.target).data('value');
@@ -35,8 +56,23 @@ var orderTableComponent = new Vue({
 			} else {
 				Vue.set(this.filters, property, value);
 			}
+			this.pagination.page = 0;
 			this.loadOrders();
 	
+		},
+		listFiltering(property, event) {
+			if (!this.listFilters.hasOwnProperty(property)) {
+				Vue.set(this.listFilters, property, []);
+			}
+			let list = this.listFilters[property];
+			let value = $(event.target).data('value');
+			if (list.includes(value)) {
+				list.splice( list.indexOf(value), 1 );
+			} else {
+				list.push(value);
+			}
+			this.pagination.page = 0;
+			this.loadOrders();
 		},
 		nextPage : function() {
 			if (this.pagination.isLast) {
@@ -55,6 +91,7 @@ var orderTableComponent = new Vue({
 		sort : function(sortBy, direction) {
 			this.sorting.sortBy = sortBy;
 			this.sorting.direction = direction;
+			this.pagination.page = 0;
 			return this.loadOrders();
 		},
 		loadOrders : function() {
@@ -68,6 +105,11 @@ var orderTableComponent = new Vue({
 			for (let prop in this.filters){
 				if(this.filters.hasOwnProperty(prop)){
 					params[prop] = this.filters[prop];
+				}
+			}
+			for (let prop in this.listFilters){
+				if(this.listFilters.hasOwnProperty(prop)){
+					params[prop] = this.listFilters[prop].join();
 				}
 			}
 			
@@ -111,6 +153,16 @@ var orderTableComponent = new Vue({
 				Vue.set(this.selectedOrders, order.id, order);
 			}
 		},
+		selectAll : function() {
+			this.orders.forEach(order => { 
+				Vue.set(this.selectedOrders, order.id, order);
+			});
+		},
+		deselectAll : function() {
+			for (orderId in this.selectedOrders) {
+				Vue.delete(this.selectedOrders, orderId);
+			}
+		},
 		isSelected : function(order) {
 			return this.selectedOrders.hasOwnProperty(order.id);
 		},
@@ -141,6 +193,11 @@ var orderTableComponent = new Vue({
 			}
 			
 		},
+		changeSelectedOrdersStatus : function(status) {
+			for (let orderId in this.selectedOrders) {
+				this.changeStatus(this.selectedOrders[orderId], status)
+			}
+		},
 		ordersInPost : function() {
 			for (let orderId in this.shippingOrders) {
 				let order = this.shippingOrders[orderId];
@@ -151,8 +208,8 @@ var orderTableComponent = new Vue({
 		},
 		createPostalForm : function() {
 			let addressList = [];
-			for (let orderId in this.shippingOrders) {
-				order = this.shippingOrders[orderId];
+			for (let orderId in this.selectedOrders) {
+				order = this.selectedOrders[orderId];
 				addressList.push(order.shippingInfo)
 			}
 			

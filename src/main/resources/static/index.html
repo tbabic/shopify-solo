@@ -29,14 +29,23 @@
 							<tr class="sticky-header">
 								<th colspan="12">
 									<div id="ordersFilters" class="row">
-										<div class="col">
-											<span class="label label-default">Poslano:</span>
+										<div class="col-4">
+											<span class="label label-default">Status:</span>
 											<div class="btn-group" role="group">
-												<button type="button" data-value="false" v-on:click="filtering('open', $event)" v-bind:class="'btn btn-filter ' + (filters.open == false ? 'active' : '')">
-													Da
+												<button type="button" data-value="INITIAL" v-on:click="listFiltering('status', $event)" v-bind:class="'btn btn-filter ' + (listFilters.status.includes('INITIAL') ? 'active' : '')">
+													Novo
 												</button>
-												<button type="button" data-value="true" v-on:click="filtering('open', $event)" v-bind:class="'btn btn-filter ' + (filters.open == true ? 'active' : '')">
-													Ne
+												<button type="button" data-value="IN_PROCESS" v-on:click="listFiltering('status', $event)" v-bind:class="'btn btn-filter ' + (listFilters.status.includes('IN_PROCESS') ? 'active' : '')">
+													U izradi
+												</button>
+												<button type="button" data-value=IN_POST v-on:click="listFiltering('status', $event)" v-bind:class="'btn btn-filter ' + (listFilters.status.includes('IN_POST') ? 'active' : '')">
+													U pošti
+												</button>
+												<button type="button" data-value="FULFILLED" v-on:click="listFiltering('status', $event)" v-bind:class="'btn btn-filter ' + (listFilters.status.includes('FULFILLED') ? 'active' : '')">
+													Odrađeno
+												</button>
+												<button type="button" data-value="CANCELED" v-on:click="listFiltering('status', $event)" v-bind:class="'btn btn-filter ' + (listFilters.status.includes('CANCELED') ? 'active' : '')">
+													Otkazano
 												</button>
 											</div>
 										</div>
@@ -78,7 +87,7 @@
 										</div>
 										
 										<div class="col-1">
-											<button type="button" class="btn btn-default" data-toggle="collapse" data-target="#shippingDrawer">
+											<button type="button" class="btn btn-default" data-toggle="collapse" data-target="#inProcessDrawer">
 												
 												<img src="/icons/reply.svg" alt="" width="32" height="32" title="left">
 											</button>
@@ -87,22 +96,18 @@
 									</div>
 									
 									<div class="row">
-										<div class="col-1">
+										<div class="col-2">
 											<button type="button" class="btn btn-default" v-on:click="previousPage" v-bind:disabled="pagination.isFirst">
 												
 												<img src="/icons/arrow-left.svg" alt="" width="16" height="16" title="left">
 											</button>
-										</div>
-										<div class="col-1">
 											{{ pagination.startElement }} - {{ pagination.endElement }} / {{ pagination.totalElements }}
-										</div>
-										<div class="col-1">
 											<button type="button" class="btn btn-default" v-on:click="nextPage" v-bind:disabled="pagination.isLast">
 												
-												<img src="/icons/arrow-right.svg" alt="" width="16" height="16" title="left">
+												<img src="/icons/arrow-right.svg" alt="" width="16" height="16" title="right">
 											</button>
 										</div>
-										<div class="col">
+										<div class="col-1">
 											<div class="dropdown">
 												<button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 													Sortiraj
@@ -117,7 +122,20 @@
 										</div>
 										
 										<div class="col">
-											<button type="button" class="btn btn-primary" v-on:click="addOrdersForShipping">Za izradu</button>
+											<button type="button" class="btn btn-initial" v-on:click="changeSelectedOrdersStatus('INITIAL')">Novo</button>
+											<button type="button" class="btn btn-in-process" v-on:click="changeSelectedOrdersStatus('IN_PROCESS')">Za izradu</button>
+											<button type="button" class="btn btn-in-post" v-on:click="changeSelectedOrdersStatus('IN_POST')">U posti</button>
+										</div>
+										
+										<div class="col">
+											<button type="button" class="btn btn-primary" v-on:click="selectAll">Odaberi sve</button>
+											<button type="button" class="btn btn-primary" v-on:click="deselectAll">Makni sve</button>
+											{{ Object.keys(selectedOrders).length }}
+										</div>
+										
+										<div class="col">
+											<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#printModal">Ispis adresa</button>
+											<button type="button" class="btn btn-primary" v-on:click="createPostalForm">Prijamna knjiga</button>
 										</div>
 									</div>
 								</th>
@@ -173,8 +191,6 @@
 							
 						</tbody>
 					</table>
-					<button type="button" class="btn btn-primary" v-on:click="loadOrders(0,20)">Ucitaj</button>
-					<button type="button" class="btn btn-primary" v-on:click="addOrdersForShipping">Salji</button>
 				</div>
 				<div id="shippingDrawer" class="col-2 collapse shipping-drawer">
 					<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#printModal">Ispis adresa</button>
@@ -190,6 +206,21 @@
 					</div>
 					
 				</div>
+				<div id="inProcessDrawer" class="col-2 collapse shipping-drawer">
+					<div v-for="item in itemsOfSelectedOrders">
+						<div v-if="item.name !== 'Preporučena poštarina'" class="row">
+							<div class="col">
+								{{ item.name}}
+							</div>
+							<div class="col">
+								x{{ item.quantity}}
+							</div>
+						</div>
+					</div>
+					
+				</div>
+				
+				
 				<div class="modal fade" id=paymentModal role="dialog">
 					<div class="modal-dialog" role="document">
 						<div class="modal-content">
@@ -225,7 +256,7 @@
 							</div>
 							<div id="printContent" class="modal-body printable">
 								<div  class="row">
-									<div v-for="shippingOrder in shippingOrders" class="col-4" contenteditable="true">
+									<div v-for="shippingOrder in selectedOrders" class="col-4" contenteditable="true">
 										<div class="row">
 											{{ shippingOrder.shippingInfo.fullName }}
 										</div>

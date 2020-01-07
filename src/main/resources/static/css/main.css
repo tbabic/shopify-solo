@@ -1,20 +1,34 @@
 .btn-primary {
     color: #fff !important;
     background-color: #a07801 !important;
-    border-color: a07801 !important;
+    border-color: #a07801 !important;
 }
 
 .order-in-process .order-id {
 	background-color: #dacca2;
 }
 
-.order-fulfilled .order-id {
-	background-color: olive;
+.btn-in-process {
+	color: black;
+    background-color: #dacca2;
+    border-color: #dacca2;
 }
 
 .order-in-post .order-id {
 	background-color: #9c8c5a;
 }
+
+.btn-in-post {
+	color: black;
+    background-color: #9c8c5a;
+    border-color: #9c8c5a;
+}
+
+.order-fulfilled .order-id {
+	background-color: olive;
+}
+
+
 
 .shipping-drawer {
 	z-index: 2;

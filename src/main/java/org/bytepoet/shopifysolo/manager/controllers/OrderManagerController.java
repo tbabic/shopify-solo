@@ -74,7 +74,7 @@ public class OrderManagerController {
 			@RequestParam(name="paid", required=false) Boolean isPaid,
 			@RequestParam(name="personalTakeover", required=false) Boolean isPersonalTakeover,
 			@RequestParam(name="type", required=false) OrderType type,
-			@RequestParam(name="status", required=false) OrderStatus status,
+			@RequestParam(name="status", required=false) List<OrderStatus> statusList,
 			@RequestParam(name="page", required=false, defaultValue = "0") int page,
 			@RequestParam(name="size", required=false, defaultValue = "20") int size,
 			@RequestParam(name="sortBy", required=false, defaultValue ="id") String sortBy,
@@ -103,8 +103,8 @@ public class OrderManagerController {
 				if(isOpen != null) {
 					predicates.add(criteriaBuilder.equal(actualRoot.get("isFulfilled"), !isOpen.booleanValue()));
 				}
-				if (status != null) {
-					predicates.add(criteriaBuilder.equal(actualRoot.get("status"), status));
+				if (statusList != null && !statusList.isEmpty()) {
+					predicates.add(actualRoot.get("status").in(statusList));
 				}
 				if(isPersonalTakeover != null) {
 					predicates.add(criteriaBuilder.equal(actualRoot.get("personalTakeover"), isPersonalTakeover.booleanValue()));
