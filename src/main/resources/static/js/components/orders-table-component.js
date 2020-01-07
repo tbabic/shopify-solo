@@ -202,9 +202,14 @@ var orderTableComponent = new Vue({
 			
 		},
 		changeSelectedOrdersStatus : function(status) {
+			this.startLoader();
 			for (let orderId in this.selectedOrders) {
-				this.changeStatus(this.selectedOrders[orderId], status)
+				this.startLoader();
+				this.changeStatus(this.selectedOrders[orderId], status).finally(() => {
+					this.endLoader();
+				});
 			}
+			this.endLoader();
 		},
 		ordersInPost : function() {
 			for (let orderId in this.shippingOrders) {
