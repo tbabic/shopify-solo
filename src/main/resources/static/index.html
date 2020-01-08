@@ -182,10 +182,15 @@
 								<td>{{ formatDate(order.paymentDate) }}</td>
 								<td class="">{{ formatDate(order.sendingDate) }}</td>
 								<td>
-									<div class="btn-group" role="group">
-										<button  type="button" class="btn btn-primary" v-on:click.stop="selectOrderForEditing(order, '#editOrderModal')">E</button>
-										<button  v-if="!order.isPaid " type="button" class="btn btn-primary" v-on:click.stop="selectOrderForPayment(order, '#paymentModal')">P</button>
-										<button  type="button" class="btn btn-primary" v-on:click.stop="selectOrderForFulfillment(order, '#fulfillmentModal')">T</button>
+									<div class="dropdown">
+										<button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											<img src="/icons/gear.svg" alt="" width="16" height="16" title="left">
+										</button>
+										<div class="dropdown-menu dropdown-primary" aria-labelledby="dropdownMenuButton">
+											<button  type="button" class="btn btn-primary" v-on:click.stop="selectOrderForEditing(order, '#editOrderModal')">Editiraj</button>
+											<button  v-if="!order.isPaid " type="button" class="btn btn-primary" v-on:click.stop="selectOrderForPayment(order, '#paymentModal')">Plaćeno</button>
+											<button  type="button" class="btn btn-primary" v-on:click.stop="selectOrderForFulfillment(order, '#fulfillmentModal')">Odrađeno</button>
+										</div>
 									</div>
 								</td>
 							</tr>

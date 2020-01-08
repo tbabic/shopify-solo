@@ -27,6 +27,17 @@ th {
     border-color: #a07801 !important;
 }
 
+.dropdown-primary {
+	color: #fff !important;
+    background-color: #a07801 !important;
+    min-width: 1rem !important;
+}
+
+.dropdown-primary .btn {
+	font-size: 12px;
+	font-weight: 400;
+}
+
 .order-in-process .order-id {
 	background-color: #dacca2;
 }
