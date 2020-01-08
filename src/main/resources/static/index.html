@@ -185,6 +185,7 @@
 									<div class="btn-group" role="group">
 										<button  type="button" class="btn btn-primary" v-on:click.stop="selectOrderForEditing(order, '#editOrderModal')">E</button>
 										<button  v-if="!order.isPaid " type="button" class="btn btn-primary" v-on:click.stop="selectOrderForPayment(order, '#paymentModal')">P</button>
+										<button  type="button" class="btn btn-primary" v-on:click.stop="selectOrderForFulfillment(order, '#fulfillmentModal')">T</button>
 									</div>
 								</td>
 							</tr>
@@ -206,7 +207,7 @@
 					</div>
 					
 				</div>
-				<div id="inProcessDrawer" class="col-3 collapse shipping-drawer">
+				<div id="inProcessDrawer" class="col-2 collapse shipping-drawer">
 					<div v-for="item in itemsOfSelectedOrders">
 						<div v-if="item.name !== 'Preporučena poštarina'" class="row border">
 							<div class="col-10">
@@ -369,6 +370,48 @@
 							</div>
 							<div class="modal-footer">
 								<button type="button" class="btn btn-secondary" data-dismiss="modal" v-on:click="saveEditOrder">Spremi</button>
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="modal fade" id=fulfillmentModal role="dialog">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Plaćanje</h5>
+								<button type="button" class="close" data-dismiss="modal">
+									<span>&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<div  class="row">
+									<div class="col">
+										Označi narudžbu: {{ fulfillment.order.id }} kao odrađenu?
+									</div>
+								</div>
+								<div  class="row">
+									<div class="col">
+										<div class="input-group mb-3">
+											<div class="input-group-prepend">
+												 <span class="input-group-text" id="inputGroup-sizing-default">Šifra za praćenje:</span>
+											</div>
+											<input type="text" class="form-control" v-model="fulfillment.params.trackingNumber">
+										</div>
+									</div>
+								</div>
+								<div  class="row">
+									<div class="col-3">
+										Pošalji notifikaciju:
+									</div>
+									<div class="col">
+										<input class="form-check-input" type="checkbox" v-model="fulfillment.params.sendNotification">
+									</div>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button  type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="fulfillOrder">Potvrdi</button>
 								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
 							</div>
 						</div>

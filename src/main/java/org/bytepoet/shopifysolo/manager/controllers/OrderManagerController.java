@@ -17,6 +17,7 @@ import org.bytepoet.shopifysolo.manager.models.OrderType;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.mappers.OrderToSoloInvoiceMapper;
+import org.bytepoet.shopifysolo.services.FulfillmentMaillingService;
 import org.bytepoet.shopifysolo.services.SoloMaillingService;
 import org.bytepoet.shopifysolo.shopify.clients.ShopifyApiClient;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
@@ -55,6 +56,9 @@ public class OrderManagerController {
 	
 	@Autowired
 	private SoloMaillingService soloMaillingService;
+	
+	@Autowired
+	private FulfillmentMaillingService fulfillmentMaillingService;
 	
 	@Value("${email.subject}")
 	private String subject;
@@ -131,10 +135,15 @@ public class OrderManagerController {
 	}
 	
 	@RequestMapping(path="/{id}/process-fulfillment", method=RequestMethod.POST)
-	public void fullfilment(@PathVariable("id") Long orderId, @RequestParam(name="trackingNumber", required=false) String trackingNumber) {
+	public void fullfilment(@PathVariable("id") Long orderId, 
+			@RequestParam(name="trackingNumber", required=false) String trackingNumber, 
+			@RequestParam(name="sendNotification", required=false, defaultValue = "false") boolean sendNotification) {
 		Order order = orderRepository.getOne(orderId);
 		order.fulfill(trackingNumber);
-		//TODO: send email if it's not personal takeover
+		if (sendNotification) {
+			fulfillmentMaillingService.sendFulfillmentEmail(order.getContact(), trackingNumber);
+		}
+		orderRepository.save(order);
 		
 	}
 	

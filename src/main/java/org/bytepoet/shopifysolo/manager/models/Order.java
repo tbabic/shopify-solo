@@ -170,15 +170,19 @@ public abstract class Order {
 	
 	
 	public void fulfill(String trackingNumber) {
-		if (this.personalTakeover) {
-			this.isFulfilled = true;
-		} else {
+		this.status = OrderStatus.FULFILLED;
+		this.isFulfilled = true;
+		if (!this.personalTakeover) {
 			this.trackingNumber = trackingNumber;
-		}
+		} 
 	}
 	
 	public void setNote(String note) {
 		this.note = note;
+	}
+
+	public boolean isPersonalTakeover() {
+		return personalTakeover;
 	}
 	
 	

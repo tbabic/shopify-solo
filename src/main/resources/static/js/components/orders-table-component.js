@@ -27,6 +27,13 @@ var orderTableComponent = new Vue({
 		shippingOrders: {},
 		paymentOrder: {},
 		editingOrder: {},
+		fulfillment: {
+			order : {},
+			params : {
+				sendNotification : true,
+				trackingNumber : false
+			}
+		},
 		loadingCount: 0
 	},
 	computed : {
@@ -258,6 +265,26 @@ var orderTableComponent = new Vue({
 			window.print();
 			//$('#printSection').empty();
 		},
+		selectOrderForFulfillment : function(order, modalId) {
+			this.fulfillment.order = order;
+			this.fulfillment.params.trackingNumber = "";
+			this.fulfillment.params.sendNotification = true;
+			$(modalId).modal('show');
+		},
+		fulfillOrder : function() {
+			this.startLoader();
+			let url = '/manager/orders/' + this.fulfillment.order.id + "/process-fulfillment"
+			return axios.post(url, null, { 
+				params: this.fulfillment.params
+			}).then(response => {
+				console.log(response);
+				this.updateOrderFromBackend(this.fulfillment.order);
+			}).catch(error => {
+				this.showError(error.response.data.message);
+			}).finally(() => {
+				this.endLoader();
+			});
+		},
 		selectOrderForEditing : function(order, modalId) {
 			this.editingOrder = order;
 			$(modalId).modal('show');
@@ -301,6 +328,22 @@ var orderTableComponent = new Vue({
 			}).catch(error => {
 				this.endLoader();
 				this.showError(error.response.data.message);
+			});
+		},
+		updateOrderFromBackend : function(order) {
+			this.startLoader();
+			axios.get('/manager/orders/' + order.id).then(response => {
+				for (let prop in order) {
+					Vue.delete(order, prop);
+					
+				}
+				for (let prop in response.data) {
+					Vue.set(order, prop, response.data[prop]);
+				}
+			}).catch(error => {
+				this.showError(error.response.data.message);
+			}).finally(() => {
+				this.endLoader();
 			});
 		},
 		showError: function(errorMsg) {
