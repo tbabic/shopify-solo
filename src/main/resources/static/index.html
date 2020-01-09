@@ -161,7 +161,10 @@
 									v-on:click="selectOrder(order)">
 								<td class="order-id" data-toggle="tooltip" data-placement="top" v-bind:title="orderStatusTooltip(order)" >{{ order.id }}</td>
 								<td class="invoice-number">{{ order.invoiceNumber }}</td>
-								<td class="contact" data-toggle="tooltip" data-placement="top" v-bind:title="orderContactTooltip(order)" >{{ order.contact }}</td>
+								<td class="contact" data-toggle="tooltip" data-placement="top" v-bind:title="orderContactTooltip(order)" >
+									<div class="row">{{ order.contact }}</div>
+									<div class="row">{{ order.shippingInfo.fullName }}</div>
+								</td>
 								<td class="tender-number">{{ order.tenderNumber }}</td>
 								<td class="shopify-number">{{ order.shopifyOrderNumber }}</td>
 								<td>
@@ -385,7 +388,7 @@
 					<div class="modal-dialog" role="document">
 						<div class="modal-content">
 							<div class="modal-header">
-								<h5 class="modal-title" id="exampleModalLabel">Plaćanje</h5>
+								<h5 class="modal-title" id="exampleModalLabel">Označi narudžbu: {{ fulfillment.order.id }} kao odrađenu?</h5>
 								<button type="button" class="close" data-dismiss="modal">
 									<span>&times;</span>
 								</button>
@@ -393,9 +396,34 @@
 							<div class="modal-body">
 								<div  class="row">
 									<div class="col">
-										Označi narudžbu: {{ fulfillment.order.id }} kao odrađenu?
+										
 									</div>
 								</div>
+								<div  class="row">
+									<div class="col">
+										Adresa:
+									</div>
+									<div class="col" v-if="fulfillment.order.shippingInfo != undefined">
+										<div class="row"><div class="col">
+											{{ fulfillment.order.shippingInfo.fullName }}
+										</div></div>
+										<div class="row"><div class="col">
+											{{ fulfillment.order.shippingInfo.streetAndNumber }}
+										</div></div>
+										<div class="row"><div class="col">
+											{{ fulfillment.order.shippingInfo.other }}
+										</div></div>
+										<div class="row"><div class="col">
+											{{ fulfillment.order.shippingInfo.postalCode }} {{ fulfillment.order.shippingInfo.city }}
+										</div></div>
+										<div class="row" v-if="fulfillment.order.shippingInfo.country != 'Croatia' "><div class="col">
+											{{ fulfillment.order.shippingInfo.country }}
+										</div></div>
+									</div>
+								</div>
+								
+								
+								
 								<div  class="row">
 									<div class="col">
 										<div class="input-group mb-3">
