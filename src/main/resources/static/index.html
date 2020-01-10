@@ -50,7 +50,7 @@
 											</div>
 										</div>
 										
-										<div class="col">
+										<div class="col-3">
 											<span class="label label-default">Placeno:</span>
 											<div class="btn-group" role="group">
 												<button type="button" data-value="true" v-on:click="filtering('paid', $event)" v-bind:class="'btn btn-filter ' + (filters.paid == true ? 'active' : '')">
@@ -60,7 +60,20 @@
 													Ne
 												</button>
 											</div>
+											
+											<span class="label label-default">Napomena:</span>
+											<div class="btn-group" role="group">
+												<button type="button" data-value="true" v-on:click="filtering('hasNote', $event)" v-bind:class="'btn btn-filter ' + (filters.hasNote == true ? 'active' : '')">
+													Da
+												</button>
+												<button type="button" data-value="false" v-on:click="filtering('hasNote', $event)" v-bind:class="'btn btn-filter ' + (filters.hasNote == false ? 'active' : '')">
+													Ne
+												</button>
+											</div>
+											
 										</div>
+										
+						
 										
 										<div class="col">
 											<span class="label label-default">Osobno preuzimanje:</span>

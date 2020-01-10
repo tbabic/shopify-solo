@@ -79,6 +79,7 @@ public class OrderManagerController {
 			@RequestParam(name="personalTakeover", required=false) Boolean isPersonalTakeover,
 			@RequestParam(name="type", required=false) OrderType type,
 			@RequestParam(name="status", required=false) List<OrderStatus> statusList,
+			@RequestParam(name="hasNote", required=false) Boolean hasNote,
 			@RequestParam(name="page", required=false, defaultValue = "0") int page,
 			@RequestParam(name="size", required=false, defaultValue = "20") int size,
 			@RequestParam(name="sortBy", required=false, defaultValue ="id") String sortBy,
@@ -112,6 +113,18 @@ public class OrderManagerController {
 				}
 				if(isPersonalTakeover != null) {
 					predicates.add(criteriaBuilder.equal(actualRoot.get("personalTakeover"), isPersonalTakeover.booleanValue()));
+				}
+				if(hasNote != null) {
+					if (hasNote.booleanValue()) {
+						predicates.add(criteriaBuilder.and(
+								actualRoot.get("note").isNotNull(), 
+								criteriaBuilder.notEqual(actualRoot.get("note"), "")) );
+					} else {
+						predicates.add(criteriaBuilder.or(
+								actualRoot.get("note").isNull(), 
+								criteriaBuilder.equal(actualRoot.get("note"), "")) );
+					}
+					
 				}
 				if(predicates.isEmpty()) {
 					if (type == OrderType.GIVEAWAY) {
