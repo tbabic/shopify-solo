@@ -6,7 +6,7 @@ var orderTableComponent = new Vue({
 			paid : true
 		},
 		listFilters : {
-			status : ['INITIAL', 'IN_PROCESS', 'IN_POST']
+			
 		},
 		pagination: {
 			page: 0,

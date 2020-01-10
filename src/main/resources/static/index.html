@@ -32,19 +32,19 @@
 										<div class="col-4">
 											<span class="label label-default">Status:</span>
 											<div class="btn-group" role="group">
-												<button type="button" data-value="INITIAL" v-on:click="listFiltering('status', $event)" v-bind:class="'btn btn-filter ' + (listFilters.status.includes('INITIAL') ? 'active' : '')">
+												<button type="button" data-value="INITIAL" v-on:click="filtering('status', $event)" v-bind:class="'btn btn-filter ' + (filters.status == 'INITIAL' ? 'active' : '')">
 													Novo
 												</button>
-												<button type="button" data-value="IN_PROCESS" v-on:click="listFiltering('status', $event)" v-bind:class="'btn btn-filter ' + (listFilters.status.includes('IN_PROCESS') ? 'active' : '')">
+												<button type="button" data-value="IN_PROCESS" v-on:click="filtering('status', $event)" v-bind:class="'btn btn-filter ' + (filters.status == 'IN_PROCESS' ? 'active' : '')">
 													U izradi
 												</button>
-												<button type="button" data-value=IN_POST v-on:click="listFiltering('status', $event)" v-bind:class="'btn btn-filter ' + (listFilters.status.includes('IN_POST') ? 'active' : '')">
+												<button type="button" data-value=IN_POST v-on:click="filtering('status', $event)" v-bind:class="'btn btn-filter ' + (filters.status == 'IN_POST' ? 'active' : '')">
 													U pošti
 												</button>
-												<button type="button" data-value="FULFILLED" v-on:click="listFiltering('status', $event)" v-bind:class="'btn btn-filter ' + (listFilters.status.includes('FULFILLED') ? 'active' : '')">
+												<button type="button" data-value="FULFILLED" v-on:click="filtering('status', $event)" v-bind:class="'btn btn-filter ' + (filters.status == 'FULFILLED' ? 'active' : '')">
 													Odrađeno
 												</button>
-												<button type="button" data-value="CANCELED" v-on:click="listFiltering('status', $event)" v-bind:class="'btn btn-filter ' + (listFilters.status.includes('CANCELED') ? 'active' : '')">
+												<button type="button" data-value="CANCELED" v-on:click="filtering('status', $event)" v-bind:class="'btn btn-filter ' + (filters.status == 'CANCELED' ? 'active' : '')">
 													Otkazano
 												</button>
 											</div>
