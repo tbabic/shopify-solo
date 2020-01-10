@@ -34,6 +34,10 @@ var orderTableComponent = new Vue({
 				trackingNumber : false
 			}
 		},
+		statusChange : {
+			newStatus : "",
+			count : 0
+		},
 		loadingCount: 0
 	},
 	computed : {
@@ -209,6 +213,9 @@ var orderTableComponent = new Vue({
 			
 		},
 		changeSelectedOrdersStatus : function(status) {
+			this.statusChange.newStatus = status;
+		},
+		processStatusChange : function(status) {
 			this.startLoader();
 			for (let orderId in this.selectedOrders) {
 				this.startLoader();
@@ -392,6 +399,25 @@ var orderTableComponent = new Vue({
 			}
 			
 		},
+		statusCssClass : function(status) {
+			if (status == "INITIAL") {
+				return "status-initial"
+			}
+			if (status == "IN_PROCESS") {
+				return "status-in-process"
+			}
+			if (status == "IN_POST") {
+				return "status-in-post"
+			}
+			if (status == "FULFILLED") {
+				return "status-fulfilled"
+			}
+			if (status == "CANCELED") {
+				return "status-canceled"
+			}
+			return "";
+		},
+		
 		orderStatusCssClass : function(order) {
 			if (order.status == "INITIAL") {
 				return "order-initial"
@@ -407,6 +433,21 @@ var orderTableComponent = new Vue({
 			}
 			if (order.status == "CANCELED") {
 				return "order-canceled"
+			}
+			return "";
+		},
+		statusLabel : function(status) {
+			if (status == "IN_PROCESS") {
+				return "U izradi"
+			}
+			if (status == "IN_POST") {
+				return "U pošti"
+			}
+			if (status == "FULFILLED") {
+				return "Poslano"
+			}
+			if (status == "CANCELED") {
+				return "Otkazano"
 			}
 			return "";
 		},

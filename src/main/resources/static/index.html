@@ -122,9 +122,16 @@
 										</div>
 										
 										<div class="col">
-											<button type="button" class="btn btn-initial" v-on:click="changeSelectedOrdersStatus('INITIAL')">Novo</button>
-											<button type="button" class="btn btn-in-process" v-on:click="changeSelectedOrdersStatus('IN_PROCESS')">Za izradu</button>
-											<button type="button" class="btn btn-in-post" v-on:click="changeSelectedOrdersStatus('IN_POST')">U posti</button>
+											<div class="dropdown">
+												<button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+													Promijeni status
+												</button>
+												<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+													<button type="button" class="dropdown-item btn-initial" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('INITIAL')">Novo</button>
+													<button type="button" class="dropdown-item btn-in-process" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('IN_PROCESS')">Za izradu</button>
+													<button type="button" class="dropdown-item btn-in-post" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('IN_POST')">U posti</button>
+												</div>
+											</div>
 										</div>
 										
 										<div class="col">
@@ -308,6 +315,42 @@
 							</div>
 							<div class="modal-footer">
 								<button type="button" class="btn btn-secondary" data-dismiss="modal">Zatvori</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="modal fade" id=statusChangeModal role="dialog">
+					<div class="modal-dialog modal-lg" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">
+									Prebaci sljedeće narudžbe ({{ Object.keys(selectedOrders).length }}) u 
+									<span v-bind:class="statusCssClass(statusChange.newStatus)">{{ statusLabel(statusChange.newStatus) }}</span>
+								</h5>
+								<button type="button" class="close" data-dismiss="modal">
+									<span>&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<div v-for="order in selectedOrders" class="row">
+									<div class="col-2">
+										{{ order.id }}
+									</div>
+									<div class="col-4">
+										{{ order.contact }}
+									</div>
+									<div class="col-4">
+										{{ order.shippingInfo.fullName }}
+									</div>
+									<div class="col-2">
+										{{ order.isPaid ? 'Plaćeno' : 'Neplaćeno' }}
+									</div>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-primary" v-on:click="processStatusChange(statusChange.newStatus)">Potvrdi</button>
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
 							</div>
 						</div>
 					</div>

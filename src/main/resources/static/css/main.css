@@ -38,27 +38,27 @@ th {
 	font-weight: 400;
 }
 
-.order-in-process .order-id {
+.order-in-process .order-id,  .status-in-process{
 	background-color: #dacca2;
 }
 
-.btn-in-process {
-	color: black;
-    background-color: #dacca2;
-    border-color: #dacca2;
+.btn-in-process{
+	color: black !important;
+    background-color: #dacca2 !important;
+    border-color: #dacca2 !important;
 }
 
-.order-in-post .order-id {
+.order-in-post .order-id, .status-in-post {
 	background-color: #9c8c5a;
 }
 
 .btn-in-post {
 	color: black;
-    background-color: #9c8c5a;
+    background-color: #9c8c5a !important;
     border-color: #9c8c5a;
 }
 
-.order-fulfilled .order-id {
+.order-fulfilled .order-id, .status-fulfilled{
 	background-color: olive;
 }
 
