@@ -76,6 +76,7 @@ var orderTableComponent = new Vue({
 				Vue.set(this.filters, property, value);
 			}
 			this.pagination.page = 0;
+			this.deselectAll();
 			this.loadOrders();
 	
 		},
@@ -91,6 +92,7 @@ var orderTableComponent = new Vue({
 				list.push(value);
 			}
 			this.pagination.page = 0;
+			this.deselectAll();
 			this.loadOrders();
 		},
 		nextPage : function() {
@@ -111,6 +113,7 @@ var orderTableComponent = new Vue({
 			this.sorting.sortBy = sortBy;
 			this.sorting.direction = direction;
 			this.pagination.page = 0;
+			this.deselectAll();
 			return this.loadOrders();
 		},
 		loadOrders : function() {

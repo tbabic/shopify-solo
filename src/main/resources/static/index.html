@@ -127,9 +127,9 @@
 													Promijeni status
 												</button>
 												<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-													<button type="button" class="dropdown-item btn-initial" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('INITIAL')">Novo</button>
-													<button type="button" class="dropdown-item btn-in-process" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('IN_PROCESS')">Za izradu</button>
-													<button type="button" class="dropdown-item btn-in-post" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('IN_POST')">U posti</button>
+													<button type="button" class="dropdown-item btn-initial" data-toggle="modal" data-target="#statusChangeModal" v-on:click.stop="changeSelectedOrdersStatus('INITIAL')">Novo</button>
+													<button type="button" class="dropdown-item btn-in-process" data-toggle="modal" data-target="#statusChangeModal" v-on:click.stop="changeSelectedOrdersStatus('IN_PROCESS')">Za izradu</button>
+													<button type="button" class="dropdown-item btn-in-post" data-toggle="modal" data-target="#statusChangeModal" v-on:click.stop="changeSelectedOrdersStatus('IN_POST')">U posti</button>
 												</div>
 											</div>
 										</div>
@@ -349,7 +349,7 @@
 								</div>
 							</div>
 							<div class="modal-footer">
-								<button type="button" class="btn btn-primary" v-on:click="processStatusChange(statusChange.newStatus)">Potvrdi</button>
+								<button type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="processStatusChange(statusChange.newStatus)">Potvrdi</button>
 								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
 							</div>
 						</div>
