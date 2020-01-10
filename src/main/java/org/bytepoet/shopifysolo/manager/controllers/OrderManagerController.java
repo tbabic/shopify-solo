@@ -96,14 +96,14 @@ public class OrderManagerController {
 				
 				Root<?> actualRoot = root;
 				List<Predicate> predicates = new ArrayList<>();
-				if((type != null && type == OrderType.PAYMENT) || (type == null && isPaid != null)) {
+				if(type != null && type == OrderType.PAYMENT) {
 					actualRoot = criteriaBuilder.treat(root, PaymentOrder.class);
 					if (isPaid != null) {
 						predicates.add(criteriaBuilder.equal(actualRoot.get("isPaid"), isPaid.booleanValue()));
 					}
 				} else if (type == OrderType.GIVEAWAY) {
 					actualRoot = criteriaBuilder.treat(root, GiveawayOrder.class);
-				}				
+				}
 				if(isOpen != null) {
 					predicates.add(criteriaBuilder.equal(actualRoot.get("isFulfilled"), !isOpen.booleanValue()));
 				}
@@ -113,7 +113,15 @@ public class OrderManagerController {
 				if(isPersonalTakeover != null) {
 					predicates.add(criteriaBuilder.equal(actualRoot.get("personalTakeover"), isPersonalTakeover.booleanValue()));
 				}
-				
+				if(predicates.isEmpty()) {
+					if (type == OrderType.GIVEAWAY) {
+						predicates.add(criteriaBuilder.equal(root.type(), GiveawayOrder.class));
+					} else if (type == OrderType.PAYMENT ){
+						predicates.add(criteriaBuilder.equal(root.type(), PaymentOrder.class));
+					} else {
+						return null;
+					}
+				}
 				return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
 			}
 		};
