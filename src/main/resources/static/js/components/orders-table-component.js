@@ -120,6 +120,7 @@ var orderTableComponent = new Vue({
 			return this.loadOrders();
 		},
 		search : function() {
+			this.deselectAll();
 			this.loadOrders(true);
 		},
 		loadOrders : function(useSearch) {
