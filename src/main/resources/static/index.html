@@ -120,6 +120,16 @@
 												<img src="/icons/arrow-right.svg" alt="" width="16" height="16" title="right">
 											</button>
 										</div>
+										
+										<div class="col-2">
+											<div class="input-group mb-3">
+												<input type="text" class="form-control" v-model="searchFilter.value">
+												<div class="input-group-append">
+													<button class="btn btn-primary" type="button" v-on:click="search">Traži</button>
+												</div>
+											</div>
+										</div>
+										
 										<div class="col-1">
 											<div class="dropdown">
 												<button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

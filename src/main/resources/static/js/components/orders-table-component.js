@@ -3,10 +3,13 @@ var orderTableComponent = new Vue({
 	el:"#ordersTable",
 	data: {
 		filters: {
-			paid : true
+			paid : true,
 		},
 		listFilters : {
 			
+		},
+		searchFilter : {
+			value : ""
 		},
 		pagination: {
 			page: 0,
@@ -116,24 +119,34 @@ var orderTableComponent = new Vue({
 			this.deselectAll();
 			return this.loadOrders();
 		},
-		loadOrders : function() {
+		search : function() {
+			this.loadOrders(true);
+		},
+		loadOrders : function(useSearch) {
 			this.startLoader();
+			
 			params = {
 				page : this.pagination.page,
 				size : this.pagination.size,
 				sortBy : this.sorting.sortBy,
 				sortDirection: this.sorting.direction
 			}
-			for (let prop in this.filters){
-				if(this.filters.hasOwnProperty(prop)){
-					params[prop] = this.filters[prop];
+			if (useSearch == undefined || this.searchFilter.value.length == 0) {
+				this.searchFilter.value = "";
+				for (let prop in this.filters){
+					if(this.filters.hasOwnProperty(prop)){
+						params[prop] = this.filters[prop];
+					}
 				}
-			}
-			for (let prop in this.listFilters){
-				if(this.listFilters.hasOwnProperty(prop)){
-					params[prop] = this.listFilters[prop].join();
+				for (let prop in this.listFilters){
+					if(this.listFilters.hasOwnProperty(prop)){
+						params[prop] = this.listFilters[prop].join();
+					}
 				}
+			} else {
+				params.search = this.searchFilter.value;
 			}
+			
 			
 			console.log('get orders');
 			return axios.get('/manager/orders', {

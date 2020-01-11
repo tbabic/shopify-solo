@@ -9,7 +9,9 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.metamodel.Attribute;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.manager.models.GiveawayOrder;
 import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.OrderStatus;
@@ -80,9 +82,10 @@ public class OrderManagerController {
 			@RequestParam(name="type", required=false) OrderType type,
 			@RequestParam(name="status", required=false) List<OrderStatus> statusList,
 			@RequestParam(name="hasNote", required=false) Boolean hasNote,
+			@RequestParam(name="search", required=false) String search,
 			@RequestParam(name="page", required=false, defaultValue = "0") int page,
 			@RequestParam(name="size", required=false, defaultValue = "20") int size,
-			@RequestParam(name="sortBy", required=false, defaultValue ="id") String sortBy,
+			@RequestParam(name="sortBy", required=false, defaultValue ="id") String sortBy, 
 			@RequestParam(name="sortDirection", required=false, defaultValue ="ASC") Direction direction) throws Exception {
 		
 		Specification<Order> spec = new Specification<Order>() {
@@ -129,6 +132,13 @@ public class OrderManagerController {
 								criteriaBuilder.equal(actualRoot.get("note"), "")) );
 					}
 					
+				}
+				if (StringUtils.isNotBlank(search)) {
+					List<Predicate> searchPredicates = new ArrayList<>();
+					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("note")), "%"+search.toLowerCase()+"%"));
+					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("contact")), "%"+search.toLowerCase()+"%"));
+					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("shippingInfo").get("fullName")), "%"+search.toLowerCase()+"%"));
+					predicates.add(criteriaBuilder.and(criteriaBuilder.or(searchPredicates.toArray(new Predicate[0]))));
 				}
 				if(predicates.isEmpty()) {
 					if (type == OrderType.GIVEAWAY) {
