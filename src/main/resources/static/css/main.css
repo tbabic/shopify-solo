@@ -116,6 +116,15 @@ th {
 	background-color: #777777 !important;
 }
 
+.clickable-row.note-highlight {
+	background-color: #ffff00!important;
+}
+
+.clickable-row.highlight.note-highlight {
+	background-color: #c1b800!important;
+}
+
+
 .btn-filter {
 	background-color: lightgray;
 }

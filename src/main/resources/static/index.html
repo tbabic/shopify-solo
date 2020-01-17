@@ -187,7 +187,7 @@
 						</thead>
 						<tbody class="">
 							<tr v-for="order in orders"
-									v-bind:class="orderStatusCssClass(order) + ' clickable-row ' + (isSelected(order) ? 'highlight' : '')"
+									v-bind:class="orderStatusCssClass(order) + ' clickable-row' + (isSelected(order) ? ' highlight' : '') + ' ' + (hasNote(order) ? ' note-highlight' : '')"
 									v-on:click="selectOrder(order)">
 								<td class="order-id" data-toggle="tooltip" data-placement="top" v-bind:title="orderStatusTooltip(order)" >{{ order.id }}</td>
 								<td class="invoice-number">{{ order.invoiceNumber }}</td>
