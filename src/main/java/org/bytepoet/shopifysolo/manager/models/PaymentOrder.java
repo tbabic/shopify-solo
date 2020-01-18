@@ -182,6 +182,13 @@ public class PaymentOrder extends Order {
 	public String getShippingSnapshot() {
 		return invoiceNumber + " " + contact;
 	}
+	
+	public double getTotalPrice() {
+		if (items == null) {
+			return 0;
+		}
+		return items.stream().map(i -> Double.parseDouble(i.getPrice())).collect(Collectors.summingDouble(Double::doubleValue));
+	}
 
 	@Override
 	@Transient

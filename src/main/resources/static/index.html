@@ -102,7 +102,13 @@
 										<div class="col-1">
 											<button type="button" class="btn btn-default" data-toggle="collapse" data-target="#inProcessDrawer">
 												
-												<img src="/icons/reply.svg" alt="" width="32" height="32" title="left">
+												<img src="/icons/reply.svg" alt="" width="20" height="20" title="left">
+											</button>
+										</div>
+										
+										<div class="col-1">
+											<button type="button" class="btn btn-default" data-toggle="modal" data-target="#createOrderModal">
+												<img src="/icons/plus.svg" alt="" width="20" height="20" title="left">
 											</button>
 										</div>
 										
@@ -449,6 +455,172 @@
 						</div>
 					</div>
 				</div>
+				
+				<div class="modal fade" id=createOrderModal role="dialog">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Nova narudžba</h5>
+								<button type="button" class="close" data-dismiss="modal">
+									<span>&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<div class="card text-left">
+									<div class="card-header">
+										<ul class="nav nav-tabs card-header-tabs">
+											<li class="nav-item">
+												<button disabled v-on:click="createdOrder.type = 'PAYMENT'" v-bind:class="'nav-link' + (createdOrder.type == 'PAYMENT' ? ' active' : '')" >
+													Plaćanje
+												</button>
+											</li>
+											<li class="nav-item">
+												<button v-on:click="createdOrder.type = 'GIVEAWAY'" v-bind:class="'nav-link' + (createdOrder.type == 'GIVEAWAY' ? ' active' : '')">
+													Giveaweay
+												</button>
+											</li>
+										</ul>
+									</div>
+									<div v-bind:class="'card-body ' + (createdOrder.type == 'PAYMENT' ? 'payment-order' : '') + (createdOrder.type == 'GIVEAWAY' ? 'giveaway-order' : '')">
+										<div class="form-group row">
+											<label class="col-2 col-form-label">Kontakt/Email</label>
+											<div class="col-4">
+												<input class="form-check-input" v-model="createdOrder.contact">
+											</div>
+											<label class="col-2 col-form-label giveaway-order">Platforma</label>
+											<div class="col-4 giveaway-order">
+												<input class="form-check-input" v-model="createdOrder.platform">
+											</div>
+										</div>
+										<div class="row">
+											<div class="card col-12">
+												<div class="card-header">
+													Proizvodi
+												</div>
+												<div class="card-body">
+													<div v-for="(item, index) in createdOrder.items" class="row">
+														<div class="form-inline">
+															<div class="input-group mb-2 mr-sm-2">
+																<div class="input-group-prepend">
+																	<div class="input-group-text">Ime</div>
+																</div>
+																<input type="text" class="form-control" v-model="item.name">
+															</div>
+															<div class="input-group mb-2 mr-sm-2">
+																<div class="input-group-prepend">
+																	<div class="input-group-text">Količina</div>
+																</div>
+																<input type="number" class="form-control" v-model="item.quantity">
+															</div>
+															<div class="input-group mb-2 mr-sm-2 payment-order">
+																<div class="input-group-prepend">
+																	<div class="input-group-text">Cijena</div>
+																</div>
+																<input type="text" class="form-control" v-model="item.price">
+															</div>
+															<button type="button" class="btn btn-danger" v-on:click="deleteItemFromCreatedOrder(index)">
+																<img src="/icons/dash.svg" alt="" width="16" height="16" >
+															</button>
+														</div>
+													</div>
+													<div class="row">
+														<button type="button" class="btn btn-primary" v-on:click="addNewItemToCreatedOrder">
+															<img src="/icons/plus.svg" alt="" width="16" height="16" >
+														</button>
+													</div>
+												</div>
+											</div>
+										</div>
+				
+										
+										<div class="row">
+											<div class="card col-12">
+												<div class="card-header">
+													<div class="form-group row">
+														<label class="col-2 col-form-label">Osobno preuzimanje</label>
+														<div class="col-4">
+															<input class="form-check-input" type="checkbox" v-model="createdOrder.personalTakeover">
+														</div>
+													</div>
+												</div>
+												<div class="card-body"  v-bind:style="(createdOrder.personalTakeover ? 'display:none' : '')">
+													<div class="form-inline">
+														<div class="input-group mb-2 mr-sm-2">
+															<div class="input-group-prepend">
+																<div class="input-group-text">Ime i prezime</div>
+															</div>
+															<input type="text" class="form-control" v-model="createdOrder.shippingInfo.fullname">
+														</div>
+														
+														<div class="input-group mb-2 mr-sm-2">
+															<div class="input-group-prepend">
+																<div class="input-group-text">Tvrtka</div>
+															</div>
+															<input type="text" class="form-control" v-model="createdOrder.shippingInfo.company">
+														</div>
+													</div>
+													
+													<div class="form-inline">
+														<div class="input-group mb-2 mr-sm-2">
+															<div class="input-group-prepend">
+																<div class="input-group-text">Ulica i br.</div>
+															</div>
+															<input type="text" class="form-control" v-model="createdOrder.shippingInfo.streetAndNumber">
+														</div>
+														<div class="input-group mb-2 mr-sm-2">
+															<div class="input-group-prepend">
+																<div class="input-group-text">Dodatno</div>
+															</div>
+															<input type="text" class="form-control" v-model="createdOrder.shippingInfo.other">
+														</div>
+													</div>
+													<div class="form-inline">
+														<div class="input-group mb-2 mr-sm-2">
+															<div class="input-group-prepend">
+																<div class="input-group-text">Grad</div>
+															</div>
+															<input type="text" class="form-control" v-model="createdOrder.shippingInfo.city">
+														</div>
+														
+														<div class="input-group mb-2 mr-sm-2">
+															<div class="input-group-prepend">
+																<div class="input-group-text">Poštanski broj</div>
+															</div>
+															<input type="text" class="form-control" v-model="createdOrder.shippingInfo.postalCode">
+														</div>
+													</div>
+													<div class="form-inline">
+														<div class="input-group mb-2 mr-sm-2">
+															<div class="input-group-prepend">
+																<div class="input-group-text">Tel. broj</div>
+															</div>
+															<input type="text" class="form-control" v-model="createdOrder.shippingInfo.phoneNumber">
+														</div>
+													</div>
+													<div class="form-inline">
+														<div class="input-group mb-2 mr-sm-2">
+															<div class="input-group-prepend">
+																<div class="input-group-text">Zemlja</div>
+															</div>
+															<input type="text" class="form-control" v-model="createdOrder.shippingInfo.country">
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+										
+																	
+									</div>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-dismiss="modal" v-on:click="saveNewOrder">Spremi</button>
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				
 				
 				<div class="modal fade" id=fulfillmentModal role="dialog">
 					<div class="modal-dialog" role="document">

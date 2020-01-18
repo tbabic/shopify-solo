@@ -154,13 +154,6 @@ public abstract class Order {
 		return contact;
 	}
 	
-	public double getTotalPrice() {
-		if (items == null) {
-			return 0;
-		}
-		return items.stream().map(i -> Double.parseDouble(i.getPrice())).collect(Collectors.summingDouble(Double::doubleValue));
-	}
-	
 	@Transient
 	@JsonProperty(access = Access.READ_ONLY)
 	public abstract String getShippingSnapshot();

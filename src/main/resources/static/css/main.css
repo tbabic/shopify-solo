@@ -1,3 +1,11 @@
+.giveaway-order .payment-order {
+	display:none;
+}
+
+.payment-order .giveaway-order {
+	display:none;
+}
+
 .btn {
 	text-transform: uppercase;
 }
@@ -76,6 +84,10 @@ th {
 
 .shipping-drawer {
 	z-index: 2;
+}
+
+#createOrderModal .modal-dialog {
+	max-width: 95vw;
 }
 
 #printModal .modal-dialog {

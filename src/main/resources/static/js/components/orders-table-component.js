@@ -41,6 +41,24 @@ var orderTableComponent = new Vue({
 			newStatus : "",
 			count : 0
 		},
+		createdOrder: {
+			type: "GIVEAWAY",
+			contact: null,
+			shippingInfo: {
+				fullName: null,
+				companyName: null,
+				streetAndNumber: null,
+				other: null,
+				city: null,
+				postalCode: null,
+				country: "Croatia",
+				phoneNumber: null
+			},
+			personalTakeover: false,
+			items:[],
+			note: null,
+			giveawayPlatform: null
+		},
 		loadingCount: 0
 	},
 	computed : {
@@ -400,6 +418,19 @@ var orderTableComponent = new Vue({
 				order.previousStatus = order.status;
 				order.status = revertingStatus;
 			});
+		},
+		addNewItemToCreatedOrder : function(){
+			this.createdOrder.items.push({
+				name: null,
+				quantity: null,
+				price: null
+			});
+		},
+		deleteItemFromCreatedOrder : function(index){
+			this.createdOrder.items.splice( index, 1 );
+		},
+		saveNewOrder : function(){
+			this.saveOrder(this.createdOrder)
 		},
 		startLoader : function() {
 			this.loadingCount++;
