@@ -29,7 +29,11 @@ var orderTableComponent = new Vue({
 		selectedOrders: {},
 		shippingOrders: {},
 		paymentOrder: {},
-		editingOrder: {},
+		editingOrder: {
+			shippingInfo: {
+				
+			}
+		},
 		fulfillment: {
 			order : {},
 			params : {
