@@ -227,7 +227,7 @@
 										</button>
 										<div class="dropdown-menu dropdown-primary" aria-labelledby="dropdownMenuButton">
 											<button  type="button" class="btn btn-primary" v-on:click.stop="selectOrderForEditing(order, '#editOrderModal')">Editiraj</button>
-											<button  v-if="!order.isPaid && role == ROLE_ADMIN" type="button" class="btn btn-primary" v-on:click.stop="selectOrderForPayment(order, '#paymentModal')">Plaćeno</button>
+											<button  v-if="!order.isPaid && role == 'ROLE_ADMIN'" type="button" class="btn btn-primary" v-on:click.stop="selectOrderForPayment(order, '#paymentModal')">Plaćeno</button>
 											<button  type="button" class="btn btn-primary" v-on:click.stop="selectOrderForFulfillment(order, '#fulfillmentModal')">Odrađeno</button>
 										</div>
 									</div>
@@ -495,14 +495,14 @@
 											<thead>
 												<tr>
 													<th>Model</th>
-													<th v-if="role == ROLE_ADMIN">Cijena</th>
+													<th v-if="role == 'ROLE_ADMIN'">Cijena</th>
 													<th>Kolicina</th>
 												</tr>
 											</thead>
 											<tbody>
 												<tr v-for="item in editingOrder.items">
 													<td> {{ item.name }}</td>
-													<td v-if="role == ROLE_ADMIN"> {{ item.price }} </td>
+													<td v-if="role == 'ROLE_ADMIN'"> {{ item.price }} </td>
 													<td> {{ item.quantity }} </td>
 												</tr>
 											</tbody>
