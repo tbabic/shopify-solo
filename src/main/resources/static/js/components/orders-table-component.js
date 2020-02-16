@@ -63,7 +63,9 @@ var orderTableComponent = new Vue({
 			note: null,
 			giveawayPlatform: null
 		},
-		loadingCount: 0
+		loadingCount: 0,
+		authToken : null,
+		role : null
 	},
 	computed : {
 		itemsOfSelectedOrders : function() {
@@ -521,15 +523,40 @@ var orderTableComponent = new Vue({
 		orderContactTooltip : function(order) {
 			return order.shippingInfo.fullName;
 		},
+		
+		logout : function() {
+			localStorage.removeItem("token");
+			axios.defaults.headers.common['Authorization'] = null;
+		}
 	},
 	mounted : function () {
 		this.startLoader();
-		return axios.get('/manager/orders', {
-			params : {
-				status : 'IN_PROCESS',
-				page : 0,
-				size : 1000
-			}
+		let token = localStorage.getItem("token");
+		
+		let loginPromise = null;
+		if (token == null) {
+			loginPromise = axios.post('/manager/login', null);
+		} else {
+			loginPromise = axios.post('/manager/login', null, {
+				headers : {
+					Authorization : token
+				}
+			});
+		}
+		
+		loginPromise.then(response => {
+			this.authToken = response.data.authToken;
+			this.role = response.data.role;
+			localStorage.setItem("token", this.authToken);
+			axios.defaults.headers.common['Authorization'] = this.authToken;
+		}).then(() => {
+			return axios.get('/manager/orders', {
+				params : {
+					status : 'IN_PROCESS',
+					page : 0,
+					size : 1000
+				}
+			});
 		}).then(response => {
 			response.data.content.forEach(order => { 
 				Vue.set(this.shippingOrders, order.id, order);

@@ -22,7 +22,7 @@
 <body>
 	<div id="noPrintSection" class="container-fluid">
 		<div id="app">
-			<div id="ordersTable" class="row">
+			<div id="ordersTable" v-bind:class="'row ' + role ">
 				<div class="col">
 					<table class="table small table-fix-header">
 						<thead class="thead-dark extra-small">
@@ -184,7 +184,7 @@
 								<th>webshop narudzba</th>
 								<th>model</th>
 								<th>Napomena</th>
-								<th>uplata</th>
+								<th v-if="role == 'ROLE_ADMIN'">uplata</th>
 								<th>nacin placanja</th>
 								<th>naruceno</th>
 								<th>poslati</th>
@@ -213,7 +213,7 @@
 									  N
 									</button>
 								</td>
-								<td>{{ order.totalPrice }} kn</td>
+								<td v-if="role == 'ROLE_ADMIN'">{{ order.totalPrice }} kn</td>
 								<td>
 									<img v-if="order.paymentType == 'CREDIT_CARD' " src="/icons/credit-card.svg" alt="" width="32" height="32" title="left"/>
 									<img v-if="order.paymentType == 'BANK_TRANSACTION' " src="/icons/document-diff.svg" alt="" width="32" height="32" title="left"/>
@@ -227,7 +227,7 @@
 										</button>
 										<div class="dropdown-menu dropdown-primary" aria-labelledby="dropdownMenuButton">
 											<button  type="button" class="btn btn-primary" v-on:click.stop="selectOrderForEditing(order, '#editOrderModal')">Editiraj</button>
-											<button  v-if="!order.isPaid " type="button" class="btn btn-primary" v-on:click.stop="selectOrderForPayment(order, '#paymentModal')">Plaćeno</button>
+											<button  v-if="!order.isPaid && role == ROLE_ADMIN" type="button" class="btn btn-primary" v-on:click.stop="selectOrderForPayment(order, '#paymentModal')">Plaćeno</button>
 											<button  type="button" class="btn btn-primary" v-on:click.stop="selectOrderForFulfillment(order, '#fulfillmentModal')">Odrađeno</button>
 										</div>
 									</div>
@@ -495,14 +495,14 @@
 											<thead>
 												<tr>
 													<th>Model</th>
-													<th>Cijena</th>
+													<th v-if="role == ROLE_ADMIN">Cijena</th>
 													<th>Kolicina</th>
 												</tr>
 											</thead>
 											<tbody>
 												<tr v-for="item in editingOrder.items">
 													<td> {{ item.name }}</td>
-													<td> {{ item.price }} </td>
+													<td v-if="role == ROLE_ADMIN"> {{ item.price }} </td>
 													<td> {{ item.quantity }} </td>
 												</tr>
 											</tbody>
@@ -749,6 +749,40 @@
 							<div class="modal-footer">
 								<button  type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="fulfillOrder">Potvrdi</button>
 								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="modal fade" id=loginModal role="dialog">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Prijava</h5>
+
+							</div>
+							<div class="modal-body">
+								<div  class="row">
+									<div class="form-inline">
+										<div class="input-group mb-2 mr-sm-2">
+											<div class="input-group-prepend">
+												<div class="input-group-text">Korisničko ime</div>
+											</div>
+											<input type="text" class="form-control">
+										</div>
+									</div>
+									<div class="form-inline">
+										<div class="input-group mb-2 mr-sm-2">
+											<div class="input-group-prepend">
+												<div class="input-group-text">Zaporka</div>
+											</div>
+											<input type="text" class="form-control">
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-primary" data-dismiss="modal">Prijava</button>
 							</div>
 						</div>
 					</div>
