@@ -301,21 +301,32 @@
 							</div>
 							<div id="printContent" class="modal-body printable">
 								<div  class="row">
-									<div v-for="shippingOrder in selectedOrders" class="col-3 address-element border" contenteditable="true">
-										<div class="row">
-											{{ shippingOrder.shippingInfo.fullName }}
+									<div v-for="shippingOrder in selectedOrders" class="col-3 border" >
+										<div class="sender-address address-element">
+											<div class="row">
+												Šalje: Imagine Now d.o.o.
+											</div><div class="row">
+												Trg Petra Svačića 13
+											</div><div class="row">
+												10000 Zagreb
+											</div>
 										</div>
-										<div class="row">
-											{{ shippingOrder.shippingInfo.streetAndNumber }}
-										</div>
-										<div class="row">
-											{{ shippingOrder.shippingInfo.other }}
-										</div>
-										<div class="row">
-											{{ shippingOrder.shippingInfo.postalCode }} {{ shippingOrder.shippingInfo.city }}
-										</div>
-										<div class="row" v-if="shippingOrder.shippingInfo.country != 'Croatia' ">
-											{{ shippingOrder.shippingInfo.country }}
+										<div class="recepient-address address-element" contenteditable="true">
+											<div class="row">
+												Prima: {{ shippingOrder.shippingInfo.fullName }}
+											</div>
+											<div class="row">
+												{{ shippingOrder.shippingInfo.streetAndNumber }}
+											</div>
+											<div class="row">
+												{{ shippingOrder.shippingInfo.other }}
+											</div>
+											<div class="row">
+												{{ shippingOrder.shippingInfo.postalCode }} {{ shippingOrder.shippingInfo.city }}
+											</div>
+											<div class="row" v-if="shippingOrder.shippingInfo.country != 'Croatia' ">
+												{{ shippingOrder.shippingInfo.country }}
+											</div>
 										</div>
 									</div>
 								</div>

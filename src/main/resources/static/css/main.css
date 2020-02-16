@@ -1,4 +1,6 @@
 
+
+
 .giveaway-order .payment-order {
 	display:none;
 }
@@ -69,6 +71,14 @@ th {
 
 .order-fulfilled .order-id, .status-fulfilled{
 	background-color: olive;
+}
+
+.sender-address {
+	padding-bottom: 10px;
+	background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' preserveAspectRatio='none' viewBox='0 0 100 100'><path d='M100 0 L0 100 ' stroke='black' stroke-width='1'/><path d='M0 0 L100 100 ' stroke='black' stroke-width='1'/></svg>");
+    background-repeat:no-repeat;
+    background-position:center center;
+    background-size: 100% 100%, auto;
 }
 
 .address-element {
@@ -261,6 +271,10 @@ th {
 	}
 	
 	.address-element {
+	}
+	
+	.sender-address {
+    	-webkit-print-color-adjust: exact; 
 	}
 	
 }
