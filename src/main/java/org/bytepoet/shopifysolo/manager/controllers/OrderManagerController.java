@@ -9,6 +9,8 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
+
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.manager.models.GiveawayOrder;
 import org.bytepoet.shopifysolo.manager.models.Order;
@@ -136,7 +138,28 @@ public class OrderManagerController {
 					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("note")), "%"+search.toLowerCase()+"%"));
 					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("contact")), "%"+search.toLowerCase()+"%"));
 					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("shippingInfo").get("fullName")), "%"+search.toLowerCase()+"%"));
+					
+					boolean paymentOrderIncluded = false;
+					
+					if(actualRoot == root) {
+						paymentOrderIncluded = true;
+					} else if(actualRoot.equals(criteriaBuilder.treat(root, PaymentOrder.class))) {
+						paymentOrderIncluded = true;
+					}
+					
+					if(paymentOrderIncluded) {
+						Subquery<PaymentOrder> sq = query.subquery(PaymentOrder.class);
+						Root<PaymentOrder> sqRoot = sq.from(PaymentOrder.class);
+			
+						sq.select(sqRoot.get("id")).where(criteriaBuilder.or(
+								criteriaBuilder.like(sqRoot.get("tenderNumber"), "%"+search+"%"),
+								criteriaBuilder.like(sqRoot.get("invoiceNumber"), "%"+search+"%"),
+								criteriaBuilder.like(sqRoot.get("shopifyOrderNumber"), "%"+search+"%")));
+						searchPredicates.add(criteriaBuilder.in(actualRoot.get("id")).value(sq));
+			
+					}
 					predicates.add(criteriaBuilder.and(criteriaBuilder.or(searchPredicates.toArray(new Predicate[0]))));
+
 				}
 				if(predicates.isEmpty()) {
 					if (type == OrderType.GIVEAWAY) {
