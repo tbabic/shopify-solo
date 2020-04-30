@@ -34,7 +34,7 @@ public abstract class OrderToSoloMapper<T extends SoloBillingObject, B extends S
 		builder.serviceType(serviceType);
 		builder.paymentType(order.getPaymentType().toSoloPaymentType());
 		builder.email(order.getEmail());
-		builder.isTaxed(false);
+		builder.isTaxed(true);
 		builder.note(this.note);
 		
 		if (order.getItems() != null) {
