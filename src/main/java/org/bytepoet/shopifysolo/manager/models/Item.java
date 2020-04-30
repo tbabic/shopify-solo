@@ -1,5 +1,9 @@
 package org.bytepoet.shopifysolo.manager.models;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -46,6 +50,7 @@ public class Item {
 		this.quantity = lineItem.getQuantity();
 		this.discount = lineItem.getDiscountPercent();
 		this.taxRate = taxRate;
+		applyTaxRate();
 	}
 	
 	
@@ -56,6 +61,7 @@ public class Item {
 		this.quantity = quantity;
 		this.discount = discount;
 		this.taxRate = taxRate;
+		applyTaxRate();
 	}
 
 	public String getName() {
@@ -76,6 +82,18 @@ public class Item {
 
 	public String getTaxRate() {
 		return taxRate;
+	}
+	
+	private void applyTaxRate() {
+		double totalPrice = Double.parseDouble(this.price);
+		double taxRate = Double.parseDouble(this.taxRate) / 100;
+		double priceWithoutTax = totalPrice / (1.0+taxRate);
+		DecimalFormat df = new DecimalFormat("#.00");
+		df.setRoundingMode(RoundingMode.HALF_UP);
+		DecimalFormatSymbols newSymbols = new DecimalFormatSymbols();
+		newSymbols.setDecimalSeparator('.');
+		df.setDecimalFormatSymbols(newSymbols);
+		this.price = df.format(priceWithoutTax);
 	}
 	
 	
