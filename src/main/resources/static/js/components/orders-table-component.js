@@ -488,6 +488,12 @@ var orderTableComponent = new Vue({
 			if (order.status == "CANCELED") {
 				return "order-canceled"
 			}
+			if (order.status == "REQUEST_SEARCH") {
+				return "order-request-search"
+			}
+			if (order.status == "SEARCH_PROCESS") {
+				return "order-search-process"
+			}
 			return "";
 		},
 		statusLabel : function(status) {
