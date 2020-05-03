@@ -1,0 +1,96 @@
+var textRecordsComponent = new Vue({
+	el:"#text-records",
+	data: {
+		categories : [],
+		textRecords : [],
+		selectedRecord : {
+			id: null,
+			value : '',
+			category : '',
+		},
+		selectedCategory : '',
+		loadingCount: 0
+	},
+	methods: {
+		loadAllCategories : function() {
+			this.startLoader();
+			return axios.get('/manager/texts/categories').then(response => {
+				this.categories.splice(0,this.categories.length);
+				response.data.forEach(category => { 
+					this.categories.push(category);
+				});
+			}).finally(() => {
+				this.endLoader();
+			});
+		},
+		loadRecordsForCategory : function(selectedCategory) {
+			this.startLoader();
+			this.selectedCategory = selectedCategory;
+			return axios.get('/manager/texts/records', {
+				params : {
+					category : selectedCategory
+				}
+			}).then(response => {
+				this.textRecords.splice(0,this.textRecords.length);
+				response.data.forEach(textRecord => { 
+					this.textRecords.push(textRecord);
+				});
+			}).finally(() => {
+				this.endLoader();
+			});
+		},
+		selectRecord : function(record) {
+			this.selectedRecord.id = record.id;
+			this.selectedRecord.value = record.value;
+			this.selectedRecord.category = record.category;
+		},
+		cleanSelectedRecord : function() {
+			this.selectedRecord.id = null;
+			this.selectedRecord.value = '';
+			this.selectedRecord.category = '';
+		},
+		saveSelectedRecord : function() {
+			this.startLoader();
+			return axios.post('/manager/texts/records', this.selectedRecord).then(response => {
+				console.log(response);
+				this.endLoader();
+			}).then(() => {
+				return this.loadRecordsForCategory(this.selectedCategory);
+			}).then(()=>{
+				return this.loadAllCategories();
+			}).catch(error => {
+				this.showError(error.response.data.message);
+			}).finally(() => {
+				this.endLoader();
+			});
+		},
+		copyToClipboard : function(element) {
+			
+		},
+		showError: function(errorMsg) {
+			if (errorMsg === undefined) {
+				errorMsg = "Unexpected error";
+			}
+			$("#errorContent").text(errorMsg);
+			$("#errorModal").modal('show');
+		},
+		startLoader : function() {
+			this.loadingCount++;
+			if (this.loadingCount > 0) {
+				document.getElementById("overlay").style.display = "flex";
+			}
+			
+		},
+		endLoader : function() {
+			this.loadingCount--;
+			if (this.loadingCount <= 0) {
+				document.getElementById("overlay").style.display = "none";
+				this.loadingCount = 0;
+			}
+			
+		}
+	},
+	mounted : function () {
+		this.loadAllCategories();
+	}
+});
