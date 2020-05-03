@@ -12,7 +12,7 @@
 }
 
 .text-record-value {
-	white-space: pre;
+	white-space: pre-wrap;
 }
 
 textarea.selected-record-value {
