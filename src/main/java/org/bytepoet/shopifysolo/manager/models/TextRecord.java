@@ -31,6 +31,12 @@ public class TextRecord {
 	public String getValue() {
 		return value;
 	}
+
+	public void setCategory(String category) {
+		this.category = category;
+	}
+	
+	
 	
 	
 }

@@ -47,7 +47,12 @@
 				<div class="modal-dialog modal-lg" role="document">
 					<div class="modal-content">
 						<div class="modal-header">
-							<h5 class="modal-title">{{selectedCategory}}</h5>
+							<h5 class="modal-title">
+								{{selectedCategory}}
+								<button class="btn btn-primary" data-toggle="modal" data-target="#editCategoryModal" v-on:click="editCategory">
+									Promijeni
+								</button>
+							</h5>
 							<button type="button" class="close" data-dismiss="modal">
 								<span>&times;</span>
 							</button>
@@ -67,6 +72,24 @@
 				</div>
 			</div>
 			
+			
+			<div class="modal fade" id="editCategoryModal" role="dialog">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-body">
+							<div class="row">
+								<div class="col">
+									<input type="text" v-model="editingCategory.newCategory"/>
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal" v-on:click="saveCategory">Spremi</button>
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
+						</div>
+					</div>
+				</div>
+			</div>
 			
 			<div class="modal fade" id="editTextRecordModal" role="dialog">
 				<div class="modal-dialog modal-lg" role="document">

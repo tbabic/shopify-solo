@@ -8,6 +8,10 @@ var textRecordsComponent = new Vue({
 			value : '',
 			category : '',
 		},
+		editingCategory : {
+			oldCategory : null,
+			newCategory : null
+		},
 		selectedCategory : '',
 		loadingCount: 0
 	},
@@ -39,6 +43,27 @@ var textRecordsComponent = new Vue({
 				this.endLoader();
 			});
 		},
+		editCategory : function() {
+			this.editingCategory.newCategory = this.selectedCategory;
+			this.editingCategory.oldCategory = this.selectedCategory;
+		},
+		saveCategory : function() {
+			this.startLoader();
+			return axios.post('/manager/texts/categories', this.editingCategory).then(response => {
+				console.log(response);
+				this.selectedCategory = this.editingCategory.newCategory;
+				this.editingCategory.newCategory = '';
+				this.editingCategory.oldCategory = '';
+			}).then(() => {
+				return this.loadRecordsForCategory(this.selectedCategory);
+			}).then(()=>{
+				return this.loadAllCategories();
+			}).catch(error => {
+				this.showError(error.response.data.message);
+			}).finally(() => {
+				this.endLoader();
+			});
+		},
 		selectRecord : function(record) {
 			this.selectedRecord.id = record.id;
 			this.selectedRecord.value = record.value;
@@ -53,7 +78,6 @@ var textRecordsComponent = new Vue({
 			this.startLoader();
 			return axios.post('/manager/texts/records', this.selectedRecord).then(response => {
 				console.log(response);
-				this.endLoader();
 			}).then(() => {
 				return this.loadRecordsForCategory(this.selectedCategory);
 			}).then(()=>{
@@ -63,9 +87,6 @@ var textRecordsComponent = new Vue({
 			}).finally(() => {
 				this.endLoader();
 			});
-		},
-		copyToClipboard : function(element) {
-			
 		},
 		showError: function(errorMsg) {
 			if (errorMsg === undefined) {
