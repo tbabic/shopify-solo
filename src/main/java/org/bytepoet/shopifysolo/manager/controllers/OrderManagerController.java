@@ -71,7 +71,8 @@ public class OrderManagerController {
 	@Value("${email.always-bcc:}")
 	private String alwaysBcc;
 	
-	
+	@Value("${solofy.tax-rate:}")
+	private String taxRate;
 	
 	
 	@RequestMapping(method=RequestMethod.GET)
@@ -219,6 +220,7 @@ public class OrderManagerController {
 			throw new RuntimeException(MessageFormat.format("Transaction status is {0} but must be 'pending'", transaction.getStatus())); 
 		}
 		
+		paymentOrder.applyTaxRate(taxRate);
 		SoloInvoice soloInvoice = soloApiClient.createInvoice(orderToSoloInvoiceMapper.map(paymentOrder));
 		paymentOrder.updateFromSoloInvoice(soloInvoice, paymentDate);
 		

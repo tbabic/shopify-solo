@@ -194,6 +194,15 @@ public class PaymentOrder extends Order {
 	@Transient
 	public OrderType getType() {
 		return OrderType.PAYMENT;
+	}
+
+	public void applyTaxRate(String taxRate) {
+		if (items == null) {
+			return;
+		}
+		for (Item item : items) {
+			item.applyTaxRate(taxRate);
+		}
 	}	
 	
 }

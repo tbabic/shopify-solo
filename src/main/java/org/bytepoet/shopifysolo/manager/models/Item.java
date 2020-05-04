@@ -84,17 +84,44 @@ public class Item {
 		return taxRate;
 	}
 	
+	public void applyTaxRate(String taxRate) {
+		double oldTaxRate = Double.parseDouble(this.taxRate);
+		double newTaxRate = Double.parseDouble(taxRate);
+		if (oldTaxRate == newTaxRate) {
+			return;
+		}
+		if (oldTaxRate != 0.0) {
+			removeTaxRate();
+			this.taxRate = "0";
+		}
+		this.taxRate = taxRate;
+		applyTaxRate();
+		
+	}
+	
+	private void removeTaxRate() {
+		double priceWithoutTax = Double.parseDouble(this.price);
+		double taxRate = Double.parseDouble(this.taxRate) / 100;
+		double totalPrice = priceWithoutTax * taxRate;
+		DecimalFormat df = getDecimalFormat();
+		this.price = df.format(totalPrice);
+	}
+	
 	private void applyTaxRate() {
 		double totalPrice = Double.parseDouble(this.price);
 		double taxRate = Double.parseDouble(this.taxRate) / 100;
 		double priceWithoutTax = totalPrice / (1.0+taxRate);
+		DecimalFormat df = getDecimalFormat();
+		this.price = df.format(priceWithoutTax);
+	}
+
+	private DecimalFormat getDecimalFormat() {
 		DecimalFormat df = new DecimalFormat("#.00");
 		df.setRoundingMode(RoundingMode.HALF_UP);
 		DecimalFormatSymbols newSymbols = new DecimalFormatSymbols();
 		newSymbols.setDecimalSeparator('.');
 		df.setDecimalFormatSymbols(newSymbols);
-		this.price = df.format(priceWithoutTax);
+		return df;
 	}
-	
 	
 }
