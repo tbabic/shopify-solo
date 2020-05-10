@@ -7,6 +7,8 @@ var textRecordsComponent = new Vue({
 			id: null,
 			value : '',
 			category : '',
+			title: '',
+			extra: ''
 		},
 		editingCategory : {
 			oldCategory : null,
@@ -68,11 +70,15 @@ var textRecordsComponent = new Vue({
 			this.selectedRecord.id = record.id;
 			this.selectedRecord.value = record.value;
 			this.selectedRecord.category = record.category;
+			this.selectedRecord.title = record.title;
+			this.selectedRecord.extra = record.extra;
 		},
 		cleanSelectedRecord : function() {
 			this.selectedRecord.id = null;
 			this.selectedRecord.value = '';
 			this.selectedRecord.category = '';
+			this.selectedRecord.title = '';
+			this.selectedRecord.extra = '';
 		},
 		saveSelectedRecord : function() {
 			this.startLoader();

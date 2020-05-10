@@ -23,6 +23,14 @@ public class TextRecord {
 	@JsonProperty
 	@Column
 	private String value;
+	
+	@JsonProperty
+	@Column
+	private String title;
+	
+	@JsonProperty
+	@Column
+	private String extra;
 
 	public String getCategory() {
 		return category;

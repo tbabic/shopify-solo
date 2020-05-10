@@ -59,8 +59,12 @@
 						</div>
 						<div class="modal-body">
 							<div v-for="textRecord in textRecords" class="row border">
-								<div class="col-8 text-record-value">{{ textRecord.value }}</div>
-								<div class="col-4">
+								<div class="col-2 text-record-value">{{ textRecord.title }}</div>
+								<div class="col-6 text-record-value">{{ textRecord.value }}</div>
+								<div class="col-1">
+									<img src="/icons/info.svg" alt="" width="16" height="16" data-toggle="tooltip" data-placement="top" v-bind:title="textRecord.extra">
+								</div>
+								<div class="col-3">
 									<button class="btn btn-primary" v-clipboard:copy="textRecord.value">Kopiraj</button>
 									<button class="btn btn-primary" data-toggle="modal" data-target="#editTextRecordModal" v-on:click="selectRecord(textRecord)">
 										Uredi
@@ -112,8 +116,18 @@
 							</div>
 							
 							<div class="row">
+								<div class="col-2">Podkategorija:</div>
+								<div class="col-10"><input v-model="selectedRecord.title"></input></div>
+							</div>
+							
+							<div class="row">
 								<div class="col-2">Tekst:</div>
 								<div class="col-10"><textarea v-model="selectedRecord.value" rows="4" class="selected-record-value"></textarea></div>
+							</div>
+							
+							<div class="row">
+								<div class="col-2">Instrukcije:</div>
+								<div class="col-10"><textarea v-model="selectedRecord.extra" rows="2" class="selected-record-value"></textarea></div>
 							</div>
 						</div>
 						<div class="modal-footer">
