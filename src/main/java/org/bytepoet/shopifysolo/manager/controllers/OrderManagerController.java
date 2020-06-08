@@ -17,6 +17,7 @@ import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.OrderStatus;
 import org.bytepoet.shopifysolo.manager.models.OrderType;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
+import org.bytepoet.shopifysolo.manager.models.ShippingSearchStatus;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.mappers.OrderToSoloInvoiceMapper;
 import org.bytepoet.shopifysolo.services.FulfillmentMaillingService;
@@ -82,6 +83,7 @@ public class OrderManagerController {
 			@RequestParam(name="personalTakeover", required=false) Boolean isPersonalTakeover,
 			@RequestParam(name="type", required=false) OrderType type,
 			@RequestParam(name="status", required=false) List<OrderStatus> statusList,
+			@RequestParam(name="shippingSearchStatus", required=false) ShippingSearchStatus shippingSearchStatus,
 			@RequestParam(name="hasNote", required=false) Boolean hasNote,
 			@RequestParam(name="search", required=false) String search,
 			@RequestParam(name="page", required=false, defaultValue = "0") int page,
@@ -121,6 +123,9 @@ public class OrderManagerController {
 				}
 				if(isPersonalTakeover != null) {
 					predicates.add(criteriaBuilder.equal(actualRoot.get("personalTakeover"), isPersonalTakeover.booleanValue()));
+				}
+				if(shippingSearchStatus != null) {
+					predicates.add(criteriaBuilder.equal(actualRoot.get("shippingSearchStatus"), shippingSearchStatus));
 				}
 				if(hasNote != null) {
 					if (hasNote.booleanValue()) {

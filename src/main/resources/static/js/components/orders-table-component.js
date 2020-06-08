@@ -4,6 +4,8 @@ var orderTableComponent = new Vue({
 	data: {
 		filters: {
 			paid : true,
+			status : null,
+			shippingSearchStatus : null
 		},
 		listFilters : {
 			
@@ -43,6 +45,7 @@ var orderTableComponent = new Vue({
 		},
 		statusChange : {
 			newStatus : "",
+			statusField : null,
 			count : 0
 		},
 		createdOrder: {
@@ -253,14 +256,15 @@ var orderTableComponent = new Vue({
 			}
 			
 		},
-		changeSelectedOrdersStatus : function(status) {
+		changeSelectedOrdersStatus : function(status, field) {
 			this.statusChange.newStatus = status;
+			this.statusChange.statusField = field;
 		},
-		processStatusChange : function(status) {
+		processStatusChange : function(status, statusField) {
 			this.startLoader();
 			for (let orderId in this.selectedOrders) {
 				this.startLoader();
-				this.changeStatus(this.selectedOrders[orderId], status).finally(() => {
+				this.changeStatus(this.selectedOrders[orderId], status, statusField).finally(() => {
 					this.endLoader();
 				});
 			}
@@ -401,11 +405,24 @@ var orderTableComponent = new Vue({
 			$("#errorContent").text(errorMsg);
 			$("#errorModal").modal('show');
 		},
-		changeStatus(order, newStatus) {
+		changeStatus(order, newStatus, statusField) {
+			if (statusField == 'shippingSearchStatus') {
+				return this.changeShippingSearchStatus(order, newStatus);
+			}
 			let previousStatus = order.status;
 			order.status = newStatus;
 			return this.saveOrder(order).then(result => {
 				order.previousStatus=previousStatus;
+			}).catch(error => {
+				order.status = previousStatus;
+				delete order.previousStatus;
+			});
+		},
+		changeShippingSearchStatus(order, newStatus) {
+			let previousStatus = order.shippingSearchStatus;
+			order.shippingSearchStatus = newStatus;
+			return this.saveOrder(order).then(result => {
+				delete order.previousStatus;
 			}).catch(error => {
 				order.status = previousStatus;
 				delete order.previousStatus;
@@ -496,7 +513,15 @@ var orderTableComponent = new Vue({
 			}
 			return "";
 		},
-		statusLabel : function(status) {
+		statusLabel : function(status, statusField) {
+			if (statusField == 'shippingSearchStatus') {
+				if (status == 'IN_PROCESS') {
+					return "U potražnom";
+				}
+				if (status == 'REQUESTED') {
+					return "Za potražni";
+				}
+			}
 			if (status == "IN_PROCESS") {
 				return "U izradi"
 			}

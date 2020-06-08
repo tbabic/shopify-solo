@@ -47,10 +47,10 @@
 												<button type="button" data-value="CANCELED" v-on:click="filtering('status', $event)" v-bind:class="'btn btn-filter ' + (filters.status == 'CANCELED' ? 'active' : '')">
 													Otkazano
 												</button>
-												<button type="button" data-value="REQUEST_SEARCH" v-on:click="filtering('status', $event)" v-bind:class="'btn btn-filter ' + (filters.status == 'REQUEST_SEARCH' ? 'active' : '')">
+												<button type="button" data-value="REQUESTED" v-on:click="filtering('shippingSearchStatus', $event)" v-bind:class="'btn btn-filter ' + (filters.shippingSearchStatus == 'REQUESTED' ? 'active' : '')">
 													Za potražni
 												</button>
-												<button type="button" data-value="SEARCH_PROCESS" v-on:click="filtering('status', $event)" v-bind:class="'btn btn-filter ' + (filters.status == 'SEARCH_PROCESS' ? 'active' : '')">
+												<button type="button" data-value="IN_PROCESS" v-on:click="filtering('shippingSearchStatus', $event)" v-bind:class="'btn btn-filter ' + (filters.shippingSearchStatus == 'IN_PROCESS' ? 'active' : '')">
 													U potražnom
 												</button>
 											</div>
@@ -162,11 +162,11 @@
 													Promijeni status
 												</button>
 												<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-													<button type="button" class="dropdown-item btn-initial" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('INITIAL')">Novo</button>
-													<button type="button" class="dropdown-item btn-in-process" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('IN_PROCESS')">Za izradu</button>
-													<button type="button" class="dropdown-item btn-in-post" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('IN_POST')">U posti</button>
-													<button type="button" class="dropdown-item btn-request-search" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('REQUEST_SEARCH')">Za potražni</button>
-													<button type="button" class="dropdown-item btn-search-process" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('SEARCH_PROCESS')">U potražnom</button>
+													<button type="button" class="dropdown-item btn-initial" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('INITIAL', 'status')">Novo</button>
+													<button type="button" class="dropdown-item btn-in-process" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('IN_PROCESS', 'status')">Za izradu</button>
+													<button type="button" class="dropdown-item btn-in-post" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('IN_POST', 'status')">U posti</button>
+													<button type="button" class="dropdown-item btn-request-search" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('REQUESTED', 'shippingSearchStatus')">Za potražni</button>
+													<button type="button" class="dropdown-item btn-search-process" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('IN_PROCESS', 'shippingSearchStatus')">U potražnom</button>
 												</div>
 											</div>
 										</div>
@@ -377,7 +377,7 @@
 							<div class="modal-header">
 								<h5 class="modal-title" id="exampleModalLabel">
 									Prebaci sljedeće narudžbe ({{ Object.keys(selectedOrders).length }}) u 
-									<span v-bind:class="statusCssClass(statusChange.newStatus)">{{ statusLabel(statusChange.newStatus) }}</span>
+									<span v-bind:class="statusCssClass(statusChange.newStatus)">{{ statusLabel(statusChange.newStatus, statusChange.statusField) }}</span>
 								</h5>
 								<button type="button" class="close" data-dismiss="modal">
 									<span>&times;</span>
@@ -400,7 +400,7 @@
 								</div>
 							</div>
 							<div class="modal-footer">
-								<button type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="processStatusChange(statusChange.newStatus)">Potvrdi</button>
+								<button type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="processStatusChange(statusChange.newStatus, statusChange.statusField)">Potvrdi</button>
 								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
 							</div>
 						</div>

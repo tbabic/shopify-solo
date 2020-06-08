@@ -2,8 +2,6 @@ package org.bytepoet.shopifysolo.manager.models;
 
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
-
 import javax.persistence.CascadeType;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
@@ -81,6 +79,10 @@ public abstract class Order {
 	@JsonProperty
 	@Enumerated(EnumType.STRING)
 	private OrderStatus status = OrderStatus.INITIAL;
+	
+	@JsonProperty
+	@Enumerated(EnumType.STRING)
+	private ShippingSearchStatus shippingSearchStatus = ShippingSearchStatus.NONE;
 	
 	@JsonProperty
 	private String trackingNumber;
