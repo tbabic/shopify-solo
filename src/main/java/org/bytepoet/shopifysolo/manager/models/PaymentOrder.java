@@ -203,6 +203,10 @@ public class PaymentOrder extends Order {
 		for (Item item : items) {
 			item.applyTaxRate(taxRate);
 		}
+	}
+
+	public String getShopifyOrderNumber() {
+		return shopifyOrderNumber;
 	}	
 	
 }

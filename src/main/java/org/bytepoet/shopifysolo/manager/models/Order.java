@@ -156,6 +156,10 @@ public abstract class Order {
 		return contact;
 	}
 	
+	public String getTrackingNumber() {
+		return trackingNumber;
+	}
+	
 	@Transient
 	@JsonProperty(access = Access.READ_ONLY)
 	public abstract String getShippingSnapshot();
@@ -179,13 +183,9 @@ public abstract class Order {
 	public boolean isPersonalTakeover() {
 		return personalTakeover;
 	}
-	
-	
-	
-	
-	
-	
-	
-	
+
+	public OrderStatus getStatus() {
+		return status;
+	}
 	
 }

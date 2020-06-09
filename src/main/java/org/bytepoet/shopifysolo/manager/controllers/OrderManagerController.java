@@ -23,9 +23,12 @@ import org.bytepoet.shopifysolo.mappers.OrderToSoloInvoiceMapper;
 import org.bytepoet.shopifysolo.services.FulfillmentMaillingService;
 import org.bytepoet.shopifysolo.services.SoloMaillingService;
 import org.bytepoet.shopifysolo.shopify.clients.ShopifyApiClient;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyFulfillment;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
 import org.bytepoet.shopifysolo.solo.clients.SoloApiClient;
 import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -34,6 +37,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +48,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/manager/orders")
 public class OrderManagerController {
+	
+	private static final Logger logger = LoggerFactory.getLogger(OrderManagerController.class);
 	
 	@Autowired
 	private ShopifyApiClient shopifyApiClient;
@@ -199,13 +205,16 @@ public class OrderManagerController {
 	@RequestMapping(path="/{id}/process-fulfillment", method=RequestMethod.POST)
 	public void fullfilment(@PathVariable("id") Long orderId, 
 			@RequestParam(name="trackingNumber", required=false) String trackingNumber, 
-			@RequestParam(name="sendNotification", required=false, defaultValue = "false") boolean sendNotification) {
+			@RequestParam(name="sendNotification", required=false, defaultValue = "false") boolean sendNotification) throws Exception {
 		Order order = orderRepository.getOne(orderId);
 		order.fulfill(trackingNumber);
 		if (sendNotification) {
 			fulfillmentMaillingService.sendFulfillmentEmail(order.getContact(), trackingNumber);
 		}
-		orderRepository.save(order);
+		order = orderRepository.save(order);
+		if (order instanceof PaymentOrder) {
+			syncOrder((PaymentOrder) order);
+		}
 		
 	}
 	
@@ -235,6 +244,16 @@ public class OrderManagerController {
 		orderRepository.save(paymentOrder);
 		
 		shopifyApiClient.createTransaction(transaction.createNewTransaction(), paymentOrder.getShopifyOrderId());
+	}
+	
+	private boolean syncOrder(PaymentOrder order) throws Exception {
+		List<ShopifyFulfillment> fulfillments = shopifyApiClient.getFulfillments(order.getShopifyOrderId());
+		if (CollectionUtils.isEmpty(fulfillments)) {
+			logger.info(MessageFormat.format("id: {0}, shopify: {1}", order.getId(), order.getShopifyOrderId()));
+			shopifyApiClient.fulfillOrder(order.getShopifyOrderId(), order.getTrackingNumber(), false);
+			return true;
+		}
+		return false;
 	}
 	
 }

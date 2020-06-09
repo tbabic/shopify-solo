@@ -1,6 +1,5 @@
 package org.bytepoet.shopifysolo.manager.controllers;
 
-import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.services.FulfillmentMaillingService;
