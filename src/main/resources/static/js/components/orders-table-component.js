@@ -319,7 +319,7 @@ var orderTableComponent = new Vue({
 		},
 		selectOrderForFulfillment : function(order, modalId) {
 			this.fulfillment.order = order;
-			this.fulfillment.params.trackingNumber = "";
+			this.fulfillment.params.trackingNumber = order.trackingNumber;
 			this.fulfillment.params.sendNotification = true;
 			$(modalId).modal('show');
 		},

@@ -66,9 +66,6 @@ public class OrderManagerController {
 	@Autowired
 	private SoloMaillingService soloMaillingService;
 	
-	@Autowired
-	private FulfillmentMaillingService fulfillmentMaillingService;
-	
 	@Value("${email.subject}")
 	private String subject;
 	
@@ -208,12 +205,9 @@ public class OrderManagerController {
 			@RequestParam(name="sendNotification", required=false, defaultValue = "false") boolean sendNotification) throws Exception {
 		Order order = orderRepository.getOne(orderId);
 		order.fulfill(trackingNumber);
-		if (sendNotification) {
-			fulfillmentMaillingService.sendFulfillmentEmail(order.getContact(), trackingNumber);
-		}
 		order = orderRepository.save(order);
 		if (order instanceof PaymentOrder) {
-			syncOrder((PaymentOrder) order);
+			syncOrder((PaymentOrder) order, sendNotification);
 		}
 		
 	}
@@ -246,12 +240,15 @@ public class OrderManagerController {
 		shopifyApiClient.createTransaction(transaction.createNewTransaction(), paymentOrder.getShopifyOrderId());
 	}
 	
-	private boolean syncOrder(PaymentOrder order) throws Exception {
+	private boolean syncOrder(PaymentOrder order, boolean sendNotification) throws Exception {
 		List<ShopifyFulfillment> fulfillments = shopifyApiClient.getFulfillments(order.getShopifyOrderId());
+		sendNotification = sendNotification & !order.isPersonalTakeover();
 		if (CollectionUtils.isEmpty(fulfillments)) {
 			logger.info(MessageFormat.format("id: {0}, shopify: {1}", order.getId(), order.getShopifyOrderId()));
-			shopifyApiClient.fulfillOrder(order.getShopifyOrderId(), order.getTrackingNumber(), false);
+			shopifyApiClient.fulfillOrder(order.getShopifyOrderId(), order.getTrackingNumber(), sendNotification);
 			return true;
+		} else {
+			shopifyApiClient.updateFulfillment(order.getShopifyOrderId(), fulfillments.get(0).id, order.getTrackingNumber(), sendNotification);
 		}
 		return false;
 	}
