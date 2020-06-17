@@ -29,8 +29,7 @@ public class ShopifyShippingAddress {
 	private String province;
     
     @JsonProperty("country")
-	private String country;
-    
+	private String country;   
     
     
     @JsonProperty("company")
@@ -85,7 +84,6 @@ public class ShopifyShippingAddress {
 
 	public String getCompany() {
 		return company;
-	}
-    
+	} 
     
 }

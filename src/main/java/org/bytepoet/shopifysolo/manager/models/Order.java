@@ -187,5 +187,9 @@ public abstract class Order {
 	public OrderStatus getStatus() {
 		return status;
 	}
+
+	public Address getShippingInfo() {
+		return shippingInfo;
+	}
 	
 }

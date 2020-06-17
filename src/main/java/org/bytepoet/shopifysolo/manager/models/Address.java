@@ -43,6 +43,7 @@ public class Address implements PostalFormAddress{
 	@JsonProperty
 	private String phoneNumber;
 	
+	
 	@JsonIgnore
 	@Transient
 	public String getFullRecepient() {
@@ -82,4 +83,37 @@ public class Address implements PostalFormAddress{
 		sb.append(city);
 		return sb.toString();
 	}
+
+	public String getFullName() {
+		return fullName;
+	}
+
+	public String getCompanyName() {
+		return companyName;
+	}
+
+	public String getStreetAndNumber() {
+		return streetAndNumber;
+	}
+
+	public String getOther() {
+		return other;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public String getPostalCode() {
+		return postalCode;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public String getPhoneNumber() {
+		return phoneNumber;
+	}
+	
 }

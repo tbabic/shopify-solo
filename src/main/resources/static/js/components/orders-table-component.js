@@ -280,15 +280,15 @@ var orderTableComponent = new Vue({
 		},
 		createPostalForm : function() {
 			this.startLoader();
-			let addressList = [];
+			let orderIdList = [];
 			for (let orderId in this.selectedOrders) {
 				order = this.selectedOrders[orderId];
-				addressList.push(order.shippingInfo)
+				orderIdList.push(order.id)
 			}
 			
-			axios.post("/adresses/postal-form", addressList).then(function(response) {
+			axios.post("/manager/epk", orderIdList).then(function(response) {
 							
-				var binaryString = window.atob(response.data.value);
+				var binaryString = window.atob(response.data.base64Data);
 			    var binaryLen = binaryString.length;
 			    var bytes = new Uint8Array(binaryLen);
 			    for (var i = 0; i < binaryLen; i++) {
@@ -299,7 +299,7 @@ var orderTableComponent = new Vue({
 			    var blob = new Blob([bytes], {type: "application/pdf"});
 			    var link = document.createElement('a');
 			    link.href = window.URL.createObjectURL(blob);
-			    var fileName = "Prijamna knjiga";
+			    var fileName = response.data.fileName;
 			    link.download = fileName;
 			    link.click();
 			}).catch(error => {
@@ -319,7 +319,12 @@ var orderTableComponent = new Vue({
 		},
 		selectOrderForFulfillment : function(order, modalId) {
 			this.fulfillment.order = order;
-			this.fulfillment.params.trackingNumber = "";
+			if (order.trackingNumber != null && order.trackingNumber != undefined) {
+				this.fulfillment.params.trackingNumber = order.trackingNumber + "";
+			} else {
+				this.fulfillment.params.trackingNumber = "";
+			}
+			
 			this.fulfillment.params.sendNotification = true;
 			$(modalId).modal('show');
 		},
