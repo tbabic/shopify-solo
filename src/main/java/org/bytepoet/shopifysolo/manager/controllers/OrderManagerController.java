@@ -243,8 +243,8 @@ public class OrderManagerController {
 	private boolean syncOrder(PaymentOrder order, boolean sendNotification) throws Exception {
 		List<ShopifyFulfillment> fulfillments = shopifyApiClient.getFulfillments(order.getShopifyOrderId());
 		sendNotification = sendNotification & !order.isPersonalTakeover();
+		logger.info(MessageFormat.format("notification id: {0}, shopify: {1}, {2}", order.getId(), order.getShopifyOrderId(), sendNotification));
 		if (CollectionUtils.isEmpty(fulfillments)) {
-			logger.info(MessageFormat.format("id: {0}, shopify: {1}", order.getId(), order.getShopifyOrderId()));
 			shopifyApiClient.fulfillOrder(order.getShopifyOrderId(), order.getTrackingNumber(), sendNotification);
 			return true;
 		} else {
