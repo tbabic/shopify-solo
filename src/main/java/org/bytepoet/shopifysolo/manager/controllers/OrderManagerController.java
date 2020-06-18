@@ -212,10 +212,6 @@ public class OrderManagerController {
 		if (order instanceof PaymentOrder) {
 			syncOrder((PaymentOrder) order, sendNotification);
 		}
-		if (sendNotification) {
-			fulfillmentMaillingService.sendFulfillmentEmail(order.getContact(), trackingNumber);
-		}
-		
 	}
 	
 	@RequestMapping(path="/{id}/process-payment", method=RequestMethod.POST)
