@@ -66,6 +66,9 @@ public class OrderManagerController {
 	@Autowired
 	private SoloMaillingService soloMaillingService;
 	
+	@Autowired
+	private FulfillmentMaillingService fulfillmentMaillingService;
+	
 	@Value("${email.subject}")
 	private String subject;
 	
@@ -208,6 +211,9 @@ public class OrderManagerController {
 		order = orderRepository.save(order);
 		if (order instanceof PaymentOrder) {
 			syncOrder((PaymentOrder) order, sendNotification);
+		}
+		if (sendNotification) {
+			fulfillmentMaillingService.sendFulfillmentEmail(order.getContact(), trackingNumber);
 		}
 		
 	}
