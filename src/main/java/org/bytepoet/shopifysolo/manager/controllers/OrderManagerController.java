@@ -185,6 +185,12 @@ public class OrderManagerController {
 				return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
 			}
 		};
+		if(direction == null) {
+			direction = Direction.ASC;
+		}
+		if(sortBy == null) {
+			sortBy = "id";
+		}
 		Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 		Page<Order> orders = orderRepository.findAll(spec, pageable);
 		return orders;
