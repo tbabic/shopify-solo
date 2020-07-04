@@ -1,5 +1,7 @@
 package org.bytepoet.shopifysolo.manager.repositories;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import org.bytepoet.shopifysolo.manager.models.Order;
@@ -18,4 +20,7 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 	
 	@Query(value="select order from PaymentOrder order where order.id = :id")
 	Optional<PaymentOrder> getPaymentOrderById(@Param("id") Long id);
+	
+	
+	List<Order> getByCreationDateBetween(Date start, Date end);
 }

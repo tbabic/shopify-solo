@@ -185,6 +185,12 @@ public class OrderManagerController {
 				return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
 			}
 		};
+		if(direction == null) {
+			direction = Direction.ASC;
+		}
+		if(sortBy == null) {
+			sortBy = "id";
+		}
 		Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 		Page<Order> orders = orderRepository.findAll(spec, pageable);
 		return orders;
@@ -208,14 +214,10 @@ public class OrderManagerController {
 			@RequestParam(name="sendNotification", required=false, defaultValue = "false") boolean sendNotification) throws Exception {
 		Order order = orderRepository.getOne(orderId);
 		order.fulfill(trackingNumber);
-		if (sendNotification) {
-			fulfillmentMaillingService.sendFulfillmentEmail(order.getContact(), trackingNumber);
-		}
 		order = orderRepository.save(order);
 		if (order instanceof PaymentOrder) {
-			syncOrder((PaymentOrder) order);
+			syncOrder((PaymentOrder) order, sendNotification);
 		}
-		
 	}
 	
 	@RequestMapping(path="/{id}/process-payment", method=RequestMethod.POST)
@@ -246,12 +248,15 @@ public class OrderManagerController {
 		shopifyApiClient.createTransaction(transaction.createNewTransaction(), paymentOrder.getShopifyOrderId());
 	}
 	
-	private boolean syncOrder(PaymentOrder order) throws Exception {
+	private boolean syncOrder(PaymentOrder order, boolean sendNotification) throws Exception {
 		List<ShopifyFulfillment> fulfillments = shopifyApiClient.getFulfillments(order.getShopifyOrderId());
+		sendNotification = sendNotification & !order.isPersonalTakeover();
+		logger.info(MessageFormat.format("notification id: {0}, shopify: {1}, {2}", order.getShopifyOrderNumber(), order.getShopifyOrderId(), sendNotification));
 		if (CollectionUtils.isEmpty(fulfillments)) {
-			logger.info(MessageFormat.format("id: {0}, shopify: {1}", order.getId(), order.getShopifyOrderId()));
-			shopifyApiClient.fulfillOrder(order.getShopifyOrderId(), order.getTrackingNumber(), false);
+			shopifyApiClient.fulfillOrder(order.getShopifyOrderId(), order.getTrackingNumber(), sendNotification);
 			return true;
+		} else {
+			shopifyApiClient.updateFulfillment(order.getShopifyOrderId(), fulfillments.get(0).id, order.getTrackingNumber(), sendNotification);
 		}
 		return false;
 	}

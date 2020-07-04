@@ -20,6 +20,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,7 +41,9 @@ public class ShopifyApiClient {
 	
 	private static final String TRANSACTION_ENDPOINT_FORMAT = "https://{0}/admin/api/2020-01/orders/{1}/transactions.json";
 	
-	private static final String FULFILLMENT_ENDPOINT_FORMAT = "https://{0}/admin/api/2020-01/orders/{1}/fulfillments.json";
+	private static final String ORDER_FULFILLMENT_ENDPOINT_FORMAT = "https://{0}/admin/api/2020-01/orders/{1}/fulfillments.json";
+	
+	private static final String UPDATE_ORDER_FULFILLMENT_ENDPOINT_FORMAT = "https://{0}/admin/api/2020-01/orders/{1}/fulfillments/{2}.json";
 	
 	private static final String SHOPIFY_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 	
@@ -158,7 +161,7 @@ public class ShopifyApiClient {
 	
 	public List<ShopifyFulfillment> getFulfillments(String orderId) throws Exception {
 		OkHttpClient client = new OkHttpClient();
-		String url = MessageFormat.format(FULFILLMENT_ENDPOINT_FORMAT, clientHost, orderId);
+		String url = MessageFormat.format(ORDER_FULFILLMENT_ENDPOINT_FORMAT, clientHost, orderId);
 		Request request = new Request.Builder()
 			      .url(url)
 			      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
@@ -185,6 +188,11 @@ public class ShopifyApiClient {
 	}
 	
 	private static class CreateFulfillment {
+		
+		@JsonProperty
+		@JsonInclude(JsonInclude.Include.NON_NULL)
+		private String id;
+		
 		@JsonProperty("location_id")
 		private String locationId;
 		
@@ -203,13 +211,13 @@ public class ShopifyApiClient {
 	
 	public void fulfillOrder(String orderId, String trackingNumber, boolean notifyCustomer) throws Exception{
 		OkHttpClient client = new OkHttpClient();
-		String url = MessageFormat.format(FULFILLMENT_ENDPOINT_FORMAT, clientHost, orderId);
+		String url = MessageFormat.format(ORDER_FULFILLMENT_ENDPOINT_FORMAT, clientHost, orderId);
 		
 		CreateFulfillment createFulfillment = new CreateFulfillment();
 		createFulfillment.locationId = this.locationId;
 		createFulfillment.trackingNumber = trackingNumber;
 		createFulfillment.notifyCustomer = notifyCustomer;
-		createFulfillment.trackingUrls = Arrays.asList(trackingUrl);
+		createFulfillment.trackingUrls = Arrays.asList(MessageFormat.format(trackingUrl, trackingNumber));
 		createFulfillment.trackingCompany = this.trackingCompany;
 		
 		CreateFulfillmentWrapper createFulfillmentWrapper = new CreateFulfillmentWrapper();
@@ -225,7 +233,36 @@ public class ShopifyApiClient {
 		Response response = client.newCall(request).execute();
 		String responseBody = response.body().string();
 		if (!response.isSuccessful()) {
-			throw new RuntimeException("Could not create shopify transaction: " + responseBody);
+			throw new RuntimeException("Could not create fulfillment: " + responseBody);
+		}
+	}
+	
+	public void updateFulfillment(String orderId, String fullfillmentId, String trackingNumber, boolean notifyCustomer) throws Exception{
+		OkHttpClient client = new OkHttpClient();
+		String url = MessageFormat.format(UPDATE_ORDER_FULFILLMENT_ENDPOINT_FORMAT, clientHost, orderId, fullfillmentId);
+		
+		CreateFulfillment createFulfillment = new CreateFulfillment();
+		createFulfillment.id = fullfillmentId;
+		createFulfillment.locationId = this.locationId;
+		createFulfillment.trackingNumber = trackingNumber;
+		createFulfillment.notifyCustomer = notifyCustomer;
+		createFulfillment.trackingUrls = Arrays.asList(MessageFormat.format(trackingUrl, trackingNumber));
+		createFulfillment.trackingCompany = this.trackingCompany;
+		
+		CreateFulfillmentWrapper createFulfillmentWrapper = new CreateFulfillmentWrapper();
+		createFulfillmentWrapper.fulfillment = createFulfillment;
+		
+		ObjectMapper mapper = new ObjectMapper();
+		String requestBody = mapper.writeValueAsString(createFulfillmentWrapper);
+		Request request = new Request.Builder()
+				.url(url)
+				.header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+				.put(RequestBody.create(MediaType.get("application/json"), requestBody))
+				.build();
+		Response response = client.newCall(request).execute();
+		String responseBody = response.body().string();
+		if (!response.isSuccessful()) {
+			throw new RuntimeException("Could not update fulfillment: " + responseBody);
 		}
 	}
 	
