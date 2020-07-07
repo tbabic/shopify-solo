@@ -6,3 +6,9 @@ $(document).on("click", ".clickable-row", function(event) {
 		element.addClass("highlight")
 	}
 });
+
+
+$(document).on('shown.bs.modal', '#epkModal', function () {
+    $(this).find("#epkInputOrderId").focus();
+});
+

@@ -66,6 +66,10 @@ var orderTableComponent = new Vue({
 			note: null,
 			giveawayPlatform: null
 		},
+		epk : {
+			inputId : '',
+			orders:{},
+		},
 		loadingCount: 0,
 		authToken : null,
 		role : null
@@ -203,6 +207,42 @@ var orderTableComponent = new Vue({
 			});
 			
 		},
+
+		findNextOrderForEpk(id) {
+			findOrderBy(id).
+			then(response => {
+				this.epk.orders[id].trackingNumber = '';
+			});
+		},
+		
+		findOrderById : function(id) {
+			if(id == undefined || id == null || id == '') {
+				return;
+			}
+			this.startLoader();
+			return axios.get('/manager/orders/'+id).then(response => {
+				response.data.trackingNumber = '';
+				Vue.set(this.epk.orders, response.data.id, response.data);
+				this.epk.inputId = '';
+				setTimeout(() => {
+					$("#epkOrderTracking_"+response.data.id).focus();
+				}, 1);
+				
+			}).finally(() => {
+				this.endLoader();
+			});
+		},
+		clearEpk : function() {
+			this.epk.inputId = '';
+			this.epk.orders = {};
+		},
+		
+		refocusEpk : function() {
+			$("#epkInputOrderId").focus();
+		},
+		
+
+		
 		formatDate : function(dateString) {
 			if (dateString == undefined || dateString == null) {
 				return "";
@@ -278,7 +318,58 @@ var orderTableComponent = new Vue({
 				});
 			}
 		},
-		createPostalForm : function() {
+		saveAllEpkOrders : function() {
+			let promise = null;
+			this.startLoader();
+			for (id in this.epk.orders) {
+				if (promise == null) {
+					promise = this.saveOrder(this.epk.orders[id]);
+				} else {
+					promise = promise.then(() => {
+						return this.saveOrder(this.epk.orders[id]); 
+					});
+				}
+			}
+			return promise.then(() => {
+				return this.createEpk()
+			}).finally(() => {
+				this.endLoader();
+			});
+			
+		},
+		
+		createEpk : function() {
+			this.startLoader();
+			let orderIdList = [];
+			for (let orderId in this.epk.orders) {
+				order = this.epk.orders[orderId];
+				orderIdList.push(order.id)
+			}
+			
+			return axios.post("/manager/epk", orderIdList).then(function(response) {
+							
+				var binaryString = window.atob(response.data.base64Data);
+			    var binaryLen = binaryString.length;
+			    var bytes = new Uint8Array(binaryLen);
+			    for (var i = 0; i < binaryLen; i++) {
+			       var ascii = binaryString.charCodeAt(i);
+			       bytes[i] = ascii;
+			    }
+				
+			    var blob = new Blob([bytes], {type: "application/pdf"});
+			    var link = document.createElement('a');
+			    link.href = window.URL.createObjectURL(blob);
+			    var fileName = response.data.fileName;
+			    link.download = fileName;
+			    link.click();
+			}).catch(error => {
+				this.showError(error.response.data.message);
+			}).finally(() => {
+				this.endLoader();
+			});
+			
+		},
+		createEpkFromSelectedOrders : function() {
 			this.startLoader();
 			let orderIdList = [];
 			for (let orderId in this.selectedOrders) {
@@ -300,6 +391,37 @@ var orderTableComponent = new Vue({
 			    var link = document.createElement('a');
 			    link.href = window.URL.createObjectURL(blob);
 			    var fileName = response.data.fileName;
+			    link.download = fileName;
+			    link.click();
+			}).catch(error => {
+				this.showError(error.response.data.message);
+			}).finally(() => {
+				this.endLoader();
+			});
+		},
+		
+		createPostalForm : function() {
+			this.startLoader();
+			let addressList = [];
+			for (let orderId in this.selectedOrders) {
+				order = this.selectedOrders[orderId];
+				addressList.push(order.shippingInfo)
+			}
+			
+			axios.post("/adresses/postal-form", addressList).then(function(response) {
+							
+				var binaryString = window.atob(response.data.value);
+			    var binaryLen = binaryString.length;
+			    var bytes = new Uint8Array(binaryLen);
+			    for (var i = 0; i < binaryLen; i++) {
+			       var ascii = binaryString.charCodeAt(i);
+			       bytes[i] = ascii;
+			    }
+				
+			    var blob = new Blob([bytes], {type: "application/pdf"});
+			    var link = document.createElement('a');
+			    link.href = window.URL.createObjectURL(blob);
+			    var fileName = "Prijamna knjiga";
 			    link.download = fileName;
 			    link.click();
 			}).catch(error => {

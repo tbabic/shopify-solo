@@ -136,6 +136,10 @@ th {
 	max-width: 95vw;
 }
 
+#epkModal .modal-dialog {
+	max-width: 95vw;
+}
+
 #printModal .modal-dialog {
 	max-width: 1000px;
 }
