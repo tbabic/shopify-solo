@@ -321,12 +321,13 @@ var orderTableComponent = new Vue({
 		saveAllEpkOrders : function() {
 			let promise = null;
 			this.startLoader();
-			for (id in this.epk.orders) {
+			for (let id in this.epk.orders) {
+				let orderId = id;
 				if (promise == null) {
-					promise = this.saveOrder(this.epk.orders[id]);
+					promise = this.saveOrder(this.epk.orders[orderId]);
 				} else {
 					promise = promise.then(() => {
-						return this.saveOrder(this.epk.orders[id]); 
+						return this.saveOrder(this.epk.orders[orderId]); 
 					});
 				}
 			}
