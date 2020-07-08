@@ -1,6 +1,8 @@
 package org.bytepoet.shopifysolo.manager.controllers;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.epk.EpkService;
@@ -31,7 +33,8 @@ public class EpkController {
 				throw new RuntimeException("Narudzba " + order.getId() + " nema tracking broj");
 			}
 		});
-		return epkService.generateEpk(orders);
+		List<Order> sorted = orders.stream().sorted(Comparator.comparing(Order::getTrackingNumber)).collect(Collectors.toList());
+		return epkService.generateEpk(sorted);
 		
 	}
 	
