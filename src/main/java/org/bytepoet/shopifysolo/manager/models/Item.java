@@ -9,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyLineItem;
 import org.bytepoet.shopifysolo.solo.models.SoloProduct;
 
@@ -96,6 +97,25 @@ public class Item {
 		}
 		this.taxRate = taxRate;
 		applyTaxRate();
+		
+	}
+	
+	public double getTotalPrice() {
+		double taxRate = 1;
+		if (StringUtils.isNotBlank(this.taxRate)) {
+			taxRate = 1 + (Double.parseDouble(this.taxRate) / 100);
+		}
+		
+		double discount = 1;
+		if (StringUtils.isNotBlank(this.discount)) {
+			discount = 1 - (Double.parseDouble(this.discount) / 100);
+		}
+		double price = 0;
+		if (StringUtils.isNotBlank(this.price)) {
+			price = Double.parseDouble(this.price) * taxRate * discount;
+		}
+		return price;
+		
 		
 	}
 	

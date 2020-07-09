@@ -187,7 +187,7 @@ public class PaymentOrder extends Order {
 		if (items == null) {
 			return 0;
 		}
-		return items.stream().map(i -> Double.parseDouble(i.getPrice())).collect(Collectors.summingDouble(Double::doubleValue));
+		return items.stream().collect(Collectors.summingDouble(Item::getTotalPrice));
 	}
 
 	@Override
