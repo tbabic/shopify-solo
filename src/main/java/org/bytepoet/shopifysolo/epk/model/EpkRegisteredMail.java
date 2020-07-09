@@ -56,10 +56,10 @@ public class EpkRegisteredMail {
 		row.externalNumber.setValue(order.getId().toString());
 		row.isoCountry.setValue(IsoCountriesService.getCountryCode(address.getCountry()));
 		if(isCroatia) {
-			row.destinationPostalCode.setValue(address.getPostalCode());
+			row.destinationPostalCode.setValue(address.getPostalCode().replaceAll(" ", ""));
 		}
 		else { 
-			row.internationalPostalCode.setValue(address.getPostalCode());
+			row.internationalPostalCode.setValue(address.getPostalCode().replaceAll(" ", ""));
 		}
 		row.recepientName.setValue(address.getFullName().split(" ", 2)[0]);
 		row.recepientLastName.setValue(address.getFullName().split(" ", 2)[1]);

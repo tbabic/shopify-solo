@@ -9,7 +9,7 @@ public class IsoCountriesService {
 	    for (String countryCode : countryCodes) {
 	        Locale localeEng = new Locale("en", countryCode);
 	        Locale localeCro = new Locale("hr", countryCode);
-	        if (localeEng.getDisplayCountry().equals(countryName) || localeCro.getDisplayCountry().equals(countryName)) {
+	        if (localeEng.getDisplayCountry().equalsIgnoreCase(countryName) || localeCro.getDisplayCountry().equalsIgnoreCase(countryName)) {
 	        	return countryCode;
 	        }
 	    }
