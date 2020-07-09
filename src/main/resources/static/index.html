@@ -335,6 +335,9 @@
 											<div class="row">
 												Prima:
 											</div>
+											<div class="row" v-if="shippingOrder.shippingInfo.companyName != '' && shippingOrder.shippingInfo.companyName != undefined">
+												{{ shippingOrder.shippingInfo.companyName }} n/r
+											</div>
 											<div class="row">
 												{{ shippingOrder.shippingInfo.fullName }}
 											</div>
@@ -349,6 +352,9 @@
 											</div>
 											<div class="row" v-if="shippingOrder.shippingInfo.country != 'Croatia' ">
 												{{ shippingOrder.shippingInfo.country }}
+											</div>
+											<div class="row">
+												{{ shippingOrder.shippingInfo.phoneNumber }}
 											</div>
 										</div>
 									</div>
