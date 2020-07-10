@@ -436,6 +436,7 @@
 								</button>
 							</div>
 							<div class="modal-body">
+								
 								<div  class="row">
 									<div class="col">
 										Rbr: {{ editingOrder.id }}
@@ -443,13 +444,13 @@
 									<div class="col">
 										Račun: {{ editingOrder.invoiceNumber }}
 									</div>
-									<div class="col">
-										e-mail: {{ editingOrder.contact }}
-									</div>
+									
 									<div class="col">
 										Ponuda: {{ editingOrder.tenderNumber }}
 									</div>
 								</div>
+								
+								
 								<div  class="row">
 									<div class="col">
 										Napomena:
@@ -462,6 +463,15 @@
 									</div>
 									<div class="col">
 										<input class="form-check-input" type="checkbox" v-model="editingOrder.personalTakeover">
+									</div>
+								</div>
+								
+								<div class= "row">
+									<div class="col-3">
+										e-mail: 
+									</div>
+									<div class="col">
+										<input class="form-check-input" type="text" v-model="editingOrder.contact" />
 									</div>
 								</div>
 								
