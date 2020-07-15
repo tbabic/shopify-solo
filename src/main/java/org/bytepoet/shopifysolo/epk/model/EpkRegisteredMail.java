@@ -46,15 +46,17 @@ public class EpkRegisteredMail {
 		Address address = order.getShippingInfo();
 		
 		EpkRegisteredMail row = new EpkRegisteredMail();
-		boolean isCroatia = StringUtils.isEmpty(address.getCountry()) 
-				|| address.getCountry().toUpperCase().equals("CROATIA")
-				|| address.getCountry().toUpperCase().equals("HRVATSKA");
+		String countryCode = IsoCountriesService.getCountryCode(address.getCountry());
+		boolean isCroatia = countryCode.equalsIgnoreCase("HR");
+		
 		
 		row.category.setValue("R");
 		row.receptionNumber.setValue(trackingNumber);
 		row.domesticInternationalTraffic.setValue(isCroatia ? "U" : "M");
 		row.externalNumber.setValue(order.getId().toString());
-		row.isoCountry.setValue(IsoCountriesService.getCountryCode(address.getCountry()));
+		
+		row.isoCountry.setValue(countryCode);
+		
 		if(isCroatia) {
 			row.destinationPostalCode.setValue(address.getPostalCode().replaceAll(" ", ""));
 		}

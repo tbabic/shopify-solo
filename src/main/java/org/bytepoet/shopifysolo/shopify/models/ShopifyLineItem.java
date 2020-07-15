@@ -2,6 +2,7 @@ package org.bytepoet.shopifysolo.shopify.models;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -74,6 +75,10 @@ public class ShopifyLineItem {
 		}
 		DecimalFormat df = new DecimalFormat("#.####");
 		df.setRoundingMode(RoundingMode.HALF_UP);
+		DecimalFormatSymbols newSymbols = new DecimalFormatSymbols();
+		newSymbols.setDecimalSeparator('.');
+		df.setDecimalFormatSymbols(newSymbols);
+		
 		
 		double pricePerItem = Double.parseDouble(getPricePerItem());
 		double totalPrice = pricePerItem*quantity;

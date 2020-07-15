@@ -114,7 +114,14 @@ public class Item {
 		if (StringUtils.isNotBlank(this.price)) {
 			price = Double.parseDouble(this.price) * taxRate * discount;
 		}
-		return price;
+		return price*quantity;
+		
+		
+	}
+	
+	public String totalPriceString() {
+		DecimalFormat df = getDecimalFormat();
+		return df.format(getTotalPrice());
 		
 		
 	}

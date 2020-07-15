@@ -12,6 +12,15 @@ public class IsoCountriesService {
 	        if (localeEng.getDisplayCountry().equalsIgnoreCase(countryName) || localeCro.getDisplayCountry().equalsIgnoreCase(countryName)) {
 	        	return countryCode;
 	        }
+	        if (localeEng.getISO3Country().equalsIgnoreCase(countryName) || localeCro.getISO3Country().equalsIgnoreCase(countryName)) {
+	        	return countryCode;
+	        }
+	        if (localeEng.getCountry().equalsIgnoreCase(countryName) || localeCro.getCountry().equalsIgnoreCase(countryName)) {
+	        	return countryCode;
+	        }
+	        if(countryCode.equalsIgnoreCase(countryName)) {
+	        	return countryCode;
+	        }
 	    }
 	    throw new RuntimeException("Could not find country code for: " + countryName);
 	}

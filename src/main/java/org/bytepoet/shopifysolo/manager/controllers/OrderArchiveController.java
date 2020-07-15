@@ -12,6 +12,7 @@ import org.bytepoet.shopifysolo.manager.models.OrderArchive;
 import org.bytepoet.shopifysolo.manager.repositories.OrderArchiveRepository;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -22,6 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/manager/orders-archive")
 public class OrderArchiveController {
 	
+	private static final String DATE_FORMAT = "dd.MM.yyyy:HH:mm:ss_z";
+	
 	@Autowired
 	private OrderRepository orderRepository;
 	
@@ -30,7 +33,8 @@ public class OrderArchiveController {
 
 	@RequestMapping(path = "/add", method=RequestMethod.POST)
 	@Transactional
-	public void addToArchive(@RequestParam("start") Date start, @RequestParam("end") Date end) {
+	public void addToArchive(@DateTimeFormat(pattern = DATE_FORMAT) @RequestParam("start") Date start, 
+			@DateTimeFormat(pattern = DATE_FORMAT) @RequestParam("end") Date end) {
 		OrderArchive archive = orderArchiveRepository.findAll().stream().findFirst().orElse(new OrderArchive());
 		List<Order> orders = orderRepository.getByCreationDateBetween(start, end);
 		orders.stream().forEach(order -> archive.addOrder(order));
