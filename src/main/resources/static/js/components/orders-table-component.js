@@ -332,7 +332,7 @@ var orderTableComponent = new Vue({
 				}
 			}
 			return promise.then(() => {
-				return this.createEpk()
+				console.log("all orders saved");
 			}).finally(() => {
 				this.endLoader();
 			});

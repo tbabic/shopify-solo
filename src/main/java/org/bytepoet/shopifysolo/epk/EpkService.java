@@ -37,9 +37,13 @@ public class EpkService {
 		EpkHeader header = EpkHeader.createHeader(epkUserCode, epkUserName, fileName, epkZipCode);
 		ByteArrayOutputStream stream = addToStream(new ByteArrayOutputStream(), header.getData());
 		for (Order order : orders) {
-			EpkRegisteredMail registeredMail = EpkRegisteredMail.createRow(order.getTrackingNumber(), order);
-			addNewLine(stream);
-			addToStream(stream, registeredMail.getData());
+			try {
+				EpkRegisteredMail registeredMail = EpkRegisteredMail.createRow(order.getTrackingNumber(), order);
+				addNewLine(stream);
+				addToStream(stream, registeredMail.getData());
+			} catch (Exception e) {
+				throw new RuntimeException("Order id:" + order.getId()+ e.getMessage(), e);
+			}
 		}
 		
 		EpkFooter footer = EpkFooter.createFooter(epkUserCode, epkUserName, fileName, epkZipCode, orders.size()+2, orders.size());
