@@ -27,7 +27,7 @@ public class WebInvoiceModels {
 	
 	public static WebInvoiceDetails webInvoiceDetailsFiscalized() {
 		WebInvoiceDetails mock = webInvoiceDetailsNotFiscalized();
-		Mockito.doReturn("zki").when(mock).getZki();
+		Mockito.doReturn("jir").when(mock).getJir();
 		return mock;
 	}
 	

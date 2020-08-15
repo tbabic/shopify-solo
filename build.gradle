@@ -46,6 +46,10 @@ dependencies {
 	compile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.2'
 	
 	compile group: 'com.itextpdf', name: 'itextpdf', version: '5.5.13.1'
+	
+	// https://mvnrepository.com/artifact/com.itextpdf/itext7-core
+	compile group: 'com.itextpdf', name: 'itext7-core', version: '7.1.12'
+
 
 	compile 'com.google.api-client:google-api-client:1.23.0'
 	compile 'com.google.apis:google-api-services-sheets:v4-rev516-1.23.0'

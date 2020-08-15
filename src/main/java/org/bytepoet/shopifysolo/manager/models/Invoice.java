@@ -6,12 +6,14 @@ import javax.persistence.Embeddable;
 
 import org.hibernate.annotations.Parent;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Embeddable
 public class Invoice {
 
 	@Parent
+	@JsonIgnore
 	private PaymentOrder order;
 
 	@JsonProperty
@@ -93,10 +95,12 @@ public class Invoice {
 		super();
 	}
 
+	@JsonIgnore
 	void setOrder(PaymentOrder order) {
 		this.order = order;
 	}
 
+	@JsonIgnore
 	public PaymentOrder getOrder() {
 		return order;
 	}
