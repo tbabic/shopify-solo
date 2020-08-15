@@ -1,18 +1,23 @@
 package org.bytepoet.shopifysolo.controllers;
 
+import java.io.ByteArrayInputStream;
 import java.util.Arrays;
-import java.util.Date;
+import java.util.Collections;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.authorization.AuthorizationService;
+import org.bytepoet.shopifysolo.manager.models.Invoice;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
-import org.bytepoet.shopifysolo.mappers.OrderToSoloInvoiceMapper;
 import org.bytepoet.shopifysolo.services.CachedFunctionalService;
-import org.bytepoet.shopifysolo.services.SoloMaillingService;
+import org.bytepoet.shopifysolo.services.InvoiceService;
+import org.bytepoet.shopifysolo.services.MailService;
+import org.bytepoet.shopifysolo.services.PdfInvoiceService;
+import org.bytepoet.shopifysolo.services.MailService.MailAttachment;
+import org.bytepoet.shopifysolo.services.MailService.MailReceipient;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
-import org.bytepoet.shopifysolo.solo.clients.SoloApiClient;
-import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,24 +33,21 @@ import org.springframework.web.util.ContentCachingRequestWrapper;
 public class OrderController {
 	
 	private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
-
-	@Autowired
-	private SoloApiClient soloApiClient;
 	
-	@Autowired
-	private OrderToSoloInvoiceMapper invoiceMapper;
-
 	@Autowired
 	private AuthorizationService authorizationService;
 	
 	@Autowired
-	private SoloMaillingService soloMaillingService;
+	private MailService mailService;
 	
 	@Autowired
 	private OrderRepository orderRepository;
 	
 	@Autowired
 	private GatewayToPaymentTypeMapper paymentTypeMapper;
+	
+	@Autowired
+	private PdfInvoiceService pdfInvoiceService;
 	
 	@Value("${email.subject}")
 	private String subject;
@@ -65,6 +67,9 @@ public class OrderController {
 	@Value("${soloapi.shipping-title}")
 	private String shippingTitle;
 	
+	@Autowired
+	private InvoiceService invoiceService;
+	
 	
 	@PostMapping
 	public void postOrder(@RequestBody ShopifyOrder shopifyOrder, ContentCachingRequestWrapper request) throws Exception {
@@ -83,27 +88,39 @@ public class OrderController {
 		
 		
 		if (!order.isReceiptCreated()) {
-			SoloInvoice createdInvoice = CachedFunctionalService.<ShopifyOrder,SoloInvoice>cacheAndExecute(
+			Invoice createdInvoice = CachedFunctionalService.<ShopifyOrder,Invoice>cacheAndExecute(
 					shopifyOrder, 
 					o -> "orders/"+o.getId(), 
 					o -> {
-						SoloInvoice invoice = invoiceMapper.map(order);
-						return soloApiClient.createInvoice(invoice);
+						return invoiceService.createInvoice(order);
 					});
-			order.updateFromSoloInvoice(createdInvoice, new Date());
+			order.updateInvoice(createdInvoice);
 			orderRepository.saveAndFlush(order);
-			soloMaillingService.sendEmailWithPdf(order.getEmail(), alwaysBcc, createdInvoice.getPdfUrl(), subject, body);
-			order.setReceiptSent(true);
-			orderRepository.save(order);
 		}
 		
 		if(!order.isReceiptSent()) {
-			SoloInvoice createdInvoice = soloApiClient.getInvoice(order.getInvoiceId());
-			soloMaillingService.sendEmailWithPdf(order.getEmail(), alwaysBcc, createdInvoice.getPdfUrl(), subject, body);
+			byte [] pdfInvoice = pdfInvoiceService.createInvoice(order);
+			sendEmail(order.getEmail(), order.getInvoiceNumber(), pdfInvoice);
 			order.setReceiptSent(true);
 			orderRepository.save(order);
+			//TODO: upload pdf Invoice to google drive
 		}
 		return;
+	}
+	
+	private void sendEmail(String email, String invoiceNumber, byte[] pdfInvoice) throws Exception {
+		
+		MailReceipient to = new MailReceipient(email);
+		if (StringUtils.isNotBlank(alwaysBcc)) {
+			to.bcc(alwaysBcc);
+		}
+		
+		MailAttachment attachment = new MailAttachment()
+				.filename(invoiceNumber + ".pdf")
+				.mimeType("application/pdf")
+				.content(new ByteArrayInputStream(pdfInvoice));	
+		
+		mailService.sendEmail(to, subject, body, Collections.singletonList(attachment));
 	}
 	
 }

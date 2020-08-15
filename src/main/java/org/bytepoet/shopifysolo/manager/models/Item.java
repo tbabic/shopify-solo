@@ -11,8 +11,7 @@ import javax.persistence.Id;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyLineItem;
-import org.bytepoet.shopifysolo.solo.models.SoloProduct;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -36,14 +35,6 @@ public class Item {
 	private String taxRate;
 	
 	protected Item() {}
-	
-	Item(SoloProduct soloProduct) {
-		this.name = soloProduct.getName();
-		this.price = soloProduct.getPrice();
-		this.quantity = soloProduct.getQuantity();
-		this.discount = soloProduct.getDiscount();
-		this.taxRate = soloProduct.getTaxRate();
-	}
 	
 	Item(ShopifyLineItem lineItem, String taxRate) {
 		this.name = lineItem.getFullTitle();
@@ -122,8 +113,6 @@ public class Item {
 	public String totalPriceString() {
 		DecimalFormat df = getDecimalFormat();
 		return df.format(getTotalPrice());
-		
-		
 	}
 	
 	private void removeTaxRate() {
@@ -150,5 +139,4 @@ public class Item {
 		df.setDecimalFormatSymbols(newSymbols);
 		return df;
 	}
-	
 }

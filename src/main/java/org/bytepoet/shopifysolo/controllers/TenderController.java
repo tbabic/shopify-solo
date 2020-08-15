@@ -5,12 +5,8 @@ import org.bytepoet.shopifysolo.authorization.AuthorizationService;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
-import org.bytepoet.shopifysolo.mappers.OrderToSoloTenderMapper;
 import org.bytepoet.shopifysolo.services.CachedFunctionalService;
-import org.bytepoet.shopifysolo.services.SoloMaillingService;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
-import org.bytepoet.shopifysolo.solo.clients.SoloApiClient;
-import org.bytepoet.shopifysolo.solo.models.SoloTender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,18 +22,9 @@ import org.springframework.web.util.ContentCachingRequestWrapper;
 public class TenderController {
 	
 	private static final Logger logger = LoggerFactory.getLogger(TenderController.class);
-
-	@Autowired
-	private SoloApiClient soloApiClient;
-	
-	@Autowired
-	private OrderToSoloTenderMapper tenderMapper;
 	
 	@Autowired
 	private AuthorizationService authorizationService;
-	
-	@Autowired
-	private SoloMaillingService soloMaillingService;
 
 	@Autowired
 	private GatewayToPaymentTypeMapper paymentTypeMapper;
@@ -80,32 +67,6 @@ public class TenderController {
 				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, paymentTypeMapper, taxRate, shippingTitle));
 			});
 		}
-		
-		
-		if (!order.isTenderCreated()) {
-			SoloTender createdTender = CachedFunctionalService.<ShopifyOrder,SoloTender>cacheAndExecute(
-					shopifyOrder, 
-					o -> "tenders/"+o.getId(), 
-					o -> {
-						SoloTender tender = tenderMapper.map(order);
-						return soloApiClient.createTender(tender);
-					});
-			order.updateFromSoloTender(createdTender);
-			orderRepository.saveAndFlush(order);
-			soloMaillingService.sendEmailWithPdf(order.getEmail(), tenderBcc, createdTender.getPdfUrl(), subject, body);
-			order.setTenderSent(true);
-			orderRepository.save(order);
-		}
-		
-		if(!order.isTenderSent()) {
-			SoloTender createdTender = soloApiClient.getTender(order.getTenderId());
-			soloMaillingService.sendEmailWithPdf(order.getEmail(), tenderBcc, createdTender.getPdfUrl(), subject, body);
-			order.setTenderSent(true);
-			orderRepository.save(order);
-		}
-		
 	}
 
-	
-	
 }

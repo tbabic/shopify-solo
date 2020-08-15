@@ -1,11 +1,11 @@
 package org.bytepoet.shopifysolo.manager.models;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.stream.Collectors;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -13,10 +13,6 @@ import javax.persistence.Transient;
 
 import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
-import org.bytepoet.shopifysolo.solo.models.SoloBillingObject;
-import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
-import org.bytepoet.shopifysolo.solo.models.SoloTender;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -32,26 +28,20 @@ public class PaymentOrder extends Order {
 	@JsonProperty
 	@Column(unique = true)
 	private String tenderId;
-	@JsonProperty
-	@Column(unique = true)
-	private String invoiceId;
+
 	@JsonProperty
 	@Column(unique = true)
 	private String shopifyOrderId;
 	
 	@JsonProperty
 	private String tenderNumber;
-	@JsonProperty
-	private String invoiceNumber;
+
 	@JsonProperty
 	private String shopifyOrderNumber;
 	
 	@JsonProperty
 	@Enumerated(EnumType.STRING)
 	private PaymentType paymentType;
-
-	@JsonProperty
-	private Date paymentDate;
 	
 	//TODO: currency
 	@JsonProperty
@@ -60,12 +50,14 @@ public class PaymentOrder extends Order {
 	@JsonProperty
 	private boolean isPaid;
 	
-	
-	@JsonProperty
-	private boolean isReceiptSent;
-	
 	@JsonProperty
 	private boolean isTenderSent;
+	
+	@Embedded
+	private Invoice invoice;
+	
+	@Embedded
+	private Invoice cancelInvoice;
 
 	protected PaymentOrder() {
 		super();
@@ -95,30 +87,10 @@ public class PaymentOrder extends Order {
 		
 	}
 
-	public void updateFromSoloInvoice(SoloInvoice soloInvoice, Date paymentDate) {
-		this.invoiceId = soloInvoice.getId();
-		this.invoiceNumber = soloInvoice.getNumber();
-		if (paymentDate == null) {
-			paymentDate = new Date();
-		}
+	public void updateInvoice(Invoice invoice) {
+		this.invoice = invoice;
+		this.invoice.setOrder(this);
 		this.isPaid = true;
-		this.paymentDate = paymentDate;
-		if (this.sendingDate == null) {
-			Calendar calendar = Calendar.getInstance();
-			calendar.add(Calendar.DATE, WAITING_LIST_PERIOD);
-			this.sendingDate = calendar.getTime();
-		}
-		updateFromSoloBillingObject(soloInvoice);
-	}
-	
-	public void updateFromSoloTender(SoloTender soloTender) {
-		this.tenderId = soloTender.getId();
-		this.tenderNumber = soloTender.getNumber();
-		updateFromSoloBillingObject(soloTender);
-	}
-	
-	private void updateFromSoloBillingObject(SoloBillingObject soloBillingObject) {
-		this.paymentType = PaymentType.fromSoloPaymentType(soloBillingObject.getPaymentType());
 	}
 
 	@Transient
@@ -134,8 +106,15 @@ public class PaymentOrder extends Order {
 		return paymentType;
 	}
 
+	@Transient
 	public Date getPaymentDate() {
-		return paymentDate;
+		return invoice == null ? null : invoice.getDate();
+	}
+	
+	public void setPaymentDate(Date paymentDate) {
+		if (invoice != null) {
+			invoice.setDate(paymentDate);
+		}
 	}
 	
 	public String getCurrency() {
@@ -147,15 +126,18 @@ public class PaymentOrder extends Order {
 	}
 	
 	public boolean isReceiptSent() {
-		return isReceiptSent;
+		return invoice != null && invoice.isSent();
 	}
 	
 	public void setReceiptSent(boolean isReceiptSent) {
-		this.isReceiptSent = isReceiptSent;
+		if (invoice != null) {
+			this.invoice.setSent(isReceiptSent);
+		}
+		
 	}
 	
 	public boolean isReceiptCreated() {
-		return invoiceId != null;
+		return invoice != null && invoice.getId() != null;
 	}
 	
 	public boolean isTenderSent() {
@@ -174,13 +156,32 @@ public class PaymentOrder extends Order {
 		return tenderId;
 	}
 
+	@Transient
 	public String getInvoiceId() {
-		return invoiceId;
+		return invoice == null ? null : invoice.getId();
 	}
+	
+	public void setInvoiceId(String invoiceId) {
+		if (invoice != null) {
+			invoice.setId(invoiceId);
+		}
+	}
+	
+	@Transient
+	public String getInvoiceNumber() {
+		return invoice == null ? null : invoice.getNumber();
+	}
+	
+	public void setInvoiceNumber(String invoiceNumber) {
+		if (invoice != null) {
+			invoice.setNumber(invoiceNumber);
+		}
+	}
+	
 
 	@Override
 	public String getShippingSnapshot() {
-		return invoiceNumber + " " + contact;
+		return invoice == null ? null : (invoice.getNumber() + " " + contact);
 	}
 	
 	public double getTotalPrice() {
@@ -207,6 +208,16 @@ public class PaymentOrder extends Order {
 
 	public String getShopifyOrderNumber() {
 		return shopifyOrderNumber;
+	}
+
+	public Invoice getInvoice() {
+		return invoice;
+	}
+
+	public Invoice getCancelInvoice() {
+		return cancelInvoice;
 	}	
+	
+	
 	
 }

@@ -1,7 +1,9 @@
 package org.bytepoet.shopifysolo.manager.controllers;
 
+import java.io.ByteArrayInputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -13,20 +15,22 @@ import javax.persistence.criteria.Subquery;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.manager.models.GiveawayOrder;
+import org.bytepoet.shopifysolo.manager.models.Invoice;
 import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.OrderStatus;
 import org.bytepoet.shopifysolo.manager.models.OrderType;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.models.ShippingSearchStatus;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
-import org.bytepoet.shopifysolo.mappers.OrderToSoloInvoiceMapper;
 import org.bytepoet.shopifysolo.services.FulfillmentMaillingService;
-import org.bytepoet.shopifysolo.services.SoloMaillingService;
+import org.bytepoet.shopifysolo.services.InvoiceService;
+import org.bytepoet.shopifysolo.services.MailService;
+import org.bytepoet.shopifysolo.services.PdfInvoiceService;
+import org.bytepoet.shopifysolo.services.MailService.MailAttachment;
+import org.bytepoet.shopifysolo.services.MailService.MailReceipient;
 import org.bytepoet.shopifysolo.shopify.clients.ShopifyApiClient;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyFulfillment;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
-import org.bytepoet.shopifysolo.solo.clients.SoloApiClient;
-import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,16 +59,15 @@ public class OrderManagerController {
 	private ShopifyApiClient shopifyApiClient;
 	
 	@Autowired
-	private SoloApiClient soloApiClient;
+	private InvoiceService invoiceService;
 	
-	@Autowired
-	private OrderToSoloInvoiceMapper orderToSoloInvoiceMapper;
+	private PdfInvoiceService pdfInvoiceService;
 	
 	@Autowired
 	private OrderRepository orderRepository;
 	
 	@Autowired
-	private SoloMaillingService soloMaillingService;
+	private MailService mailService;
 	
 	@Autowired
 	private FulfillmentMaillingService fulfillmentMaillingService;
@@ -237,11 +240,13 @@ public class OrderManagerController {
 		}
 		
 		paymentOrder.applyTaxRate(taxRate);
-		SoloInvoice soloInvoice = soloApiClient.createInvoice(orderToSoloInvoiceMapper.map(paymentOrder));
-		paymentOrder.updateFromSoloInvoice(soloInvoice, paymentDate);
+		Invoice invoice = invoiceService.createInvoice(paymentOrder);
+		paymentOrder.updateInvoice(invoice);
+		
+		byte [] pdfInvoice = pdfInvoiceService.createInvoice(paymentOrder);
 		
 		orderRepository.save(paymentOrder);
-		soloMaillingService.sendEmailWithPdf(paymentOrder.getEmail(), alwaysBcc, soloInvoice.getPdfUrl(), subject, body);
+		sendEmail(paymentOrder.getEmail(), invoice.getNumber(), pdfInvoice);
 		paymentOrder.setReceiptSent(true);
 		orderRepository.save(paymentOrder);
 		
@@ -259,6 +264,21 @@ public class OrderManagerController {
 			shopifyApiClient.updateFulfillment(order.getShopifyOrderId(), fulfillments.get(0).id, order.getTrackingNumber(), sendNotification);
 		}
 		return false;
+	}
+	
+	private void sendEmail(String email, String invoiceNumber, byte[] pdfInvoice) throws Exception {
+		
+		MailReceipient to = new MailReceipient(email);
+		if (StringUtils.isNotBlank(alwaysBcc)) {
+			to.bcc(alwaysBcc);
+		}
+		
+		MailAttachment attachment = new MailAttachment()
+				.filename(invoiceNumber + ".pdf")
+				.mimeType("application/pdf")
+				.content(new ByteArrayInputStream(pdfInvoice));	
+		
+		mailService.sendEmail(to, subject, body, Collections.singletonList(attachment));
 	}
 	
 }

@@ -6,7 +6,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.services.MailService;
-import org.bytepoet.shopifysolo.solo.clients.SoloApiClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +20,7 @@ import org.springframework.web.util.ContentCachingRequestWrapper;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 	
-	private static final Logger logger = LoggerFactory.getLogger(SoloApiClient.class);
+	private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 	
 	@Autowired
 	private MailService mailService;
@@ -57,7 +56,7 @@ public class GlobalExceptionHandler {
 		String requestBody = new String(request.getContentAsByteArray());
 		
 		if (StringUtils.isNotBlank(email)) {
-			mailService.sendEmail(email, "Error", "Dogodila se greška!\n\n"+requestBody, Collections.emptyList());
+			mailService.sendEmail(email, "Error", "Dogodila se greï¿½ka!\n\n"+requestBody, Collections.emptyList());
 		}
 		return response;
 	}

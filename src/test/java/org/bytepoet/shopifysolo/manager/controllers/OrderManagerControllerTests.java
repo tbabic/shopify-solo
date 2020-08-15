@@ -3,10 +3,8 @@ package org.bytepoet.shopifysolo.manager.controllers;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
-
-import java.lang.reflect.Field;
-
-import org.apache.commons.lang3.RandomStringUtils;
+import static org.bytepoet.shopifysolo.webinvoice.models.WebInvoiceModels.webInvoiceDetailsFiscalized;
+import static org.bytepoet.shopifysolo.webinvoice.models.WebInvoiceModels.webInvoiceResponseFiscalized;
 import org.bytepoet.shopifysolo.authorization.AuthorizationService;
 import org.bytepoet.shopifysolo.controllers.OrderController;
 import org.bytepoet.shopifysolo.controllers.ShopifyOrderCreator;
@@ -14,19 +12,14 @@ import org.bytepoet.shopifysolo.controllers.TenderController;
 import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
-import org.bytepoet.shopifysolo.services.SoloMaillingService;
+import org.bytepoet.shopifysolo.services.MailService;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
-import org.bytepoet.shopifysolo.solo.clients.SoloApiClient;
-import org.bytepoet.shopifysolo.solo.models.SoloBillingObject;
-import org.bytepoet.shopifysolo.solo.models.SoloInvoice;
-import org.bytepoet.shopifysolo.solo.models.SoloTender;
+import org.bytepoet.shopifysolo.webinvoice.client.WebInvoiceClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -40,13 +33,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class OrderManagerControllerTests {
 
 	@MockBean
-	private SoloApiClient soloApiClient;
+	private WebInvoiceClient webInvoiceClient;
 	
 	@MockBean
 	private AuthorizationService authorizationService;
 	
 	@MockBean
-	private SoloMaillingService soloMaillingService;
+	private MailService mailService;
 	
 	@Autowired
 	private OrderController orderController;
@@ -161,8 +154,9 @@ public class OrderManagerControllerTests {
 	
 	
 	private void provideValidOrders(String... ids) throws Exception {
-		Mockito.when(soloApiClient.createInvoice(Mockito.any())).thenAnswer(soloInvoiceAnswer());
 		for (String id: ids) {
+			Mockito.doReturn(webInvoiceResponseFiscalized()).when(webInvoiceClient).createInvoice(Mockito.any(), Mockito.any());
+			Mockito.doReturn(webInvoiceDetailsFiscalized()).when(webInvoiceClient).getInvoiceDetails(Mockito.any(), Mockito.any());
 			ShopifyOrder order = ShopifyOrderCreator.createOrder(id);
 			orderController.postOrder(order, null);
 		}
@@ -170,7 +164,6 @@ public class OrderManagerControllerTests {
 	}
 	
 	private void provideValidTenders(String... ids) throws Exception {
-		Mockito.when(soloApiClient.createTender(Mockito.any())).thenAnswer(soloTenderAnswer());
 		for (String id: ids) {
 			ShopifyOrder order = ShopifyOrderCreator.createTender(id);
 			tenderController.postOrder(order, null);
@@ -190,9 +183,6 @@ public class OrderManagerControllerTests {
 	private void assertValidUnpaidTender(Order order, String id) {
 		Assert.assertThat(order, instanceOf(PaymentOrder.class));
 		PaymentOrder paymentOrder = (PaymentOrder) order;
-		Assert.assertThat(paymentOrder.getTenderId(), notNullValue());
-		Assert.assertThat(paymentOrder.isTenderCreated(), equalTo(true));
-		Assert.assertThat(paymentOrder.isTenderSent(), equalTo(true));
 		Assert.assertThat(paymentOrder.isReceiptCreated(), equalTo(false));
 		Assert.assertThat(paymentOrder.isReceiptSent(), equalTo(false));
 		Assert.assertThat(paymentOrder.isPaid(), equalTo(false));
@@ -201,44 +191,9 @@ public class OrderManagerControllerTests {
 	private void assertValidTenderOrder(Order order, String id) {
 		Assert.assertThat(order, instanceOf(PaymentOrder.class));
 		PaymentOrder paymentOrder = (PaymentOrder) order;
-		Assert.assertThat(paymentOrder.getTenderId(), notNullValue());
-		Assert.assertThat(paymentOrder.isTenderCreated(), equalTo(true));
-		Assert.assertThat(paymentOrder.isTenderSent(), equalTo(true));
 		Assert.assertThat(paymentOrder.isReceiptCreated(), equalTo(true));
 		Assert.assertThat(paymentOrder.isReceiptSent(), equalTo(true));
 		Assert.assertThat(paymentOrder.isPaid(), equalTo(true));
-	}
-
-	
-	
-	private Answer<SoloInvoice> soloInvoiceAnswer() {
-		return new Answer<SoloInvoice>() {
-			
-			@Override
-			public SoloInvoice answer(InvocationOnMock invocation) throws Throwable {
-				SoloInvoice invoice = invocation.getArgument(0);
-				Field field = SoloBillingObject.class.getDeclaredField("id");
-				field.setAccessible(true);
-				field.set(invoice, RandomStringUtils.randomAlphanumeric(10));
-				
-				return invoice;
-			}
-		};
-	}
-	
-	private Answer<SoloTender> soloTenderAnswer() {
-		return new Answer<SoloTender>() {
-			
-			@Override
-			public SoloTender answer(InvocationOnMock invocation) throws Throwable {
-				SoloTender tender = invocation.getArgument(0);
-				Field field = SoloBillingObject.class.getDeclaredField("id");
-				field.setAccessible(true);
-				field.set(tender, RandomStringUtils.randomAlphanumeric(10));
-				
-				return tender;
-			}
-		};
 	}
 	
 }
