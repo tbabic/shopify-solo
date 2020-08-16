@@ -168,7 +168,7 @@ public class OrderManagerController {
 			
 						sq.select(sqRoot.get("id")).where(criteriaBuilder.or(
 								criteriaBuilder.like(sqRoot.get("tenderNumber"), "%"+search+"%"),
-								criteriaBuilder.like(sqRoot.get("invoiceNumber"), "%"+search+"%"),
+								criteriaBuilder.like(sqRoot.get("invoice").get("number"), "%"+search+"%"),
 								criteriaBuilder.like(sqRoot.get("shopifyOrderNumber"), "%"+search+"%")));
 						searchPredicates.add(criteriaBuilder.in(actualRoot.get("id")).value(sq));
 			
