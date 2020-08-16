@@ -130,6 +130,18 @@ public class Item {
 		DecimalFormat df = getDecimalFormat();
 		this.price = df.format(priceWithoutTax);
 	}
+	
+	public double getPriceWithTaxRate() {
+		double taxRate = 1;
+		if (StringUtils.isNotBlank(this.taxRate)) {
+			taxRate = 1 + (Double.parseDouble(this.taxRate) / 100);
+		}
+		double price = 0;
+		if (StringUtils.isNotBlank(this.price)) {
+			price = Double.parseDouble(this.price) * taxRate;
+		}
+		return price;
+	}
 
 	private DecimalFormat getDecimalFormat() {
 		DecimalFormat df = new DecimalFormat("#.00");

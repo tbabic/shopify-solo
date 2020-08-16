@@ -1,5 +1,8 @@
 package org.bytepoet.shopifysolo.services;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.stream.Collectors;
 
 import org.bytepoet.shopifysolo.manager.models.Invoice;
@@ -88,10 +91,17 @@ public class InvoiceService {
 	}
 	
 	private WebInvoiceItem mapItem(Item item) {
+		DecimalFormat df = new DecimalFormat("#.00");
+		df.setRoundingMode(RoundingMode.HALF_UP);
+		DecimalFormatSymbols newSymbols = new DecimalFormatSymbols();
+		newSymbols.setDecimalSeparator('.');
+		df.setDecimalFormatSymbols(newSymbols);
+		
+		
 		return new WebInvoiceItem.Builder()
 				.itemId(defaultItemId)
 				.name(item.getName())
-				.price(item.getPrice())
+				.price(df.format(item.getPriceWithTaxRate()))
 				.discount(item.getDiscount())
 				.quantity(Integer.toString(item.getQuantity()))
 				.vat(item.getTaxRate())
