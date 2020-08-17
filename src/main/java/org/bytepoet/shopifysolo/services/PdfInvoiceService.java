@@ -311,7 +311,9 @@ public class PdfInvoiceService {
 		div.add(paymentType(order));
 		div.add(operator());
 		div.add(note(order));
-		div.add(fiscalization(order));
+		if (StringUtils.isNotBlank(order.getInvoice().getJir()) || StringUtils.isNotBlank(order.getInvoice().getZki())) { 
+			div.add(fiscalization(order));
+		}
 		return div;
 	}
 	
@@ -321,9 +323,11 @@ public class PdfInvoiceService {
 				.setBorder(Border.NO_BORDER));
 		table.addCell(new Cell().add(new Paragraph("Jedinstveni identifikator računa:").setFont(font()).setFontSize(9).setFontColor(WebColors.getRGBColor("dimgray")))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(order.getInvoice().getZki()).setFont(font()).setFontSize(10))
+		String zki = StringUtils.defaultString(order.getInvoice().getZki());
+		String jir = StringUtils.defaultString(order.getInvoice().getJir());
+		table.addCell(new Cell().add(new Paragraph(zki).setFont(font()).setFontSize(10))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(order.getInvoice().getJir()).setFont(font()).setFontSize(10))
+		table.addCell(new Cell().add(new Paragraph(jir).setFont(font()).setFontSize(10))
 				.setBorder(Border.NO_BORDER));
 		return table;
 	}

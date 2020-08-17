@@ -243,10 +243,10 @@ public class OrderManagerController {
 		paymentOrder.applyTaxRate(taxRate);
 		Invoice invoice = invoiceService.createInvoice(paymentOrder);
 		paymentOrder.updateInvoice(invoice);
+		orderRepository.save(paymentOrder);
 		
 		byte [] pdfInvoice = pdfInvoiceService.createInvoice(paymentOrder);
 		
-		orderRepository.save(paymentOrder);
 		sendEmail(paymentOrder.getEmail(), invoice.getNumber(), pdfInvoice);
 		paymentOrder.setReceiptSent(true);
 		orderRepository.save(paymentOrder);

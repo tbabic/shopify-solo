@@ -41,7 +41,6 @@ public class InvoiceService {
 	
 	
 	public Invoice createInvoice(PaymentOrder order) {
-		String token = webInvoiceClient.getToken();
 		String note = remark(order);
 		WebInvoice invoiceRequest = new WebInvoice.Builder()
 				.paymentType(paymentType(order))
@@ -51,6 +50,8 @@ public class InvoiceService {
 						.build())
 				.items(order.getItems().stream().map(item -> mapItem(item)).collect(Collectors.toList()))
 				.build();
+		
+		String token = webInvoiceClient.getToken();
 		WebInvoiceResponse response = CachedFunctionalService.<PaymentOrder,WebInvoiceResponse>cacheAndExecute(
 				order, 
 				o -> "invoice/"+o.getId().toString(), 
