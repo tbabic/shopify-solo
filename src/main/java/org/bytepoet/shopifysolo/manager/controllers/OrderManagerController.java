@@ -61,6 +61,7 @@ public class OrderManagerController {
 	@Autowired
 	private InvoiceService invoiceService;
 	
+	@Autowired
 	private PdfInvoiceService pdfInvoiceService;
 	
 	@Autowired
