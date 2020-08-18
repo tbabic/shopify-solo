@@ -46,6 +46,7 @@ public class InvoiceService {
 				.paymentType(paymentType(order))
 				.remark(note)
 				.customer(new WebInvoiceCustomer.Builder()
+						.name(order.getEmail())
 						.email(order.getEmail())
 						.build())
 				.items(order.getItems().stream().map(item -> mapItem(item)).collect(Collectors.toList()))
