@@ -1,5 +1,6 @@
 package org.bytepoet.shopifysolo.manager.models;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.stream.Collectors;
 
@@ -91,6 +92,11 @@ public class PaymentOrder extends Order {
 		this.invoice = invoice;
 		this.invoice.setOrder(this);
 		this.isPaid = true;
+		if (this.sendingDate == null) {
+			Calendar calendar = Calendar.getInstance();
+			calendar.add(Calendar.DATE, WAITING_LIST_PERIOD);
+			this.sendingDate = calendar.getTime();
+		}
 	}
 
 	@Transient
