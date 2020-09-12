@@ -25,6 +25,7 @@ import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.services.FulfillmentMaillingService;
 import org.bytepoet.shopifysolo.services.InvoiceService;
 import org.bytepoet.shopifysolo.services.MailService;
+import org.bytepoet.shopifysolo.services.OrderFulfillmentService;
 import org.bytepoet.shopifysolo.services.PdfInvoiceService;
 import org.bytepoet.shopifysolo.services.MailService.MailAttachment;
 import org.bytepoet.shopifysolo.services.MailService.MailReceipient;
@@ -84,6 +85,9 @@ public class OrderManagerController {
 	
 	@Value("${solofy.tax-rate:}")
 	private String taxRate;
+	
+	@Autowired
+	private OrderFulfillmentService orderFulfillmentService;
 	
 	
 	@RequestMapping(method=RequestMethod.GET)
@@ -198,6 +202,14 @@ public class OrderManagerController {
 		Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 		Page<Order> orders = orderRepository.findAll(spec, pageable);
 		return orders;
+	}
+	
+	@RequestMapping(path="/process-fulfillment-in-post", method=RequestMethod.POST)
+	public void fullfillOrders() throws Exception {
+		List<Order> orders = orderRepository.getByStatus(OrderStatus.IN_POST);
+		for (Order order : orders) {
+			orderFulfillmentService.fulfillOrder(order);
+		}
 	}
 	
 	

@@ -3,6 +3,7 @@ package org.bytepoet.shopifysolo.services;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -76,6 +77,26 @@ public class PrintAddressService {
 			}
 			List<? extends PostalFormAddress> adressesOnPage = addressList.subList(start, end);
 			addPage(document, adressesOnPage, page);
+		}
+		if (addressList.size() == 0) {
+			addPage(document, Collections.singletonList(new PostalFormAddress() {
+
+				@Override
+				public String getFullRecepient() {
+					return "";
+				}
+
+				@Override
+				public String getFullAddress() {
+					return "";
+				}
+
+				@Override
+				public String getFullDestination() {
+					return "";
+				}
+				
+			}), 1);
 		}
 		
 		

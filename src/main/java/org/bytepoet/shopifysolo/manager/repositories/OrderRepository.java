@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.bytepoet.shopifysolo.manager.models.Order;
+import org.bytepoet.shopifysolo.manager.models.OrderStatus;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -21,6 +22,21 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 	@Query(value="select order from PaymentOrder order where order.id = :id")
 	Optional<PaymentOrder> getPaymentOrderById(@Param("id") Long id);
 	
+	@Query(value="SELECT o FROM ManagedOrder o "
+			+ "INNER JOIN FETCH o.items i "
+			+ "WHERE o.creationDate BETWEEN :start AND :end "
+			+ "ORDER BY o.id ")
+	List<Order> getByCreationDateBetween(@Param("start") Date start, @Param("end") Date end);
 	
-	List<Order> getByCreationDateBetween(Date start, Date end);
+	@Query(value="SELECT distinct o FROM PaymentOrder o "
+			+ "INNER JOIN FETCH o.items i "
+			+ "WHERE o.invoice.date BETWEEN :start AND :end "
+			+ "AND o.isPaid = true "
+			+ "ORDER BY o.invoice.date ")
+	List<PaymentOrder> getByPamentDateBetween(@Param("start") Date start, @Param("end") Date end);
+	
+	@Query(value="SELECT distinct o FROM ManagedOrder o "
+			+ "LEFT JOIN FETCH o.items i "
+			+ "WHERE o.status = :status ")
+	List<Order> getByStatus(@Param("status") OrderStatus status);
 }

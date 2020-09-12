@@ -12,6 +12,7 @@ import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -64,6 +65,9 @@ public class ShopifyApiClient {
 	
 	@Value("${shopify.api.password}")
 	private String clientPassword;
+	
+	@Autowired
+	OkHttpClient client;
 
 	private static class OrdersWrapper {
 		@JsonProperty
@@ -94,7 +98,7 @@ public class ShopifyApiClient {
 			params.add("created_at_max", df.format(beforeDate));
 		}
 		
-		OkHttpClient client = new OkHttpClient();
+		
 		
 		Request request = new Request.Builder()
 			      .url(buildUri(url, params))
@@ -114,7 +118,7 @@ public class ShopifyApiClient {
 	}
 	
 	public List<ShopifyTransaction> getTransactions(String orderId) throws Exception {
-		OkHttpClient client = new OkHttpClient();
+		
 		String url = MessageFormat.format(TRANSACTION_ENDPOINT_FORMAT, clientHost, orderId);
 		Request request = new Request.Builder()
 			      .url(url)
@@ -137,7 +141,7 @@ public class ShopifyApiClient {
 	}
 	
 	public void createTransaction(ShopifyCreateTransaction shopifyCreateTransaction, String orderId) throws Exception {
-		OkHttpClient client = new OkHttpClient();
+		
 		String url = MessageFormat.format(TRANSACTION_ENDPOINT_FORMAT, clientHost, orderId);
 		
 		ObjectMapper mapper = new ObjectMapper();
@@ -160,7 +164,7 @@ public class ShopifyApiClient {
 	}
 	
 	public List<ShopifyFulfillment> getFulfillments(String orderId) throws Exception {
-		OkHttpClient client = new OkHttpClient();
+		
 		String url = MessageFormat.format(ORDER_FULFILLMENT_ENDPOINT_FORMAT, clientHost, orderId);
 		Request request = new Request.Builder()
 			      .url(url)
@@ -210,7 +214,7 @@ public class ShopifyApiClient {
 	}
 	
 	public void fulfillOrder(String orderId, String trackingNumber, boolean notifyCustomer) throws Exception{
-		OkHttpClient client = new OkHttpClient();
+		
 		String url = MessageFormat.format(ORDER_FULFILLMENT_ENDPOINT_FORMAT, clientHost, orderId);
 		
 		CreateFulfillment createFulfillment = new CreateFulfillment();
@@ -238,7 +242,7 @@ public class ShopifyApiClient {
 	}
 	
 	public void updateFulfillment(String orderId, String fullfillmentId, String trackingNumber, boolean notifyCustomer) throws Exception{
-		OkHttpClient client = new OkHttpClient();
+		
 		String url = MessageFormat.format(UPDATE_ORDER_FULFILLMENT_ENDPOINT_FORMAT, clientHost, orderId, fullfillmentId);
 		
 		CreateFulfillment createFulfillment = new CreateFulfillment();
