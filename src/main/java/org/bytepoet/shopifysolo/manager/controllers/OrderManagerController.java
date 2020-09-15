@@ -16,17 +16,22 @@ import javax.persistence.criteria.Subquery;
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.manager.models.GiveawayOrder;
 import org.bytepoet.shopifysolo.manager.models.Invoice;
+import org.bytepoet.shopifysolo.manager.models.Item;
 import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.OrderStatus;
 import org.bytepoet.shopifysolo.manager.models.OrderType;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
+import org.bytepoet.shopifysolo.manager.models.Refund;
 import org.bytepoet.shopifysolo.manager.models.ShippingSearchStatus;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
+import org.bytepoet.shopifysolo.manager.repositories.RefundRepository;
 import org.bytepoet.shopifysolo.services.FulfillmentMaillingService;
 import org.bytepoet.shopifysolo.services.InvoiceService;
 import org.bytepoet.shopifysolo.services.MailService;
 import org.bytepoet.shopifysolo.services.OrderFulfillmentService;
 import org.bytepoet.shopifysolo.services.PdfInvoiceService;
+import org.bytepoet.shopifysolo.services.PdfRefundService;
+import org.bytepoet.shopifysolo.services.RefundService;
 import org.bytepoet.shopifysolo.services.MailService.MailAttachment;
 import org.bytepoet.shopifysolo.services.MailService.MailReceipient;
 import org.bytepoet.shopifysolo.shopify.clients.ShopifyApiClient;
@@ -63,10 +68,19 @@ public class OrderManagerController {
 	private InvoiceService invoiceService;
 	
 	@Autowired
+	private RefundService refundService;
+	
+	@Autowired
 	private PdfInvoiceService pdfInvoiceService;
 	
 	@Autowired
+	private PdfRefundService pdfRefundService;
+	
+	@Autowired
 	private OrderRepository orderRepository;
+	
+	@Autowired
+	private RefundRepository refundRepository;
 	
 	@Autowired
 	private MailService mailService;
@@ -79,6 +93,9 @@ public class OrderManagerController {
 	
 	@Value("${email.body}")
 	private String body;
+	
+	@Value("${email.refund-body}")
+	private String refundBody;
 	
 	@Value("${email.always-bcc:}")
 	private String alwaysBcc;
@@ -292,6 +309,64 @@ public class OrderManagerController {
 				.content(new ByteArrayInputStream(pdfInvoice));	
 		
 		mailService.sendEmail(to, subject, body, Collections.singletonList(attachment));
+	}
+	
+	
+	@RequestMapping(path="/{id}/refund", method=RequestMethod.POST)
+	public void refundOrder(@PathVariable("id") Long orderId, @RequestParam(name="itemIds", required=true) List<Long> itemIds) throws Exception {
+		if (CollectionUtils.isEmpty(itemIds)) {
+			throw new RuntimeException("No items specified");
+		}
+		PaymentOrder paymentOrder = orderRepository.getPaymentOrderById(orderId).get();
+		if (!paymentOrder.isPaid()) {
+			throw new RuntimeException("Order is not paid!");
+		}
+		
+		Refund refund = paymentOrder.createRefund(itemIds);
+		
+		Invoice invoice = refundService.createInvoice(refund);
+		refund.setInvoice(invoice);
+		refundRepository.save(refund);
+		orderRepository.save(paymentOrder);
+		byte [] pdfInvoice = pdfRefundService.createInvoice(refund);
+		
+		sendRefundEmail(paymentOrder.getEmail(), invoice.getNumber(), pdfInvoice);
+		
+	}
+	
+	@RequestMapping(path="/{id}/refund-custom", method=RequestMethod.POST)
+	public void refundOrderCustom(@PathVariable("id") Long orderId, @RequestBody List<Item> items) throws Exception {
+		if (CollectionUtils.isEmpty(items)) {
+			throw new RuntimeException("No items specified");
+		}
+		PaymentOrder paymentOrder = orderRepository.getPaymentOrderById(orderId).get();
+		if (!paymentOrder.isPaid()) {
+			throw new RuntimeException("Order is not paid!");
+		}
+		
+		Refund refund = new Refund(paymentOrder, items);
+		
+		Invoice invoice = refundService.createInvoice(refund);
+		refund.setInvoice(invoice);
+		byte [] pdfInvoice = pdfRefundService.createInvoice(refund);
+		
+		sendRefundEmail(paymentOrder.getEmail(), invoice.getNumber(), pdfInvoice);
+		
+	}
+	
+	private void sendRefundEmail(String email, String invoiceNumber, byte[] pdfInvoice) throws Exception {
+		
+		MailReceipient to = new MailReceipient(email);
+		if (StringUtils.isNotBlank(alwaysBcc)) {
+			to.bcc(alwaysBcc);
+		}
+		
+		MailAttachment attachment = new MailAttachment()
+				.filename(invoiceNumber + ".pdf")
+				.mimeType("application/pdf")
+				.content(new ByteArrayInputStream(pdfInvoice));	
+		
+		mailService.sendEmail(to, subject, refundBody, Collections.singletonList(attachment));
 	}
 	
 }

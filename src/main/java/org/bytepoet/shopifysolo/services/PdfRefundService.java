@@ -9,8 +9,8 @@ import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.manager.models.Item;
-import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.models.PaymentType;
+import org.bytepoet.shopifysolo.manager.models.Refund;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
@@ -42,7 +42,7 @@ import com.itextpdf.layout.renderer.DrawContext;
 
 
 @Component
-public class PdfInvoiceService {
+public class PdfRefundService {
 	
 	private static final float TOP_MARGIN = 45f;
 	private static final float LEFT_MARGIN = 20f;
@@ -53,7 +53,7 @@ public class PdfInvoiceService {
 	private String nonFiscalNote;
 	
 
-	public byte[] createInvoice(PaymentOrder order) throws Exception {
+	public byte[] createInvoice(Refund refund) throws Exception {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		PdfWriter writer = new PdfWriter(outputStream); 
 		PdfDocument pdfDoc = new PdfDocument(writer); 
@@ -64,13 +64,13 @@ public class PdfInvoiceService {
 		
 
 		
-		document.add(invoiceInfo(order));
+		document.add(invoiceInfo(refund));
 		document.add(new Paragraph("\n"));
-		document.add(invoiceItems(order));
+		document.add(invoiceItems(refund));
 		document.add(new Paragraph("\n"));
-		document.add(invoiceSum(order));
+		document.add(invoiceSum(refund));
 		document.add(new Paragraph("\n"));
-		document.add(otherInvoiceDetails(order));
+		document.add(otherInvoiceDetails(refund));
 		//document.add(footer().setFixedPosition(0, 0, 1000));
 		document.flush();
 		
@@ -86,29 +86,29 @@ public class PdfInvoiceService {
 	
 
 
-	private IBlockElement invoiceInfo(PaymentOrder order) {
+	private IBlockElement invoiceInfo(Refund refund) {
 		Table table = new Table(UnitValue.createPercentArray(new float[] {60, 40}));
 		Cell logoCell = new Cell().add(createLogo()).setBorder(Border.NO_BORDER);
 		table.addCell(logoCell);
 		
-		Cell invoiceCreationDetailsCell = new Cell().add(invoiceCreationDetails(order)).setBorder(Border.NO_BORDER);
+		Cell invoiceCreationDetailsCell = new Cell().add(invoiceCreationDetails(refund)).setBorder(Border.NO_BORDER);
 		table.addCell(invoiceCreationDetailsCell);
 		
 		Cell companyDetailsCell = companyDetails().setBorder(Border.NO_BORDER);
 		table.addCell(companyDetailsCell);
 		
-		Cell buyerDetailsCell = buyerDetails(order).setBorder(Border.NO_BORDER);
+		Cell buyerDetailsCell = buyerDetails(refund).setBorder(Border.NO_BORDER);
 		buyerDetailsCell.setNextRenderer(new RoundedBorderCellRenderer(buyerDetailsCell));
 		table.addCell(buyerDetailsCell);
 		
 		return table;
 	}
 	
-	private Table invoiceCreationDetails(PaymentOrder order) {
+	private Table invoiceCreationDetails(Refund refund) {
 		Table table = new Table(UnitValue.createPercentArray(2));
 		table.addCell(new Cell().add(new Paragraph("Račun br.").setFont(boldFont()).setFontSize(16f))
 				.setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
-		table.addCell(new Cell().add(new Paragraph(order.getInvoiceNumber()).setFont(boldFont()).setFontSize(16f))
+		table.addCell(new Cell().add(new Paragraph(refund.getInvoice().getNumber()).setFont(boldFont()).setFontSize(16f))
 				.setBorder(Border.NO_BORDER).setPaddingLeft(10));
 		
 		table.addCell(new Cell().add(new Paragraph("Datum računa").setFont(font()).setFontSize(10f))
@@ -117,7 +117,7 @@ public class PdfInvoiceService {
 		DateFormat paymentDf = new SimpleDateFormat("dd.MM.yyyy HH:mm");
 		paymentDf.setTimeZone(TimeZone.getTimeZone("CET"));
 		
-		table.addCell(new Cell().add(new Paragraph(paymentDf.format(order.getPaymentDate())).setFont(font()).setFontSize(10f))
+		table.addCell(new Cell().add(new Paragraph(paymentDf.format(refund.getInvoice().getDate())).setFont(font()).setFontSize(10f))
 				.setBorder(Border.NO_BORDER).setPaddingLeft(10));
 		
 		table.addCell(new Cell().add(new Paragraph("Rok plaćanja").setFont(font()).setFontSize(10f))
@@ -125,7 +125,7 @@ public class PdfInvoiceService {
 		
 		DateFormat deadlineDf = new SimpleDateFormat("dd.MM.yyyy");
 		paymentDf.setTimeZone(TimeZone.getTimeZone("CET"));
-		table.addCell(new Cell().add(new Paragraph(deadlineDf.format(order.getPaymentDate())).setFont(font()).setFontSize(10f))
+		table.addCell(new Cell().add(new Paragraph(deadlineDf.format(refund.getInvoice().getDate())).setFont(font()).setFontSize(10f))
 				.setBorder(Border.NO_BORDER).setPaddingLeft(10));
 		return table;
 	}
@@ -141,10 +141,10 @@ public class PdfInvoiceService {
 	}
 	
 	
-	private Cell buyerDetails(PaymentOrder order) {
+	private Cell buyerDetails(Refund refund) {
 		Cell cell = new Cell();
 		cell.add(new Paragraph("Kupac").setFont(font()).setFontSize(10).setFontColor(WebColors.getRGBColor("dimgray")));
-		cell.add(new Paragraph(order.getEmail()).setFont(boldFont()).setFontSize(12));
+		cell.add(new Paragraph(refund.getOrder().getEmail()).setFont(boldFont()).setFontSize(12));
 		return cell;
 	}
 	
@@ -162,7 +162,7 @@ public class PdfInvoiceService {
 		}
 	}
 	
-	private IBlockElement invoiceItems(PaymentOrder order) {
+	private IBlockElement invoiceItems(Refund refund) {
 		Table table = new Table(UnitValue.createPercentArray(new float[] {1, 17, 3, 3, 5, 5, 7, 5}));
 		
 		String[] headerElements = {
@@ -187,7 +187,7 @@ public class PdfInvoiceService {
 		
 		
 		int n = 1;
-		for (Item item : order.getItems()) {
+		for (Item item : refund.getItems()) {
 			String[] rowElements = {
 					String.valueOf(n),
 					item.getName(),
@@ -216,21 +216,21 @@ public class PdfInvoiceService {
 		return table.setWidth(550);
 	}
 	
-	private IBlockElement invoiceSum(PaymentOrder order) {
+	private IBlockElement invoiceSum(Refund refund) {
 		Table table = new Table(UnitValue.createPercentArray(new float[] {80f, 20f}));
 		table.addCell(new Cell().add(new Paragraph("Ukupno:").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(sumAllItemsPrice(order) + "  kn").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
+		table.addCell(new Cell().add(new Paragraph(sumAllItemsPrice(refund) + "  kn").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
 		
 		table.addCell(new Cell().add(new Paragraph("Porez (25%):").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(sumAllItemsVat(order) + "  kn").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
+		table.addCell(new Cell().add(new Paragraph(sumAllItemsVat(refund) + "  kn").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
 		
 		table.addCell(new Cell().add(new Paragraph("Ukupan iznos naplate:").setFont(boldFont()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(totalPrice(order) + "  kn").setFont(boldFont()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
+		table.addCell(new Cell().add(new Paragraph(totalPrice(refund) + "  kn").setFont(boldFont()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
 		
 		return table.setWidth(550);
@@ -238,17 +238,17 @@ public class PdfInvoiceService {
 	
 	
 	private String price(Item item) {
-		return getDecimalFormat().format(Double.parseDouble(item.getPrice()));
+		return getDecimalFormat().format(-Double.parseDouble(item.getPrice()));
 	}
 	
 	private String discount(Item item) {
-		return getDecimalFormat().format(Double.parseDouble(item.getDiscount()));
+		return getDecimalFormat().format(-Double.parseDouble(item.getDiscount()));
 	}
 	
 	private String discountOneItemPrice(Item item) {
 		double price = priceWithDiscount(item);
 		
-		return getDecimalFormat().format(price);
+		return getDecimalFormat().format(-price);
 
 	}
 
@@ -265,28 +265,28 @@ public class PdfInvoiceService {
 	}
 	
 	private String discountAllItemsPrice(Item item) {
-		return getDecimalFormat().format(priceWithDiscount(item)*item.getQuantity());
+		return getDecimalFormat().format(-priceWithDiscount(item)*item.getQuantity());
 	}
 	
-	private String sumAllItemsPrice(PaymentOrder order) {
+	private String sumAllItemsPrice(Refund refund) {
 		double sum = 0;
-		for (Item item : order.getItems()) {
+		for (Item item : refund.getItems()) {
 			sum += priceWithDiscount(item)*item.getQuantity();
 		}
-		return getDecimalFormat().format(sum);
+		return getDecimalFormat().format(-sum);
 	}
 	
-	private String sumAllItemsVat(PaymentOrder order) {
+	private String sumAllItemsVat(Refund refund) {
 		double sum = 0;
-		for (Item item : order.getItems()) {
+		for (Item item : refund.getItems()) {
 			double taxRate = Double.parseDouble(item.getTaxRate()) / 100;
 			sum += taxRate * priceWithDiscount(item)*item.getQuantity();
 		}
-		return getDecimalFormat().format(sum);
+		return getDecimalFormat().format(-sum);
 	}
 	
-	private String totalPrice(PaymentOrder order) {
-		return getDecimalFormat().format(order.getTotalPrice());
+	private String totalPrice(Refund refund) {
+		return getDecimalFormat().format(-refund.getTotalPrice());
 	}
 	
 	private class RoundedBorderCellRenderer extends CellRenderer {
@@ -305,25 +305,25 @@ public class PdfInvoiceService {
 	    }
 	}
 	
-	private Div otherInvoiceDetails(PaymentOrder order) {
+	private Div otherInvoiceDetails(Refund refund) {
 		Div div = new Div();
-		div.add(paymentType(order));
+		div.add(paymentType(refund));
 		div.add(operator());
-		div.add(note(order));
-		if (StringUtils.isNotBlank(order.getInvoice().getJir()) || StringUtils.isNotBlank(order.getInvoice().getZki())) { 
-			div.add(fiscalization(order));
+		div.add(note(refund));
+		if (StringUtils.isNotBlank(refund.getInvoice().getJir()) || StringUtils.isNotBlank(refund.getInvoice().getZki())) { 
+			div.add(fiscalization(refund));
 		}
 		return div;
 	}
 	
-	private IBlockElement fiscalization(PaymentOrder order) {
+	private IBlockElement fiscalization(Refund refund) {
 		Table table = new Table(UnitValue.createPercentArray(new float[] {50f, 50f}));
 		table.addCell(new Cell().add(new Paragraph("Zaštitni kod računa:").setFont(font()).setFontSize(9).setFontColor(WebColors.getRGBColor("dimgray")))
 				.setBorder(Border.NO_BORDER));
 		table.addCell(new Cell().add(new Paragraph("Jedinstveni identifikator računa:").setFont(font()).setFontSize(9).setFontColor(WebColors.getRGBColor("dimgray")))
 				.setBorder(Border.NO_BORDER));
-		String zki = StringUtils.defaultString(order.getInvoice().getZki());
-		String jir = StringUtils.defaultString(order.getInvoice().getJir());
+		String zki = StringUtils.defaultString(refund.getInvoice().getZki());
+		String jir = StringUtils.defaultString(refund.getInvoice().getJir());
 		table.addCell(new Cell().add(new Paragraph(zki).setFont(font()).setFontSize(10))
 				.setBorder(Border.NO_BORDER));
 		table.addCell(new Cell().add(new Paragraph(jir).setFont(font()).setFontSize(10))
@@ -332,10 +332,10 @@ public class PdfInvoiceService {
 	}
 
 
-	private Paragraph paymentType(PaymentOrder order) {
+	private Paragraph paymentType(Refund refund) {
 		Paragraph paymentType = new Paragraph();
 		paymentType.add(new Text("Način plaćanja\n").setFont(font()).setFontSize(9).setFontColor(WebColors.getRGBColor("dimgray")));
-		paymentType.add(new Text(paymentTypeValue(order.getPaymentType())).setFont(font()).setFontSize(10));
+		paymentType.add(new Text(paymentTypeValue(refund.getOrder().getPaymentType())).setFont(font()).setFontSize(10));
 		return paymentType;
 	}
 	
@@ -346,10 +346,10 @@ public class PdfInvoiceService {
 		return paymentType;
 	}
 	
-	private Paragraph note(PaymentOrder order) {
+	private Paragraph note(Refund refund) {
 		Paragraph paymentType = new Paragraph();
 		paymentType.add(new Text("Napomene\n").setFont(font()).setFontSize(9).setFontColor(WebColors.getRGBColor("dimgray")));
-		paymentType.add(new Text(noteValue(order)).setFont(font()).setFontSize(10));
+		paymentType.add(new Text(refund.getInvoice().getNote()).setFont(font()).setFontSize(10));
 		return paymentType;
 	}
 	
@@ -363,15 +363,6 @@ public class PdfInvoiceService {
 		throw new RuntimeException("unknown payment type");
 	}
 	
-	private String noteValue(PaymentOrder order) {
-		if (order.getPaymentType() == PaymentType.BANK_TRANSACTION) {
-			return note + "\n" + nonFiscalNote;
-		}
-		if (order.getPaymentType() == PaymentType.CREDIT_CARD) {
-			return note;
-		}
-		throw new RuntimeException("unknown payment type");
-	}
 	
 	private Paragraph footer() {
 		Paragraph section = new Paragraph();

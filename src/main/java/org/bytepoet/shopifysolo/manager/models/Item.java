@@ -8,6 +8,9 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyLineItem;
@@ -21,6 +24,7 @@ public class Item {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@JsonProperty
 	private Long id;
 	
 	@JsonProperty
@@ -33,6 +37,10 @@ public class Item {
 	private String discount;
 	@JsonProperty
 	private String taxRate;
+	
+	@ManyToOne
+    @JoinColumn(name = "refundId")
+	private Refund refund;
 	
 	protected Item() {}
 	
@@ -76,6 +84,10 @@ public class Item {
 		return taxRate;
 	}
 	
+	Long getId() {
+		return id;
+	}
+
 	public void applyTaxRate(String taxRate) {
 		double oldTaxRate = Double.parseDouble(this.taxRate);
 		double newTaxRate = Double.parseDouble(taxRate);
@@ -150,5 +162,11 @@ public class Item {
 		newSymbols.setDecimalSeparator('.');
 		df.setDecimalFormatSymbols(newSymbols);
 		return df;
+	}
+	
+	@JsonProperty
+	@Transient
+	public boolean isRefunded() {
+		return refund!= null;
 	}
 }

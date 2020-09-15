@@ -78,7 +78,7 @@ public abstract class Order {
 	
 	@JsonProperty
 	@Enumerated(EnumType.STRING)
-	private OrderStatus status = OrderStatus.INITIAL;
+	protected OrderStatus status = OrderStatus.INITIAL;
 	
 	@JsonProperty
 	@Enumerated(EnumType.STRING)

@@ -2,6 +2,8 @@ package org.bytepoet.shopifysolo.manager.models;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.Column;
@@ -14,6 +16,8 @@ import javax.persistence.Transient;
 
 import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
+import org.springframework.util.CollectionUtils;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -224,6 +228,17 @@ public class PaymentOrder extends Order {
 		return cancelInvoice;
 	}	
 	
-	
+	public Refund createRefund(List<Long> itemsIds) {
+		List<Item> refundedItems = items.stream()
+				.filter(item -> itemsIds.contains(item.getId()) && !item.isRefunded())
+				.collect(Collectors.toList());
+		if (CollectionUtils.isEmpty(refundedItems)) {
+			throw new RuntimeException("No items to refund");
+		}
+		if (refundedItems.size() == items.size()) {
+			super.status = OrderStatus.REFUNDED;
+		}
+		return new Refund(this, refundedItems);
+	}
 	
 }

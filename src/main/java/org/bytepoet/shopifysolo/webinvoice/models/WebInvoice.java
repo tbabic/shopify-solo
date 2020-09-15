@@ -11,7 +11,7 @@ public class WebInvoice {
 	private String paymentType;
 
 	@JsonProperty
-	private String remark;
+	private String note;
 
 	@JsonProperty
 	private WebInvoiceCustomer customer;
@@ -21,14 +21,14 @@ public class WebInvoice {
 	
 	private WebInvoice(Builder builder) {
 		this.paymentType = builder.paymentType;
-		this.remark = builder.remark;
+		this.note = builder.note;
 		this.customer = builder.customer;
 		this.items = builder.items;
 	}
 
 	public static class Builder {
 		private String paymentType;
-		private String remark;
+		private String note;
 		private WebInvoiceCustomer customer;
 		private List<WebInvoiceItem> items;
 
@@ -37,8 +37,8 @@ public class WebInvoice {
 			return this;
 		}
 
-		public Builder remark(String remark) {
-			this.remark = remark;
+		public Builder remark(String note) {
+			this.note = note;
 			return this;
 		}
 

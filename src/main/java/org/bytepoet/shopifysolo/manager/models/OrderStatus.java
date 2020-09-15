@@ -7,6 +7,7 @@ public enum OrderStatus {
 	IN_POST,
 	FULFILLED,
 	CANCELED,
+	REFUNDED,
 	REQUEST_SEARCH,
 	SEARCH_PROCESS
 }
