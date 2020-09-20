@@ -10,11 +10,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Embeddable
-public class Invoice {
-
+public class RefundInvoice {
+	
 	@Parent
 	@JsonIgnore
-	private PaymentOrder order;
+	private Refund refund;
 
 	@JsonProperty
 	private String number;
@@ -38,7 +38,7 @@ public class Invoice {
 	private boolean isSent;
 
 	public static class Builder {
-		private PaymentOrder order;
+		private Refund refund;
 		private String number;
 		private String id;
 		private String zki;
@@ -76,13 +76,13 @@ public class Invoice {
 			return this;
 		}
 
-		public Invoice build() {
-			return new Invoice(this);
+		public RefundInvoice build() {
+			return new RefundInvoice(this);
 		}
 	}
 
-	private Invoice(Builder builder) {
-		this.order = builder.order;
+	private RefundInvoice(Builder builder) {
+		this.refund = builder.refund;
 		this.number = builder.number;
 		this.id = builder.id;
 		this.zki = builder.zki;
@@ -91,20 +91,20 @@ public class Invoice {
 		this.date = builder.date;
 	}
 	
-	private Invoice() {
+	private RefundInvoice() {
 		super();
 	}
-
-	@JsonIgnore
-	void setOrder(PaymentOrder order) {
-		this.order = order;
-	}
-
-	@JsonIgnore
-	public PaymentOrder getOrder() {
-		return order;
-	}
 	
+	@JsonIgnore
+	public Refund getRefund() {
+		return refund;
+	}
+
+	@JsonIgnore
+	public void setRefund(Refund refund) {
+		this.refund = refund;
+	}
+
 	public String getNumber() {
 		return number;
 	}

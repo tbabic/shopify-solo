@@ -60,7 +60,7 @@ public class OrderArchive {
 		getOrders().add(order);
 	}
 	
-	private void updateData() {
+	public void updateData() {
     	if (orders == null) {
     		data = null;
     		return;

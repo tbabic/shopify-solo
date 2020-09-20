@@ -38,9 +38,10 @@ public class OrderArchiveController {
 		OrderArchive archive = orderArchiveRepository.findAll().stream().findFirst().orElse(new OrderArchive());
 		List<Order> orders = orderRepository.getByCreationDateBetween(start, end);
 		orders.stream().forEach(order -> archive.addOrder(order));
-		
-		orderArchiveRepository.save(archive);
+		archive.updateData();
+		orderArchiveRepository.saveAndFlush(archive);
 		orderRepository.deleteAll(orders);
+		return;
 	}
 	
 	@RequestMapping(path = "/add-orders", method=RequestMethod.POST)

@@ -22,7 +22,7 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 	@Query(value="select order from PaymentOrder order where order.id = :id")
 	Optional<PaymentOrder> getPaymentOrderById(@Param("id") Long id);
 	
-	@Query(value="SELECT o FROM ManagedOrder o "
+	@Query(value="SELECT distinct o FROM ManagedOrder o "
 			+ "INNER JOIN FETCH o.items i "
 			+ "WHERE o.creationDate BETWEEN :start AND :end "
 			+ "ORDER BY o.id ")

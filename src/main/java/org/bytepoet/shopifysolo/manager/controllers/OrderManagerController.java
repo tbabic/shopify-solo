@@ -12,6 +12,7 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
+import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.manager.models.GiveawayOrder;
@@ -22,6 +23,7 @@ import org.bytepoet.shopifysolo.manager.models.OrderStatus;
 import org.bytepoet.shopifysolo.manager.models.OrderType;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.models.Refund;
+import org.bytepoet.shopifysolo.manager.models.RefundInvoice;
 import org.bytepoet.shopifysolo.manager.models.ShippingSearchStatus;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.manager.repositories.RefundRepository;
@@ -256,18 +258,18 @@ public class OrderManagerController {
 	@RequestMapping(path="/{id}/process-payment", method=RequestMethod.POST)
 	public void processPayment(@PathVariable("id") Long orderId, @RequestParam(name="paymentDate", required=false) Date paymentDate) throws Exception {
 		PaymentOrder paymentOrder = orderRepository.getPaymentOrderById(orderId).get();
-		if (paymentOrder.isPaid()) {
-			throw new RuntimeException("Order is already paid for"); 
-		}
-		
-		List<ShopifyTransaction> transactions  = shopifyApiClient.getTransactions(paymentOrder.getShopifyOrderId());
-		if (transactions.size() != 1) {
-			throw new RuntimeException(MessageFormat.format("Order has {0} tranasctions but must have 1", transactions.size())); 
-		}
-		ShopifyTransaction transaction = transactions.get(0);
-		if (!"pending".equalsIgnoreCase(transaction.getStatus())) {
-			throw new RuntimeException(MessageFormat.format("Transaction status is {0} but must be 'pending'", transaction.getStatus())); 
-		}
+//		if (paymentOrder.isPaid()) {
+//			throw new RuntimeException("Order is already paid for"); 
+//		}
+//		
+//		List<ShopifyTransaction> transactions  = shopifyApiClient.getTransactions(paymentOrder.getShopifyOrderId());
+//		if (transactions.size() != 1) {
+//			throw new RuntimeException(MessageFormat.format("Order has {0} tranasctions but must have 1", transactions.size())); 
+//		}
+//		ShopifyTransaction transaction = transactions.get(0);
+//		if (!"pending".equalsIgnoreCase(transaction.getStatus())) {
+//			throw new RuntimeException(MessageFormat.format("Transaction status is {0} but must be 'pending'", transaction.getStatus())); 
+//		}
 		
 		paymentOrder.applyTaxRate(taxRate);
 		Invoice invoice = invoiceService.createInvoice(paymentOrder);
@@ -280,7 +282,7 @@ public class OrderManagerController {
 		paymentOrder.setReceiptSent(true);
 		orderRepository.save(paymentOrder);
 		
-		shopifyApiClient.createTransaction(transaction.createNewTransaction(), paymentOrder.getShopifyOrderId());
+		//shopifyApiClient.createTransaction(transaction.createNewTransaction(), paymentOrder.getShopifyOrderId());
 	}
 	
 	private boolean syncOrder(PaymentOrder order, boolean sendNotification) throws Exception {
@@ -313,6 +315,7 @@ public class OrderManagerController {
 	
 	
 	@RequestMapping(path="/{id}/refund", method=RequestMethod.POST)
+	@Transactional
 	public void refundOrder(@PathVariable("id") Long orderId, @RequestParam(name="itemIds", required=true) List<Long> itemIds) throws Exception {
 		if (CollectionUtils.isEmpty(itemIds)) {
 			throw new RuntimeException("No items specified");
@@ -324,7 +327,7 @@ public class OrderManagerController {
 		
 		Refund refund = paymentOrder.createRefund(itemIds);
 		
-		Invoice invoice = refundService.createInvoice(refund);
+		RefundInvoice invoice = refundService.createInvoice(refund);
 		refund.setInvoice(invoice);
 		refundRepository.save(refund);
 		orderRepository.save(paymentOrder);
@@ -346,10 +349,10 @@ public class OrderManagerController {
 		
 		Refund refund = new Refund(paymentOrder, items);
 		
-		Invoice invoice = refundService.createInvoice(refund);
+		RefundInvoice invoice = refundService.createInvoice(refund);
 		refund.setInvoice(invoice);
 		byte [] pdfInvoice = pdfRefundService.createInvoice(refund);
-		
+		refundRepository.save(refund);
 		sendRefundEmail(paymentOrder.getEmail(), invoice.getNumber(), pdfInvoice);
 		
 	}

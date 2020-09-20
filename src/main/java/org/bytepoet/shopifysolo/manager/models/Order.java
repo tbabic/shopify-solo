@@ -15,6 +15,7 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
 import javax.persistence.Transient;
 
 import org.hibernate.annotations.Fetch;
@@ -190,6 +191,13 @@ public abstract class Order {
 
 	public Address getShippingInfo() {
 		return shippingInfo;
+	}
+	
+	@PrePersist
+    public void onPrePersist() {
+		if (this.getCreationDate() == null) {
+			this.creationDate = new Date();
+		}
 	}
 	
 }

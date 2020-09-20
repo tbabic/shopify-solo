@@ -3,15 +3,25 @@ package org.bytepoet.shopifysolo.manager.controllers;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
+
+import java.util.Collections;
+
+import javax.transaction.Transactional;
+
 import static org.bytepoet.shopifysolo.webinvoice.models.WebInvoiceModels.webInvoiceDetailsFiscalized;
 import static org.bytepoet.shopifysolo.webinvoice.models.WebInvoiceModels.webInvoiceResponseFiscalized;
 import org.bytepoet.shopifysolo.authorization.AuthorizationService;
 import org.bytepoet.shopifysolo.controllers.OrderController;
 import org.bytepoet.shopifysolo.controllers.ShopifyOrderCreator;
 import org.bytepoet.shopifysolo.controllers.TenderController;
+import org.bytepoet.shopifysolo.manager.models.Item;
 import org.bytepoet.shopifysolo.manager.models.Order;
+import org.bytepoet.shopifysolo.manager.models.OrderStatus;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
+import org.bytepoet.shopifysolo.manager.models.Refund;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
+import org.bytepoet.shopifysolo.manager.repositories.RefundRepository;
+import org.bytepoet.shopifysolo.manager.utils.RefundTransactionalService;
 import org.bytepoet.shopifysolo.services.MailService;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.webinvoice.client.WebInvoiceClient;
@@ -26,6 +36,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.restassured.RestAssured;
 
 @SpringBootTest
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -50,12 +64,21 @@ public class OrderManagerControllerTests {
 	@Autowired
 	private OrderRepository orderRepository;
 	
+	@Autowired 
+	private RefundRepository refundRepository;
+	
+	@Autowired
+	private RefundTransactionalService refundTransactionalService;
 	
 	@Autowired
 	private OrderManagerController orderManagerController;
 	
+	
+	
+	
 	@Before
 	public void before() {
+		refundTransactionalService.deleteAll();
 		orderRepository.deleteAll();
 	}
 	
@@ -148,6 +171,75 @@ public class OrderManagerControllerTests {
 		assertValidTenderOrder(orderPage.getContent().get(0), "1");
 		assertValidUnpaidTender(orderPage.getContent().get(1), "2");
 		assertValidOrder(orderPage.getContent().get(2), "3");
+	}
+	
+	@Test
+	public void refundOrder_ok() throws Exception {
+		provideValidOrders("1");
+		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, 0, 1, null, null);
+		PaymentOrder order = (PaymentOrder) orderPage.getContent().get(0);
+		
+		Item item = order.getItems().get(0);
+		orderManagerController.refundOrder(order.getId(), Collections.singletonList(item.getId()));
+		Refund refund = refundTransactionalService.findAll().get(0);
+		Assert.assertThat(refund.getItems().get(0).isRefunded(), equalTo(true));
+		Assert.assertThat(refund.getItems().get(0).getRefundId(), equalTo(refund.getId()));
+		Assert.assertThat(refund.getTotalPrice(), equalTo(229.0));
+		
+		PaymentOrder afterRefundOrder = (PaymentOrder) orderManagerController.getOrder(order.getId());
+		Assert.assertThat(afterRefundOrder.getItems().size(), equalTo(order.getItems().size()));
+		Assert.assertThat(afterRefundOrder.getTotalPrice(), equalTo(order.getTotalPrice()));
+	}
+	
+	@Test
+	public void refundOrderCustom_ok() throws Exception {
+		provideValidOrders("1");
+		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, 0, 1, null, null);
+		PaymentOrder order = (PaymentOrder) orderPage.getContent().get(0);
+		
+		Item item = new Item("Custom refund", "100", 1, "0", "25");
+				
+		orderManagerController.refundOrderCustom(order.getId(), Collections.singletonList(item));
+		Refund refund = refundTransactionalService.findAll().get(0);
+		Assert.assertThat(refund.getItems().get(0).isRefunded(), equalTo(true));
+		Assert.assertThat(refund.getItems().get(0).getRefundId(), equalTo(refund.getId()));
+		Assert.assertThat(refund.getTotalPrice(), equalTo(100.0));
+		
+		PaymentOrder afterRefundOrder = (PaymentOrder) orderManagerController.getOrder(order.getId());
+		Assert.assertThat(afterRefundOrder.getItems().size(), equalTo(order.getItems().size()));
+		Assert.assertThat(afterRefundOrder.getTotalPrice(), equalTo(order.getTotalPrice()));
+		
+	}
+	
+	@Test
+	public void refundOrder_thenUpdateOrder_ok() throws Exception {
+		provideValidOrders("1");
+		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, 0, 1, null, null);
+		PaymentOrder order = (PaymentOrder) orderPage.getContent().get(0);
+		
+		Item item = order.getItems().get(0);
+		orderManagerController.refundOrder(order.getId(), Collections.singletonList(item.getId()));
+		
+		PaymentOrder afterRefundOrder = (PaymentOrder) orderManagerController.getOrder(order.getId());
+		ObjectMapper mapper = new ObjectMapper();
+		String orderJson = mapper.writeValueAsString(afterRefundOrder);
+		orderJson = orderJson.replace("INITIAL", "IN_PROCESS");
+		Order orderToUpdate = mapper.readValue(orderJson, Order.class);
+		Assert.assertThat(orderToUpdate.getStatus(), equalTo(OrderStatus.IN_PROCESS));
+		
+		orderManagerController.save(orderToUpdate);
+		
+		
+		Refund refund = refundTransactionalService.findAll().get(0);
+		Assert.assertThat(refund.getItems().get(0).isRefunded(), equalTo(true));
+		Assert.assertThat(refund.getItems().get(0).getRefundId(), equalTo(refund.getId()));
+		Assert.assertThat(refund.getTotalPrice(), equalTo(229.0));
+		
+		PaymentOrder refreshedOrder = (PaymentOrder) orderManagerController.getOrder(order.getId());
+		Assert.assertThat(refreshedOrder.getItems().size(), equalTo(order.getItems().size()));
+		Assert.assertThat(refreshedOrder.getTotalPrice(), equalTo(order.getTotalPrice()));
+		Assert.assertThat(refreshedOrder.getStatus(), equalTo(OrderStatus.IN_PROCESS));
+		
 	}
 	
 	

@@ -40,11 +40,12 @@ public class Item {
 	
 	@ManyToOne
     @JoinColumn(name = "refundId")
+	@JsonIgnore
 	private Refund refund;
 	
 	protected Item() {}
 	
-	Item(ShopifyLineItem lineItem, String taxRate) {
+	public Item(ShopifyLineItem lineItem, String taxRate) {
 		this.name = lineItem.getFullTitle();
 		this.price = lineItem.getPricePerItem();
 		this.quantity = lineItem.getQuantity();
@@ -55,7 +56,7 @@ public class Item {
 	
 	
 
-	Item(String name, String price, int quantity, String discount, String taxRate) {
+	public Item(String name, String price, int quantity, String discount, String taxRate) {
 		this.name = name;
 		this.price = price;
 		this.quantity = quantity;
@@ -84,7 +85,7 @@ public class Item {
 		return taxRate;
 	}
 	
-	Long getId() {
+	public Long getId() {
 		return id;
 	}
 
@@ -169,4 +170,37 @@ public class Item {
 	public boolean isRefunded() {
 		return refund!= null;
 	}
+	
+	@JsonProperty
+	@Transient
+	public Long getRefundId() {
+		if (refund == null) {
+			return null;
+		}
+		return refund.getId();
+	}
+	
+	@JsonProperty
+	@Transient
+	public void setRefundId(Long refundId) {
+		if (refundId == null) {
+			refund = null;
+			return;
+		}
+		if (refund == null) {
+			refund = new Refund();
+		}
+		refund.setId(refundId);
+	}
+
+	public Refund getRefund() {
+		return refund;
+	}
+
+	public void setRefund(Refund refund) {
+		this.refund = refund;
+	}
+	
+	
+	
 }

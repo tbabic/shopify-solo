@@ -10,10 +10,13 @@ import org.bytepoet.shopifysolo.controllers.OrderController;
 import org.bytepoet.shopifysolo.controllers.ShopifyOrderCreator;
 import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.OrderArchive;
+import org.bytepoet.shopifysolo.manager.repositories.OrderArchiveRepository;
+import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.services.MailService;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.webinvoice.client.WebInvoiceClient;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -47,6 +50,18 @@ public class OrderArchiveControllerTest {
 	@Autowired
 	private OrderArchiveController orderArchiveController;
 	
+	@Autowired
+	private OrderArchiveRepository archiveRepository;
+	
+	@Autowired
+	private OrderRepository orderRepository;
+	
+	@Before
+	public void before() {
+		archiveRepository.deleteAll();
+		orderRepository.deleteAll();
+	}
+	
 	@Test
 	public void archiveOrdersWithDates_success() throws Exception {
 		provideValidOrders("1", "2", "3", "4", "5");
@@ -61,6 +76,27 @@ public class OrderArchiveControllerTest {
 		OrderArchive result = orderArchiveController.viewArchive();
 		
 		Assert.assertThat(result.getOrders().size(), equalTo(5));
+		Page<Order> page = orderManagerController.getOrders(null, null, null, null, null, null, null, null, 0, 20, null, null);
+		Assert.assertThat(page.getTotalElements(), equalTo(0L));
+		
+	}
+	
+	@Test
+	public void updateArchive() throws Exception {
+		provideValidOrders("1", "2", "3", "4", "5");
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(2019, 0, 1);
+		Date start = calendar.getTime();
+		calendar.set(2020, 11, 31);
+		Date end = calendar.getTime();
+		
+		orderArchiveController.addToArchive(start, end);
+		
+		provideValidOrders("6", "7", "8", "9", "10");
+		orderArchiveController.addToArchive(start, end);
+		OrderArchive result = orderArchiveController.viewArchive();
+		
+		Assert.assertThat(result.getOrders().size(), equalTo(10));
 		Page<Order> page = orderManagerController.getOrders(null, null, null, null, null, null, null, null, 0, 20, null, null);
 		Assert.assertThat(page.getTotalElements(), equalTo(0L));
 		

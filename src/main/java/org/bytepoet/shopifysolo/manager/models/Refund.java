@@ -3,6 +3,7 @@ package org.bytepoet.shopifysolo.manager.models;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -23,9 +24,9 @@ public class Refund {
 	private Long id;
 	
 	@Embedded
-	private Invoice invoice;
+	private RefundInvoice invoice;
 	
-	@OneToMany(mappedBy = "refund")
+	@OneToMany(mappedBy = "refund", cascade=CascadeType.ALL)
 	private List<Item> items;
 	
 	@ManyToOne
@@ -38,14 +39,15 @@ public class Refund {
 	
 	public Refund(PaymentOrder order, List<Item> items ) {
 		this.items = items;
+		this.items.stream().forEach(item -> item.setRefund(this));
 		this.order = order;
 	}
 
-	public Invoice getInvoice() {
+	public RefundInvoice getInvoice() {
 		return invoice;
 	}
 
-	public void setInvoice(Invoice invoice) {
+	public void setInvoice(RefundInvoice invoice) {
 		this.invoice = invoice;
 	}
 
@@ -60,6 +62,10 @@ public class Refund {
 	public Long getId() {
 		return id;
 	}
+	
+	void setId(Long id) {
+		this.id = id;
+	}
 
 	public double getTotalPrice() {
 		if (items == null) {
@@ -67,6 +73,8 @@ public class Refund {
 		}
 		return items.stream().collect(Collectors.summingDouble(Item::getTotalPrice));
 	}
+
+	
 	
 	
 	

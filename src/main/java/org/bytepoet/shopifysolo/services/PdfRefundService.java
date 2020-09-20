@@ -242,6 +242,13 @@ public class PdfRefundService {
 	}
 	
 	private String discount(Item item) {
+		if (StringUtils.isEmpty(item.getDiscount())) {
+			return "0";
+		}
+		double discountDouble = Double.parseDouble(item.getDiscount());
+		if (discountDouble == 0.0) {
+			return "0";
+		}
 		return getDecimalFormat().format(-Double.parseDouble(item.getDiscount()));
 	}
 	

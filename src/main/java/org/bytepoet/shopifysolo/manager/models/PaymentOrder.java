@@ -122,6 +122,9 @@ public class PaymentOrder extends Order {
 	}
 	
 	public void setPaymentDate(Date paymentDate) {
+		if (invoice == null) {
+			invoice = new Invoice.Builder().build();
+		}
 		if (invoice != null) {
 			invoice.setDate(paymentDate);
 		}
@@ -140,6 +143,9 @@ public class PaymentOrder extends Order {
 	}
 	
 	public void setReceiptSent(boolean isReceiptSent) {
+		if (invoice == null) {
+			invoice = new Invoice.Builder().build();
+		}
 		if (invoice != null) {
 			this.invoice.setSent(isReceiptSent);
 		}
@@ -167,22 +173,30 @@ public class PaymentOrder extends Order {
 	}
 
 	@Transient
+	@JsonProperty
 	public String getInvoiceId() {
 		return invoice == null ? null : invoice.getId();
 	}
 	
 	public void setInvoiceId(String invoiceId) {
+		if (invoice == null) {
+			invoice = new Invoice.Builder().build();
+		}
 		if (invoice != null) {
 			invoice.setId(invoiceId);
 		}
 	}
 	
 	@Transient
+	@JsonProperty
 	public String getInvoiceNumber() {
 		return invoice == null ? null : invoice.getNumber();
 	}
 	
 	public void setInvoiceNumber(String invoiceNumber) {
+		if (invoice == null) {
+			invoice = new Invoice.Builder().build();
+		}
 		if (invoice != null) {
 			invoice.setNumber(invoiceNumber);
 		}

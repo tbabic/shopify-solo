@@ -10,6 +10,7 @@ import org.bytepoet.shopifysolo.manager.models.Invoice;
 import org.bytepoet.shopifysolo.manager.models.Item;
 import org.bytepoet.shopifysolo.manager.models.PaymentType;
 import org.bytepoet.shopifysolo.manager.models.Refund;
+import org.bytepoet.shopifysolo.manager.models.RefundInvoice;
 import org.bytepoet.shopifysolo.webinvoice.client.WebInvoiceClient;
 import org.bytepoet.shopifysolo.webinvoice.models.WebInvoice;
 import org.bytepoet.shopifysolo.webinvoice.models.WebInvoiceCustomer;
@@ -44,7 +45,7 @@ public class RefundService {
 	
 	
 	
-	public Invoice createInvoice(Refund refund) {
+	public RefundInvoice createInvoice(Refund refund) {
 		String note = remark(refund);
 		WebInvoice invoiceRequest = new WebInvoice.Builder()
 				.paymentType(paymentType(refund))
@@ -60,7 +61,7 @@ public class RefundService {
 		WebInvoiceResponse response = webInvoiceClient.createInvoice(token, invoiceRequest);
 		WebInvoiceDetails details = webInvoiceClient.getInvoiceDetails(token, response.invoiceId);
 		
-		Invoice invoice = new Invoice.Builder()
+		RefundInvoice invoice = new RefundInvoice.Builder()
 				.date(details.getDate())
 				.id(response.invoiceId)
 				.jir(details.getJir())
