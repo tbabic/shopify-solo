@@ -9,9 +9,12 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.epk.model.EpkBook;
+import org.bytepoet.shopifysolo.epk.model.EpkExpressMail;
 import org.bytepoet.shopifysolo.epk.model.EpkFooter;
 import org.bytepoet.shopifysolo.epk.model.EpkHeader;
+import org.bytepoet.shopifysolo.epk.model.EpkMailable;
 import org.bytepoet.shopifysolo.epk.model.EpkRegisteredMail;
 import org.bytepoet.shopifysolo.manager.models.Order;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,9 +41,18 @@ public class EpkService {
 		ByteArrayOutputStream stream = addToStream(new ByteArrayOutputStream(), header.getData());
 		for (Order order : orders) {
 			try {
-				EpkRegisteredMail registeredMail = EpkRegisteredMail.createRow(order.getTrackingNumber(), order);
+				EpkMailable epkMail = null;
+				if (StringUtils.isBlank(order.getTrackingNumber())) {
+					throw new RuntimeException("Order " + order.getId() + " does not have tracking number");
+				}
+				if (order.getTrackingNumber().startsWith("EM")) {
+					epkMail = EpkExpressMail.createRow(order.getTrackingNumber(), order);
+				} else if (order.getTrackingNumber().startsWith("RF")) {
+					epkMail = EpkRegisteredMail.createRow(order.getTrackingNumber(), order);
+				}
+				
 				addNewLine(stream);
-				addToStream(stream, registeredMail.getData());
+				addToStream(stream, epkMail.getData());
 			} catch (Exception e) {
 				throw new RuntimeException("Order id:" + order.getId()+ e.getMessage(), e);
 			}

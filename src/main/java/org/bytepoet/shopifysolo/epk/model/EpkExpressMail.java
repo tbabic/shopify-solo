@@ -8,20 +8,21 @@ import org.bytepoet.shopifysolo.services.IsoCountriesService;
 import static org.bytepoet.shopifysolo.epk.model.fields.EpkValidation.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.bytepoet.shopifysolo.epk.model.fields.EpkBoolean;
 import org.bytepoet.shopifysolo.epk.model.fields.EpkDecimal;
 import org.bytepoet.shopifysolo.epk.model.fields.EpkInteger;
 
-public class EpkRegisteredMail implements EpkMailable {
+public class EpkExpressMail implements EpkMailable {
 
-	private static final int TOTAL_LENGTH = 368;
+	private static final int TOTAL_LENGTH = 398;
 	
-	private EpkText category = new EpkText(1, value("R"));
+	private EpkText category = new EpkText(1, value("E"));
 	private EpkText receptionNumber = new EpkText(13, required());
-	private EpkText domesticInternationalTraffic = new EpkText(1, required().and(value("U").or(value("M"))));
+	private EpkText domesticInternationalTraffic = new EpkText(1, required().and(value("U")));
 	private EpkText externalNumber = new EpkText(30, optional());
 	private EpkText isoCountry = new EpkText(2, required());
 	private EpkText destinationPostalCode = new EpkText(5, requiredIfFieldEqualsValue(domesticInternationalTraffic, "U").or(empty()));
-	private EpkText internationalPostalCode = new EpkText(20, requiredIfFieldEqualsValue(domesticInternationalTraffic, "M").or(empty()));
+	private EpkText internationalPostalCode = new EpkText(20, empty());
 	private EpkText recepientName = new EpkText(30, required());
 	private EpkText recepientLastName = new EpkText(30, required());
 	private EpkText identificationNumber = new EpkText(11, optional());
@@ -31,21 +32,27 @@ public class EpkRegisteredMail implements EpkMailable {
 	private EpkText additionalAddressInfo = new EpkText(30, optional());
 	private EpkText phoneNumber = new EpkText(16, optional());
 	private EpkText email = new EpkText(64, optional());
-	private EpkText shipmentType = new EpkText(1, value("R"));
+	private EpkText shipmentType = new EpkText(1, value("E"));
 	private EpkText additionalServices = new EpkText(20, optional());
 	private EpkInteger mass = new EpkInteger(10, required());
 	private EpkDecimal redemptionValue = new EpkDecimal(10, 2, optional());
 	private EpkText redemptionOrder = new EpkText(1, optional());
-	private EpkText subType = new EpkText(1, optional());
-	private EpkText subType2 = new EpkText(1, optional());
-	private EpkText subType3 = new EpkText(1, optional());
+	private EpkDecimal shipmentValue = new EpkDecimal(10, 2, optional());
+	private EpkText areaCode = new EpkText(5, optional());
+	private EpkText deadline = new EpkText(1, required());
+	private EpkText payer = new EpkText(1, required().and(value("P").or(value("M"))));
+	private EpkBoolean volumetricMass = new EpkBoolean(empty());
+	private EpkBoolean groupedShipment = new EpkBoolean(empty());
+	private EpkText packagerDepartment = new EpkText(5, empty());
+	private EpkInteger dimension1 = new EpkInteger(3, empty());
+	private EpkInteger dimension2 = new EpkInteger(3, empty());
+	private EpkInteger dimension3 = new EpkInteger(3, empty());
 	
-	
-	public static EpkMailable createRow(String trackingNumber,
+	public static EpkExpressMail createRow(String trackingNumber,
 			Order order) {
 		Address address = order.getShippingInfo();
 		
-		EpkRegisteredMail row = new EpkRegisteredMail();
+		EpkExpressMail row = new EpkExpressMail();
 		String countryCode = IsoCountriesService.getCountryCode(address.getCountry());
 		boolean isCroatia = countryCode.equalsIgnoreCase("HR");
 		
@@ -71,6 +78,8 @@ public class EpkRegisteredMail implements EpkMailable {
 		
 		row.shipmentType.setValue("R");
 		row.mass.setValue(49);
+		row.deadline.setValue("3");
+		row.payer.setValue("P");
 		
 		return row;
 	}
@@ -88,10 +97,6 @@ public class EpkRegisteredMail implements EpkMailable {
 		return "";
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.bytepoet.shopifysolo.epk.model.EpkMailable#getData()
-	 */
-	@Override
 	public char [] getData() {
 		char [] data = new DataMerger().add(
 				category,
@@ -115,11 +120,18 @@ public class EpkRegisteredMail implements EpkMailable {
 				mass,
 				redemptionValue,
 				redemptionOrder,
-				subType,
-				subType2,
-				subType3).getData();
+				shipmentValue,
+				areaCode,
+				deadline,
+				payer,
+				volumetricMass,
+				groupedShipment,
+				packagerDepartment,
+				dimension1,
+				dimension2,
+				dimension3).getData();
 		if (data.length != TOTAL_LENGTH ) {
-			throw new RuntimeException("Reg. mail must be " + TOTAL_LENGTH + " characters long");
+			throw new RuntimeException("Express mail must be " + TOTAL_LENGTH + " characters long");
 		}
 		return data;
 	}
