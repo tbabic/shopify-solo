@@ -53,7 +53,7 @@ public class PdfInvoiceService {
 	private String nonFiscalNote;
 	
 
-	public byte[] createInvoice(PaymentOrder order) throws Exception {
+	public byte[] createInvoice(PaymentOrder order, boolean r1, String oib) throws Exception {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		PdfWriter writer = new PdfWriter(outputStream); 
 		PdfDocument pdfDoc = new PdfDocument(writer); 
@@ -64,7 +64,7 @@ public class PdfInvoiceService {
 		
 
 		
-		document.add(invoiceInfo(order));
+		document.add(invoiceInfo(order, r1, oib));
 		document.add(new Paragraph("\n"));
 		document.add(invoiceItems(order));
 		document.add(new Paragraph("\n"));
@@ -86,27 +86,29 @@ public class PdfInvoiceService {
 	
 
 
-	private IBlockElement invoiceInfo(PaymentOrder order) {
+	private IBlockElement invoiceInfo(PaymentOrder order, boolean r1, String oib) {
 		Table table = new Table(UnitValue.createPercentArray(new float[] {60, 40}));
 		Cell logoCell = new Cell().add(createLogo()).setBorder(Border.NO_BORDER);
 		table.addCell(logoCell);
 		
-		Cell invoiceCreationDetailsCell = new Cell().add(invoiceCreationDetails(order)).setBorder(Border.NO_BORDER);
+		Cell invoiceCreationDetailsCell = new Cell().add(invoiceCreationDetails(order, r1)).setBorder(Border.NO_BORDER);
 		table.addCell(invoiceCreationDetailsCell);
 		
 		Cell companyDetailsCell = companyDetails().setBorder(Border.NO_BORDER);
 		table.addCell(companyDetailsCell);
 		
-		Cell buyerDetailsCell = buyerDetails(order).setBorder(Border.NO_BORDER);
+		Cell buyerDetailsCell = buyerDetails(order, r1, oib).setBorder(Border.NO_BORDER);
 		buyerDetailsCell.setNextRenderer(new RoundedBorderCellRenderer(buyerDetailsCell));
 		table.addCell(buyerDetailsCell);
 		
 		return table;
 	}
 	
-	private Table invoiceCreationDetails(PaymentOrder order) {
+	private Table invoiceCreationDetails(PaymentOrder order, boolean r1) {
 		Table table = new Table(UnitValue.createPercentArray(2));
-		table.addCell(new Cell().add(new Paragraph("Račun br.").setFont(boldFont()).setFontSize(16f))
+		String invoiceLabel = r1 ? "R1 račun br." : "Račun br.";
+		
+		table.addCell(new Cell().add(new Paragraph(invoiceLabel).setFont(boldFont()).setFontSize(16f))
 				.setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
 		table.addCell(new Cell().add(new Paragraph(order.getInvoiceNumber()).setFont(boldFont()).setFontSize(16f))
 				.setBorder(Border.NO_BORDER).setPaddingLeft(10));
@@ -141,10 +143,19 @@ public class PdfInvoiceService {
 	}
 	
 	
-	private Cell buyerDetails(PaymentOrder order) {
+	private Cell buyerDetails(PaymentOrder order, boolean r1, String oib) {
 		Cell cell = new Cell();
 		cell.add(new Paragraph("Kupac").setFont(font()).setFontSize(10).setFontColor(WebColors.getRGBColor("dimgray")));
-		cell.add(new Paragraph(order.getEmail()).setFont(boldFont()).setFontSize(12));
+		if (!r1) {
+			cell.add(new Paragraph(order.getEmail()).setFont(boldFont()).setFontSize(12));
+		} else {
+			cell.add(new Paragraph(order.getShippingInfo().getCompanyName()).setFont(boldFont()).setFontSize(12));
+			if (StringUtils.isNotBlank(oib)) {
+				cell.add(new Paragraph("OIB: " + oib).setFont(font()).setFontSize(10));
+			}
+			cell.add(new Paragraph(order.getShippingInfo().getStreetAndNumber()).setFont(font()).setFontSize(10));
+			cell.add(new Paragraph(order.getShippingInfo().getFullDestination()).setFont(font()).setFontSize(10));
+		}
 		return cell;
 	}
 	

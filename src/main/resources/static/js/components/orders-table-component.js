@@ -31,6 +31,8 @@ var orderTableComponent = new Vue({
 		selectedOrders: {},
 		shippingOrders: {},
 		paymentOrder: {},
+		r1 : false,
+		oib : null,
 		editingOrder: {
 			shippingInfo: {
 				
@@ -484,12 +486,19 @@ var orderTableComponent = new Vue({
 		},
 		selectOrderForPayment : function(order, modalId) {
 			this.paymentOrder = order;
+			this.r1 = false;
+			this.oib = null;
 			$(modalId).modal('show');
 		},
 		confirmPayment: function(order) {
 			this.startLoader();
 			let url = '/manager/orders/' + order.id + '/process-payment'
-			axios.post(url).then(response => {
+			axios.post(url, null, {
+				params : {
+					r1 : this.r1,
+					oib : this.oib
+				}
+			}).then(response => {
 				console.log(response);
 				axios.get('/manager/orders/' + order.id).then(response => {
 					for (let prop in order) {

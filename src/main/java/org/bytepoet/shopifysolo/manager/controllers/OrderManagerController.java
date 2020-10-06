@@ -256,7 +256,10 @@ public class OrderManagerController {
 	}
 	
 	@RequestMapping(path="/{id}/process-payment", method=RequestMethod.POST)
-	public void processPayment(@PathVariable("id") Long orderId, @RequestParam(name="paymentDate", required=false) Date paymentDate) throws Exception {
+	public void processPayment(@PathVariable("id") Long orderId, 
+			@RequestParam(name="paymentDate", required=false) Date paymentDate,
+			@RequestParam(name="r1", required=false) boolean r1,
+			@RequestParam(name="oib", required=false) String oib) throws Exception {
 		PaymentOrder paymentOrder = orderRepository.getPaymentOrderById(orderId).get();
 //		if (paymentOrder.isPaid()) {
 //			throw new RuntimeException("Order is already paid for"); 
@@ -276,7 +279,7 @@ public class OrderManagerController {
 		paymentOrder.updateInvoice(invoice);
 		orderRepository.save(paymentOrder);
 		
-		byte [] pdfInvoice = pdfInvoiceService.createInvoice(paymentOrder);
+		byte [] pdfInvoice = pdfInvoiceService.createInvoice(paymentOrder, r1, oib);
 		
 		sendEmail(paymentOrder.getEmail(), invoice.getNumber(), pdfInvoice);
 		paymentOrder.setReceiptSent(true);

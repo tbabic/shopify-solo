@@ -21,7 +21,7 @@ public class DummyInvoiceController {
 
 	@RequestMapping(method = RequestMethod.POST)
 	public void dummy(@RequestBody PaymentOrder order) throws Exception {
-		byte[] bytes = invoiceService.createInvoice(order);
+		byte[] bytes = invoiceService.createInvoice(order, false, null);
 		File file = new File("D:\\dummy-invoice.pdf");
 		OutputStream os = new FileOutputStream(file);
 		os.write(bytes);

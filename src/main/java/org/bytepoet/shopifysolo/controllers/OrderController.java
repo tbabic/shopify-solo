@@ -99,7 +99,7 @@ public class OrderController {
 		}
 		
 		if(!order.isReceiptSent()) {
-			byte [] pdfInvoice = pdfInvoiceService.createInvoice(order);
+			byte [] pdfInvoice = pdfInvoiceService.createInvoice(order, false, null);
 			sendEmail(order.getEmail(), order.getInvoiceNumber(), pdfInvoice);
 			order.setReceiptSent(true);
 			orderRepository.save(order);

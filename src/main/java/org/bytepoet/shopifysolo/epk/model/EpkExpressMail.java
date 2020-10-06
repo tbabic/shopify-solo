@@ -41,8 +41,8 @@ public class EpkExpressMail implements EpkMailable {
 	private EpkText areaCode = new EpkText(5, optional());
 	private EpkText deadline = new EpkText(1, required());
 	private EpkText payer = new EpkText(1, required().and(value("P").or(value("M"))));
-	private EpkBoolean volumetricMass = new EpkBoolean(empty());
-	private EpkBoolean groupedShipment = new EpkBoolean(empty());
+	private EpkBoolean volumetricMass = new EpkBoolean(optional());
+	private EpkBoolean groupedShipment = new EpkBoolean(optional());
 	private EpkText packagerDepartment = new EpkText(5, empty());
 	private EpkInteger dimension1 = new EpkInteger(3, empty());
 	private EpkInteger dimension2 = new EpkInteger(3, empty());
@@ -57,7 +57,7 @@ public class EpkExpressMail implements EpkMailable {
 		boolean isCroatia = countryCode.equalsIgnoreCase("HR");
 		
 		
-		row.category.setValue("R");
+		row.category.setValue("E");
 		row.receptionNumber.setValue(trackingNumber);
 		row.domesticInternationalTraffic.setValue(isCroatia ? "U" : "M");
 		row.externalNumber.setValue(order.getId().toString());
@@ -76,10 +76,12 @@ public class EpkExpressMail implements EpkMailable {
 		row.street.setValue(address.getStreetAndNumber());
 		row.additionalAddressInfo.setValue(getCompanyAndOther(address));
 		
-		row.shipmentType.setValue("R");
+		row.shipmentType.setValue("E");
 		row.mass.setValue(49);
 		row.deadline.setValue("3");
 		row.payer.setValue("P");
+		row.volumetricMass.setValue(false);
+		row.groupedShipment.setValue(false);
 		
 		return row;
 	}
