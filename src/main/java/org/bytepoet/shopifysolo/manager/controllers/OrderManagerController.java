@@ -261,23 +261,18 @@ public class OrderManagerController {
 			@RequestParam(name="r1", required=false) boolean r1,
 			@RequestParam(name="oib", required=false) String oib) throws Exception {
 		PaymentOrder paymentOrder = orderRepository.getPaymentOrderById(orderId).get();
-//		if (paymentOrder.isPaid()) {
-//			throw new RuntimeException("Order is already paid for"); 
-//		}
-//		
-//		List<ShopifyTransaction> transactions  = shopifyApiClient.getTransactions(paymentOrder.getShopifyOrderId());
-//		if (transactions.size() != 1) {
-//			throw new RuntimeException(MessageFormat.format("Order has {0} tranasctions but must have 1", transactions.size())); 
-//		}
-//		ShopifyTransaction transaction = transactions.get(0);
-//		if (!"pending".equalsIgnoreCase(transaction.getStatus())) {
-//			throw new RuntimeException(MessageFormat.format("Transaction status is {0} but must be 'pending'", transaction.getStatus())); 
-//		}
+		if (paymentOrder.isPaid()) {
+			throw new RuntimeException("Order is already paid for"); 
+		}
+		
+		
 		
 		paymentOrder.applyTaxRate(taxRate);
 		Invoice invoice = invoiceService.createInvoice(paymentOrder);
 		paymentOrder.updateInvoice(invoice);
 		orderRepository.save(paymentOrder);
+		
+		
 		
 		byte [] pdfInvoice = pdfInvoiceService.createInvoice(paymentOrder, r1, oib);
 		
@@ -285,7 +280,16 @@ public class OrderManagerController {
 		paymentOrder.setReceiptSent(true);
 		orderRepository.save(paymentOrder);
 		
-		//shopifyApiClient.createTransaction(transaction.createNewTransaction(), paymentOrder.getShopifyOrderId());
+		List<ShopifyTransaction> transactions  = shopifyApiClient.getTransactions(paymentOrder.getShopifyOrderId());
+		if (transactions.size() != 1) {
+			throw new RuntimeException(MessageFormat.format("Order has {0} tranasctions but must have 1", transactions.size())); 
+		}
+		ShopifyTransaction transaction = transactions.get(0);
+		if (!"pending".equalsIgnoreCase(transaction.getStatus())) {
+			throw new RuntimeException(MessageFormat.format("Transaction status is {0} but must be 'pending'", transaction.getStatus())); 
+		}
+		
+		shopifyApiClient.createTransaction(transaction.createNewTransaction(), paymentOrder.getShopifyOrderId());
 	}
 	
 	private boolean syncOrder(PaymentOrder order, boolean sendNotification) throws Exception {
