@@ -63,6 +63,8 @@ var inventoryComponent = new Vue({
 			this.selectedInventoryItem.item = inventory.item;
 			this.selectedInventoryItem.quantity = inventory.quantity;
 			
+			
+			this.selectedInventoryItem.links.splice(0, this.selectedInventoryItem.links.length);
 			inventory.links.forEach(link => {
 				this.selectedInventoryItem.links.push({
 					value : link
