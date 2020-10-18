@@ -1,0 +1,22 @@
+.btn-card {
+	
+	border-radius: 0.5em !important;
+	background-color: #9c8c5a;
+	width: 90%;
+	height: 8em;
+	white-space: normal !important;
+}
+
+.card-border {
+	border-bottom: 2em solid !important;
+	border-color: white !important;
+}
+
+.text-record-value {
+	white-space: pre-wrap;
+}
+
+textarea.selected-record-value {
+	width: 95%;
+	resize: both !important;
+}
