@@ -36,6 +36,12 @@ public class WebInvoiceClient {
 	@Value("${webinvoice.password}")
 	private String password;
 	
+	@Value("${webinvoice.client.header}")
+	private String clientHeader;
+	
+	@Value("${webinvoice.client.value}")
+	private String clientValue;
+	
 	private static String token;
 
 	public synchronized String getToken() {
@@ -61,6 +67,7 @@ public class WebInvoiceClient {
 					.url(rootUrl + "/login")
 					.method("POST", RequestBody.create(MediaType.parse("application/json"), body))
 					.addHeader("Content-Type", "application/json")
+					.addHeader(clientHeader, clientValue)
 					.build();
 			Response response = client.newCall(request).execute();
 			String responseBody = response.body().string();
@@ -81,6 +88,7 @@ public class WebInvoiceClient {
 					.method("POST", RequestBody.create(MediaType.get("application/json"), body))
 					.addHeader("Authority", token)
 					.addHeader("Content-Type", "application/json")
+					.addHeader(clientHeader, clientValue)
 					.build();
 			Response response = client.newCall(request).execute();
 			String responseBody = response.body().string();
@@ -102,6 +110,7 @@ public class WebInvoiceClient {
 					.url(url)
 					.get()
 					.addHeader("Authority", token)
+					.addHeader(clientHeader, clientValue)
 					.build();
 			Response response = client.newCall(request).execute();
 			String responseBody = response.body().string();
