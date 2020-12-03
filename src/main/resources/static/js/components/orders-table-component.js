@@ -87,7 +87,7 @@ var orderTableComponent = new Vue({
 							quantity : item.quantity
 						});
 					} else {
-						itemsMap[item.name].quantity += +1;
+						itemsMap[item.name].quantity += +item.quantity;
 					}
 				});
 			}
