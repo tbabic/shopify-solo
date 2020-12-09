@@ -592,6 +592,17 @@ var orderTableComponent = new Vue({
 		saveNewOrder : function(){
 			this.saveOrder(this.createdOrder)
 		},
+		linkifyItem: function(item) {
+			let link = item.toLowerCase();
+			link = link.replaceAll("š", "s").trim().replaceAll("&", "").replaceAll("  ", " ").replaceAll(" ", "-");
+			if (link.search("nausnice") == -1 && link.search("prsten") == -1 && link.search("ogrlica") == -1 && link.search("narukvica") == -1) {
+				link = "https://www.kragrlica.com/search?q=" + item.replace(" ", "+");
+			} else {
+				link = "https://www.kragrlica.com/products/" + link; 
+			}
+			return link;
+		},
+		
 		startLoader : function() {
 			this.loadingCount++;
 			if (this.loadingCount > 0) {

@@ -219,7 +219,10 @@
 								<td class="shopify-number">{{ order.shopifyOrderNumber }}</td>
 								<td>
 									<span v-for="item in order.items">
-										<span v-if="item.name !== 'Preporučena poštarina'">{{ item.name }}<span v-if="item.quantity > 1">(x{{ item.quantity }})</span>, </span>
+										<span v-if="item.name !== 'Preporučena poštarina'">
+											<a v-bind:href="linkifyItem(item.name)" target="_blank" >{{ item.name }}</a>
+											<span v-if="item.quantity > 1">(x{{ item.quantity }})</span>, 
+										</span>
 									</span>
 								</td>
 								<td>
