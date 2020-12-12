@@ -10,7 +10,8 @@ var homeComponent = new Vue({
 		}, {
 			value : "Proizvodi",
 			href : "/inventory.html"
-		},]
+		},],
+		role :""
 	},
 	methods: {
 		startLoader : function() {

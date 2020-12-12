@@ -35,10 +35,20 @@
 			<div class="row">
 				<div class="col">
 					<div  class="row">
-						<div v-for="link in links" class="col-12 card-border" >
-							<div class="col">
-								<a v-bind:href="link.href" class="btn btn-primary"> {{ link.value }}</a>
-							</div>
+						<div class="col-12 card-border" >
+							<a href="/index.html" class="btn btn-primary"> NARUDŽBE </a>
+						</div>
+					</div>
+					
+					<div  class="row">
+						<div class="col-12 card-border" >
+							<a href="/text-records.html" class="btn btn-primary"> PORUKE </a>
+						</div>
+					</div>
+					
+					<div  v-if="role == 'ROLE_ADMIN'" class="row">
+						<div class="col-12 card-border" >
+							<a href="/inventory.html" class="btn btn-primary"> PROIZVODI </a>
 						</div>
 					</div>
 				</div>
