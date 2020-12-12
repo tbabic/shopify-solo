@@ -9,8 +9,10 @@ import javax.transaction.Transactional;
 
 import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.OrderArchive;
+import org.bytepoet.shopifysolo.manager.models.Refund;
 import org.bytepoet.shopifysolo.manager.repositories.OrderArchiveRepository;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
+import org.bytepoet.shopifysolo.manager.repositories.RefundRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,13 +32,21 @@ public class OrderArchiveController {
 	
 	@Autowired
 	private OrderArchiveRepository orderArchiveRepository;
+	
+	@Autowired
+	private RefundRepository refundRepository;
 
 	@RequestMapping(path = "/add", method=RequestMethod.POST)
 	@Transactional
 	public void addToArchive(@DateTimeFormat(pattern = DATE_FORMAT) @RequestParam("start") Date start, 
 			@DateTimeFormat(pattern = DATE_FORMAT) @RequestParam("end") Date end) {
 		OrderArchive archive = orderArchiveRepository.findAll().stream().findFirst().orElse(new OrderArchive());
+		
+		List<Refund> refunds = refundRepository.findAll();
 		List<Order> orders = orderRepository.getByCreationDateBetween(start, end);
+		orders = orders.stream().filter(o -> {
+			return refunds.stream().noneMatch(r -> r.getOrder().getId() == o.getId());
+		}).collect(Collectors.toList());
 		orders.stream().forEach(order -> archive.addOrder(order));
 		archive.updateData();
 		orderArchiveRepository.saveAndFlush(archive);

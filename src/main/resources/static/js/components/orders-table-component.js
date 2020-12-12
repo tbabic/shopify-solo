@@ -166,6 +166,10 @@ var orderTableComponent = new Vue({
 				sortDirection: this.sorting.direction
 			}
 			if (useSearch == undefined || this.searchFilter.value.length == 0) {
+				if (this.role == 'ROLE_LIMITED_USER') {
+					this.endLoader();
+					return new Promise(function () {});
+				}
 				this.searchFilter.value = "";
 				for (let prop in this.filters){
 					if(this.filters.hasOwnProperty(prop)){
@@ -180,7 +184,6 @@ var orderTableComponent = new Vue({
 			} else {
 				params.search = this.searchFilter.value;
 			}
-			
 			
 			console.log('get orders');
 			return axios.get('/manager/orders', {
@@ -737,14 +740,20 @@ var orderTableComponent = new Vue({
 				}
 			});
 		}).then(response => {
-			response.data.content.forEach(order => { 
-				Vue.set(this.shippingOrders, order.id, order);
-			});
-			
+			if (this.role != 'ROLE_LIMITED_USER')  {
+				response.data.content.forEach(order => { 
+					Vue.set(this.shippingOrders, order.id, order);
+				});
+			}
 		}).then( () => {
-			this.loadOrders(0,50).finally( () => {
+			if (this.role != 'ROLE_LIMITED_USER')  {
+				this.loadOrders(0,50).finally( () => {
+					this.endLoader();
+				});
+			}
+			else {
 				this.endLoader();
-			});
+			}
 		});
 		
 	}
