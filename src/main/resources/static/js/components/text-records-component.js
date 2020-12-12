@@ -118,6 +118,33 @@ var textRecordsComponent = new Vue({
 		}
 	},
 	mounted : function () {
-		this.loadAllCategories();
+		this.startLoader();
+		let token = localStorage.getItem("token");
+		
+		let loginPromise = null;
+		if (token == null) {
+			loginPromise = axios.post('/manager/login', null);
+		} else {
+			loginPromise = axios.post('/manager/login', null, {
+				headers : {
+					Authorization : token
+				}
+			});
+		}
+		
+		
+		loginPromise.then(response => {
+			this.authToken = response.data.authToken;
+			this.role = response.data.role;
+			localStorage.setItem("token", this.authToken);
+			axios.defaults.headers.common['Authorization'] = this.authToken;
+		}).then(() => {
+			this.loadAllCategories();
+		}).then(() => {
+			this.endLoader();
+		})
+		
+		
+		
 	}
 });
