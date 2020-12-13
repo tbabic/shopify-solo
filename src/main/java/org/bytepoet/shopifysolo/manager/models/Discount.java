@@ -5,17 +5,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Discount {
 
 	@JsonProperty
-	private String name;
+	private String code;
 	
 	@JsonProperty
-	private int percent;
+	private String amount;
 
-	public String getName() {
-		return name;
+	public String getCode() {
+		return code;
 	}
 
-	public int getPercent() {
-		return percent;
-	}
+	public String getAmount() {
+		return amount;
+	}	
 	
 }

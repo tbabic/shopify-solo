@@ -19,11 +19,9 @@ public class DiscountController {
 	
 	@RequestMapping(method=RequestMethod.POST)
 	public void createDiscount(@RequestBody Discount discount) throws Exception {
-		
-		String discountValue = Integer.toString(Math.negateExact(discount.getPercent()));
-		
-		ShopifyCreatePriceRule priceRule = new ShopifyCreatePriceRule(discount.getName(), discountValue);
+		String discountValue = "-" + discount.getAmount();
+		ShopifyCreatePriceRule priceRule = new ShopifyCreatePriceRule(discount.getCode(), discountValue);
 		String priceRuleId = shopifyApiClient.createPriceRule(priceRule);
-		shopifyApiClient.createDiscount(priceRuleId, new ShopifyCreateDiscount(discount.getName()));
+		shopifyApiClient.createDiscount(priceRuleId, new ShopifyCreateDiscount(discount.getCode()));
 	}
 }

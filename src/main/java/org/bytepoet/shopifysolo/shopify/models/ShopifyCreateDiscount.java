@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ShopifyCreateDiscount {
 
+	@JsonProperty("discount_code")
 	private DiscountCode discountCode;
 	
 	@JsonIgnoreProperties(ignoreUnknown = true)

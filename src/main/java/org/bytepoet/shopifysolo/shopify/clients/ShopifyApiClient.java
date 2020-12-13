@@ -292,7 +292,7 @@ public class ShopifyApiClient {
 		Request request = new Request.Builder()
 				.url(url)
 				.header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
-				.put(RequestBody.create(MediaType.get("application/json"), requestBody))
+				.post(RequestBody.create(MediaType.get("application/json"), requestBody))
 				.build();
 		Response response = client.newCall(request).execute();
 		String responseBody = response.body().string();
@@ -310,7 +310,7 @@ public class ShopifyApiClient {
 		Request request = new Request.Builder()
 				.url(url)
 				.header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
-				.put(RequestBody.create(MediaType.get("application/json"), requestBody))
+				.post(RequestBody.create(MediaType.get("application/json"), requestBody))
 				.build();
 		Response response = client.newCall(request).execute();
 		String responseBody = response.body().string();

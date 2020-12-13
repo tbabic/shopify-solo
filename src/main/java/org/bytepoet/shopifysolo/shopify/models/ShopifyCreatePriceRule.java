@@ -1,5 +1,12 @@
 package org.bytepoet.shopifysolo.shopify.models;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+
+import org.bytepoet.shopifysolo.shopify.clients.ShopifyApiClient;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -19,6 +26,11 @@ public class ShopifyCreatePriceRule {
 		private PriceRule(String title, String value) {
 			this.title = title;
 			this.value = value;
+			
+			TimeZone tz = TimeZone.getTimeZone("UTC");
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+			df.setTimeZone(tz);
+			this.startsAt = df.format(new Date());
 		}
 
 		@JsonProperty("title")
