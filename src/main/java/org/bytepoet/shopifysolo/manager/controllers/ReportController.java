@@ -1,19 +1,12 @@
 package org.bytepoet.shopifysolo.manager.controllers;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.bytepoet.shopifysolo.manager.models.Order;
-import org.bytepoet.shopifysolo.manager.models.OrderStatus;
-import org.bytepoet.shopifysolo.manager.models.OrderType;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
-import org.bytepoet.shopifysolo.manager.models.ShippingSearchStatus;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;

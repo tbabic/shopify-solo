@@ -6,9 +6,13 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+
+import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDiscount;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyCreatePriceRule;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateTransaction;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyFulfillment;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyPriceRule;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +50,11 @@ public class ShopifyApiClient {
 	
 	private static final String UPDATE_ORDER_FULFILLMENT_ENDPOINT_FORMAT = "https://{0}/admin/api/2020-01/orders/{1}/fulfillments/{2}.json";
 	
-	private static final String SHOPIFY_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
+	private static final String PRICE_RULE_FORMAT = "https://{0}/admin/api/2020-10/price_rules.json";
+	
+	private static final String DISCOUNT_FORMAT = "https://{0}/admin/api/2020-10/price_rules/{1}/discount_codes.json";
+	
+	public static final String SHOPIFY_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 	
 	@Value("${fulfillment.tracking-url}")
 	private String trackingUrl;
@@ -276,5 +284,38 @@ public class ShopifyApiClient {
 
 	   return url+uriComponents.toString();
 	}
-		
+	
+	public String createPriceRule(ShopifyCreatePriceRule priceRule) throws Exception	{
+		String url = MessageFormat.format(PRICE_RULE_FORMAT, clientHost);
+		ObjectMapper mapper = new ObjectMapper();
+		String requestBody = mapper.writeValueAsString(priceRule);
+		Request request = new Request.Builder()
+				.url(url)
+				.header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+				.put(RequestBody.create(MediaType.get("application/json"), requestBody))
+				.build();
+		Response response = client.newCall(request).execute();
+		String responseBody = response.body().string();
+		if (!response.isSuccessful()) {
+			throw new RuntimeException("Could not create price rule: " + responseBody);
+		}
+		ShopifyPriceRule priceRuleResponse = mapper.readValue(responseBody, ShopifyPriceRule.class);
+		return priceRuleResponse.getPriceRule().getId();
+	}
+	
+	public void createDiscount(String priceRuleId, ShopifyCreateDiscount discountCode) throws Exception	{
+		String url = MessageFormat.format(DISCOUNT_FORMAT, clientHost, priceRuleId);
+		ObjectMapper mapper = new ObjectMapper();
+		String requestBody = mapper.writeValueAsString(discountCode);
+		Request request = new Request.Builder()
+				.url(url)
+				.header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+				.put(RequestBody.create(MediaType.get("application/json"), requestBody))
+				.build();
+		Response response = client.newCall(request).execute();
+		String responseBody = response.body().string();
+		if (!response.isSuccessful()) {
+			throw new RuntimeException("Could not create discount: " + responseBody);
+		}
+	}
 }
