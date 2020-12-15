@@ -1,5 +1,8 @@
 package org.bytepoet.shopifysolo.webinvoice.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class WebInvoiceResponse {
 	
 	public String invoiceId;
