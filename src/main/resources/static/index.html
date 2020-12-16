@@ -610,14 +610,19 @@
 						<div class="modal-content">
 							<div class="modal-header">
 								<h5 class="modal-title" id="exampleModalLabel">
-									EPK Generator: <a href="https://epk.posta.hr/HP.EPK.Web.Production/">link</a>
-								</h5>
-								
+									EPK Generator: <a href="https://epk.posta.hr/HP.EPK.Web.Production/">link</a> | Broj skeniranih: {{ epkOrdersSize }}
+								</h5>		
 								<button type="button" class="close" data-dismiss="modal">
 									<span>&times;</span>
 								</button>
 							</div>
 							<div class="modal-body">
+								<div class ="row">
+									<div class="col">
+										Broj skeniranih: {{ epkOrdersSize }}
+									</div>
+								</div> 
+							
 								<div v-for="order in epk.orders" class="row">
 									<div class="col-1"> {{ order.id }}</div>
 									<div class="col-2">

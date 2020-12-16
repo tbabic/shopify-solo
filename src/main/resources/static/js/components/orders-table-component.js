@@ -102,6 +102,13 @@ var orderTableComponent = new Vue({
 			});
 			
 		},
+		epkOrdersSize : function() {
+			let count = 0;
+			for (let order in this.epk.orders) {
+				count++;
+			}
+			return count;
+		}
 	},
 	methods: {
 		filtering(property, event) {
