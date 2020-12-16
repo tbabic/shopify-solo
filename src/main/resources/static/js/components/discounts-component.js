@@ -10,6 +10,10 @@ var homeComponent = new Vue({
 				inputCode: "",
 				codes : []
 			},
+			200 : {
+				inputCode: "",
+				codes : []
+			},
 			250 :{
 				inputCode: "",
 				codes : []
