@@ -234,6 +234,9 @@ public class OrderManagerController {
 	
 	@RequestMapping(method=RequestMethod.POST)
 	public Order save(@RequestBody Order order) {
+		if (order.getStatus()!= OrderStatus.IN_PROCESS) {
+			logger.warn("Order not in process: " + order.getId());
+		}
 		Order savedOrder = orderRepository.save(order);
 		return savedOrder;
 	}
