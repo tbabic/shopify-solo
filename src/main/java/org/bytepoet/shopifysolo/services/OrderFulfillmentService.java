@@ -8,6 +8,7 @@ import javax.transaction.Transactional.TxType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.manager.models.Order;
+import org.bytepoet.shopifysolo.manager.models.OrderStatus;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.shopify.clients.ShopifyApiClient;
@@ -36,6 +37,9 @@ public class OrderFulfillmentService {
 	public void fulfillOrder(Order order) throws Exception {
 		if(StringUtils.isBlank(order.getTrackingNumber())) {
 			return;
+		}
+		if (order.getStatus()!= OrderStatus.IN_PROCESS) {
+			logger.info("Order not in process: " + order.getId());
 		}
 		order.fulfill(order.getTrackingNumber());
 		order = orderRepository.save(order);
