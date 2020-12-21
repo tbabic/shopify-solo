@@ -1,5 +1,7 @@
 package org.bytepoet.shopifysolo.exception;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -52,8 +54,15 @@ public class GlobalExceptionHandler {
 		Map<String, String> response = new LinkedHashMap<String, String>();
 		response.put("message",e.getMessage());
 		
-		logger.error(e.getMessage(),e);
+		logger.error(e.getMessage(),e);	
 		String requestBody = new String(request.getContentAsByteArray());
+		requestBody += "\n\nMessage: " + e.getMessage(); 
+		
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		e.printStackTrace(pw);
+		
+		requestBody += "\nStacktrace:\n" + sw.toString();
 		
 		if (StringUtils.isNotBlank(email)) {
 			mailService.sendEmail(email, "Error", "Dogodila se gre�ka!\n\n"+requestBody, Collections.emptyList());
