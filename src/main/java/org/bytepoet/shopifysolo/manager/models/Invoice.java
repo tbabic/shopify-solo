@@ -3,6 +3,7 @@ package org.bytepoet.shopifysolo.manager.models;
 import java.util.Date;
 
 import javax.persistence.Embeddable;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.Parent;
 
@@ -36,6 +37,9 @@ public class Invoice {
 	
 	@JsonProperty
 	private boolean isSent;
+	
+	@Transient
+	private String qrCode;
 
 	public static class Builder {
 		private PaymentOrder order;
@@ -45,6 +49,7 @@ public class Invoice {
 		private String jir;
 		private String note;
 		private Date date;
+		private String qrCode;
 
 		public Builder number(String number) {
 			this.number = number;
@@ -73,6 +78,11 @@ public class Invoice {
 
 		public Builder date(Date date) {
 			this.date = date;
+			return this;
+		}
+		
+		public Builder qrCode(String qrCode) {
+			this.qrCode = qrCode;
 			return this;
 		}
 
@@ -127,6 +137,14 @@ public class Invoice {
 
 	public Date getDate() {
 		return date;
+	}
+	
+	public String getQrCode() {
+		return qrCode;
+	}
+	
+	public void setQrCode(String qrCode) {
+		this.qrCode = qrCode;
 	}
 
 	public boolean isSent() {

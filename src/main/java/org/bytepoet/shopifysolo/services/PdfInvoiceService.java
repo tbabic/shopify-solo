@@ -8,6 +8,7 @@ import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.util.encoders.Base64;
 import org.bytepoet.shopifysolo.manager.models.Item;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.models.PaymentType;
@@ -339,7 +340,24 @@ public class PdfInvoiceService {
 				.setBorder(Border.NO_BORDER));
 		table.addCell(new Cell().add(new Paragraph(jir).setFont(font()).setFontSize(10))
 				.setBorder(Border.NO_BORDER));
+		if (StringUtils.isNotBlank(order.getInvoice().getQrCode())) {
+			Cell qrCodeCell = new Cell().add(createQrCode(order.getInvoice().getQrCode())).setBorder(Border.NO_BORDER);
+			table.addCell(qrCodeCell);
+		}
+		
 		return table;
+	}
+	
+	private Image createQrCode(String base64QrCode) {
+		try {
+			ImageData data = ImageDataFactory.create(Base64.decode(base64QrCode));
+			Image img = new Image(data);
+			img.setAutoScale(false);
+			img.scale(0.5f, 0.5f);
+			return img;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 

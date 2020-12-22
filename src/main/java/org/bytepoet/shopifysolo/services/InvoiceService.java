@@ -68,6 +68,7 @@ public class InvoiceService {
 				.zki(details.getZki())
 				.note(note)
 				.number(details.getInvoiceNumber())
+				.qrCode(response.qrCode)
 				.build();
 		
 		return invoice;		

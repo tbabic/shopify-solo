@@ -12,5 +12,6 @@ public class WebInvoiceResponse {
 	public String jir;
 	public String message;
 	public String zki;
+	public String qrCode;
 	
 }

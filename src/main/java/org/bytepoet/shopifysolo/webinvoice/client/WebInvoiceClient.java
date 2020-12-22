@@ -64,10 +64,10 @@ public class WebInvoiceClient {
 			String body = objectMapper.writeValueAsString(requestMap);
 		
 			Request request = new Request.Builder()
-					.url(rootUrl + "/login")
+					.url("https://b-test.com.hr/rest/api/v1/login")
 					.method("POST", RequestBody.create(MediaType.parse("application/json"), body))
 					.addHeader("Content-Type", "application/json")
-					.addHeader(clientHeader, clientValue)
+					//.addHeader(clientHeader, clientValue)
 					.build();
 			Response response = client.newCall(request).execute();
 			String responseBody = response.body().string();
