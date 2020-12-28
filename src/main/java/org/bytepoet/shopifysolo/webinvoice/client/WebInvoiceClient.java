@@ -64,7 +64,7 @@ public class WebInvoiceClient {
 			String body = objectMapper.writeValueAsString(requestMap);
 		
 			Request request = new Request.Builder()
-					.url("https://b-test.com.hr/rest/api/v1/login")
+					.url(rootUrl + "/login")
 					.method("POST", RequestBody.create(MediaType.parse("application/json"), body))
 					.addHeader("Content-Type", "application/json")
 					.addHeader(clientHeader, clientValue)
