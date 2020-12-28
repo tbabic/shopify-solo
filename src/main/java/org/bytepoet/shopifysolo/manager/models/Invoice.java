@@ -99,6 +99,7 @@ public class Invoice {
 		this.jir = builder.jir;
 		this.note = builder.note;
 		this.date = builder.date;
+		this.qrCode = builder.qrCode;
 	}
 	
 	private Invoice() {
