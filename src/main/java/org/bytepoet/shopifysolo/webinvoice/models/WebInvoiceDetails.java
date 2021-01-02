@@ -56,7 +56,7 @@ public class WebInvoiceDetails {
 	}
 	
 	public Date getDate() {
-		DateFormat df = new SimpleDateFormat("dd.MM.yyyy hh:mm:ss");
+		DateFormat df = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 		df.setTimeZone(TimeZone.getTimeZone("CET"));
 		try {
 			return df.parse(details.dto.date);
