@@ -94,7 +94,8 @@ public class RefundService {
 		Calendar currentCal = Calendar.getInstance();
 		String note;
 		if (invoiceCal.get(Calendar.YEAR) != currentCal.get(Calendar.YEAR)) {
-			note = MessageFormat.format(refundNoteYear, refund.getOrder().getInvoiceNumber(), invoiceCal.get(Calendar.YEAR));
+			String year = Long.toString(invoiceCal.get(Calendar.YEAR)).replace(",", "").replace(".", "");
+			note = MessageFormat.format(refundNoteYear, refund.getOrder().getInvoiceNumber(), year);
 		} else {
 			note = MessageFormat.format(refundNote, refund.getOrder().getInvoiceNumber());
 		}
