@@ -4,6 +4,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.MessageFormat;
+import java.util.Calendar;
 import java.util.stream.Collectors;
 
 import org.bytepoet.shopifysolo.manager.models.Invoice;
@@ -27,6 +28,9 @@ public class RefundService {
 	
 	@Value("${soloapi.refund-note}")
 	private String refundNote;
+	
+	@Value("${soloapi.refund-note-year}")
+	private String refundNoteYear;
 	
 	@Value("${soloapi.note}")
 	private String note;
@@ -85,7 +89,16 @@ public class RefundService {
 	}
 	
 	private String remark(Refund refund) {
-		String note = MessageFormat.format(refundNote, refund.getOrder().getInvoiceNumber());
+		Calendar invoiceCal = Calendar.getInstance();
+		invoiceCal.setTime(refund.getOrder().getInvoice().getDate());
+		Calendar currentCal = Calendar.getInstance();
+		String note;
+		if (invoiceCal.get(Calendar.YEAR) != currentCal.get(Calendar.YEAR)) {
+			note = MessageFormat.format(refundNoteYear, refund.getOrder().getInvoiceNumber(), invoiceCal.get(Calendar.YEAR));
+		} else {
+			note = MessageFormat.format(refundNote, refund.getOrder().getInvoiceNumber());
+		}
+		
 		
 		if (refund.getOrder().getPaymentType() == PaymentType.BANK_TRANSACTION) {
 			note += "\n" + this.nonFiscalNote;
