@@ -15,6 +15,7 @@ import javax.persistence.criteria.Subquery;
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
+import org.bytepoet.shopifysolo.controllers.TenderController;
 import org.bytepoet.shopifysolo.manager.models.GiveawayOrder;
 import org.bytepoet.shopifysolo.manager.models.Invoice;
 import org.bytepoet.shopifysolo.manager.models.Item;
@@ -22,11 +23,13 @@ import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.OrderStatus;
 import org.bytepoet.shopifysolo.manager.models.OrderType;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
+import org.bytepoet.shopifysolo.manager.models.PaymentType;
 import org.bytepoet.shopifysolo.manager.models.Refund;
 import org.bytepoet.shopifysolo.manager.models.RefundInvoice;
 import org.bytepoet.shopifysolo.manager.models.ShippingSearchStatus;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.manager.repositories.RefundRepository;
+import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
 import org.bytepoet.shopifysolo.services.FulfillmentMaillingService;
 import org.bytepoet.shopifysolo.services.InvoiceService;
 import org.bytepoet.shopifysolo.services.MailService;
@@ -37,7 +40,12 @@ import org.bytepoet.shopifysolo.services.RefundService;
 import org.bytepoet.shopifysolo.services.MailService.MailAttachment;
 import org.bytepoet.shopifysolo.services.MailService.MailReceipient;
 import org.bytepoet.shopifysolo.shopify.clients.ShopifyApiClient;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDraftOrder;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDraftOrder.Discount;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDraftOrder.LineItem;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDraftOrder.ShippingAddress;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyFulfillment;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +98,9 @@ public class OrderManagerController {
 	@Autowired
 	private FulfillmentMaillingService fulfillmentMaillingService;
 	
+	@Autowired
+	private GatewayToPaymentTypeMapper paymentTypeMapper;
+	
 	@Value("${email.subject}")
 	private String subject;
 	
@@ -102,8 +113,14 @@ public class OrderManagerController {
 	@Value("${email.always-bcc:}")
 	private String alwaysBcc;
 	
+	@Value("${shopify.bank-deposit-gateway}")
+	private List<String> bankDepositGateway;
+	
 	@Value("${solofy.tax-rate:}")
 	private String taxRate;
+	
+	@Value("${soloapi.shipping-title}")
+	private String shippingTitle;
 	
 	@Autowired
 	private OrderFulfillmentService orderFulfillmentService;
@@ -232,13 +249,32 @@ public class OrderManagerController {
 	}
 	
 	
+	@RequestMapping(path="/create-shopify-order", method=RequestMethod.POST)
+	public Order saveShopifyOrder(@RequestBody ShopifyCreateDraftOrder shopifyCreateOrder) throws Exception {
+
+		synchronized(TenderController.class) {
+			String draftId = shopifyApiClient.createDraftOrder(shopifyCreateOrder);
+			String shopifyOrderId = shopifyApiClient.completeDraftOrder(draftId);
+			ShopifyOrder shopifyOrder = shopifyApiClient.getOrder(shopifyOrderId);
+			PaymentOrder paymentOrder = orderRepository.getOrderWithShopifyId(shopifyOrder.getId()).orElseGet(() -> {
+				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, PaymentType.BANK_TRANSACTION, taxRate, shippingTitle));
+			});
+			return paymentOrder;
+		}
+		
+		
+	}
+	
 	@RequestMapping(method=RequestMethod.POST)
 	public Order save(@RequestBody Order order) {
 		if (order.getStatus()!= OrderStatus.IN_PROCESS) {
 			logger.warn("Order not in process: " + order.getId());
 		}
-		Order savedOrder = orderRepository.save(order);
-		return savedOrder;
+		if (order.getId() != null && order.getType() == OrderType.GIVEAWAY) {
+			Order savedOrder = orderRepository.save(order);
+			return savedOrder;
+		}
+		return null;
 	}
 	
 	@RequestMapping(path="/{id}", method=RequestMethod.GET)

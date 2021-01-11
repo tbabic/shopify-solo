@@ -242,6 +242,19 @@ th {
 	border-radius: 100%;
 }
 
+.input-combobox input {
+	padding: 0px;
+	margin: 0px;
+}
+
+.input-combobox .combox-items {
+	
+}
+
+.input-combobox .combox-items .combobox-item {
+	
+}
+
 @-webkit-keyframes rotation {
 	from {
 		-webkit-transform: rotate(0deg);

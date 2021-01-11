@@ -1,0 +1,235 @@
+<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="css/main.css"/>
+	<link rel="stylesheet" type="text/css" href="css/text-records.css"/>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+	<script src="https://unpkg.com/vue@2.5.16/dist/vue.js"></script>
+	<script src="https://unpkg.com/vue-router@3.0.1/dist/vue-router.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
+	<script src="js/http-vue.js"></script>
+	<script src="js/main.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue-clipboard2@0.3.1/dist/vue-clipboard.min.js"></script>
+	<script src="js/debounce.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/4.4.0/font/octicons.css"/>
+	
+	
+	
+</head>
+
+<body>
+	<div class="container">
+
+		<div id="create-order"><div v-if="role == 'ROLE_CREATOR' || role == 'ROLE_ADMIN'">
+			<div class="pb-2 mt-4 mb-2 border-bottom">
+				<div class ="row">
+					<div class ="col">
+						KREIRAJ NARUDŽBU
+					</div>
+					<div class ="col">
+						<div class="btn-group" role="group">
+							<button type="button" v-on:click="orderType('PAYMENT')" v-bind:class="'btn btn-filter ' + (type == 'PAYMENT' ? 'active' : '')">
+								NARUDŽBA
+							</button>
+							<button type="button"  v-on:click="orderType('GIVEAWAY')" v-bind:class="'btn btn-filter ' + (type == 'GIVEAWAY' ? 'active' : '')">
+								GIVEAWAY
+							</button>
+						</div>
+					</div>
+					<div class ="col">
+						<a type="button" href="/index.html" class ="btn btn-primary">
+							Povratak na narudžbe
+						</a>
+					</div>
+				</div>
+			</div>
+			<div v-if="type == 'PAYMENT'" class="row">
+				<div id="paymentProduct" class="col-6">
+					<div class="input-group mb-3 input-combobox">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Traži proizvode</span>
+						</div>
+						<input v-model="productSearch" v-on:keyup="searchProduct" type="text" class="form-control">
+						<div v-bind:class="(productList.length > 0 ? 'show ' : '')+ 'dropdown-menu'">
+							 <button v-for="product in productList" class="dropdown-item" type="button" v-on:click="selectProduct(product)">{{ product.title }}</button>
+						</div>
+					</div>
+					<div v-for="(lineItem, index) in shopifyOrder.line_items" class="row">
+						<div class="col-4">
+							{{ lineItem.title }}
+						</div>
+						<div class="col-2">
+							<a href="#" data-toggle="modal" data-target="#discountModal" v-on:click="selectLineItemDiscount(lineItem)">cijena:</a>
+							<s v-if="lineItem.originalPrice != lineItem.discountedPrice"> {{ lineItem.originalPrice }}</s>
+							 {{ lineItem.discountedPrice }}
+						</div>
+						<div class="col-3">
+							<div class ="input-group">
+								<div class="input-group-prepend">
+									<span class="input-group-text">kol.</span>
+								</div>
+								<input v-model="lineItem.quantity" type="number" class="form-control">
+							</div>
+						</div>
+						<div class="col-2">
+							ukupno: {{ lineItem.discountedPrice *  lineItem.quantity}}
+						</div>
+						<div class="col-1">
+							<button v-on:click="removeLineItem(index)" class="btn btn-danger">X</button>
+						</div>
+						
+					</div>
+					<div  class="row mb-2 border-top">
+						<div class="col">
+						UKUPNO
+						</div>
+						<div class="col">
+						{{ totalOrderPrice }}
+						</div>
+					</div>
+					
+					<div  class="row">
+						<div class="col">
+							<button v-on:click="saveShopifyOrder" class="btn btn-primary">SPREMI</button>
+						</div>
+					</div>
+				</div>
+				<div id="paymentCustomer" class="col-6">
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">email</span>
+						</div>
+						<input v-model="shopifyOrder.email" type="text" class="form-control">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text" id="">Ime i prezime</span>
+						</div>
+						<input v-model="shopifyOrder.shipping_address.first_name" type="text" class="form-control">
+						<input v-model="shopifyOrder.shipping_address.last_name" type="text" class="form-control">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Tvrtka</span>
+						</div>
+						<input v-model="shopifyOrder.shipping_address.company" type="text" class="form-control">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Adresa</span>
+						</div>
+						<input v-model="shopifyOrder.shipping_address.address1" type="text" class="form-control">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Ostalo</span>
+						</div>
+						<input v-model="shopifyOrder.shipping_address.address2" type="text" class="form-control">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span  class="input-group-text">Grad</span>
+						</div>
+						<input v-model="shopifyOrder.shipping_address.city" type="text" class="form-control">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Poštanski broj</span>
+						</div>
+						<input v-model="shopifyOrder.shipping_address.zip" type="text" class="form-control">
+					</div>
+
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Država</span>
+						</div>
+						<input v-model="shopifyOrder.shipping_address.country" type="text" class="form-control">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Telefon</span>
+						</div>
+						<input v-model="shopifyOrder.shipping_address.phone" type="text" class="form-control">
+					</div>
+				</div>
+			</div>
+			
+			<div class="modal fade" id="discountModal" role="dialog">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="exampleModalLabel">Popust</h5>
+							<button type="button" class="close" data-dismiss="modal">
+								<span>&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<div class="input-group">
+								<div class="input-group-prepend">
+									<div class="btn-group" role="group">
+										<button type="button" v-on:click="setDiscountType('fixed_amount')" v-bind:class="'btn' + (lineItemDiscount.valueType == 'fixed_amount' ? ' active' : '')">
+											kn
+										</button>
+										<button type="button" v-on:click="setDiscountType('percentage')" v-bind:class="'btn' + (lineItemDiscount.valueType == 'percentage' ? ' active' : '')">
+											%
+										</button>
+									</div>
+								</div>
+								<input v-model="lineItemDiscount.value" type="number" class="form-control">
+								<div class="input-group-append">
+									<span class="input-group-text">
+										{{ lineItemDiscount.valueType == 'fixed_amount' ? 'kn' : '%' }}
+									</span>
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="applyDiscount" >Spremi</button>
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">Zatvori</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			
+			
+			<div class="modal fade" id=errorModal role="dialog">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="exampleModalLabel">Greška</h5>
+							<button type="button" class="close" data-dismiss="modal">
+								<span>&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<div  class="row">
+								<div id="errorContent" class="col">
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">Zatvori</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			
+			
+		</div>
+		
+		</div>
+		<div id= "overlay">
+			<div class="w-100 d-flex justify-content-center align-items-center">
+				<div class="spinner"></div>
+			</div>
+		</div>
+	</div>
+	
+<script src="js/components/create-order-component.js"></script>
+</body>
+</html>

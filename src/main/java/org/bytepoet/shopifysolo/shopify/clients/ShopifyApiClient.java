@@ -1,18 +1,24 @@
 package org.bytepoet.shopifysolo.shopify.clients;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDiscount;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDraftOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreatePriceRule;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateTransaction;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyFulfillment;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyPriceRule;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyProduct;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +50,8 @@ public class ShopifyApiClient {
 	
 	private static final String ENDPOINT_FORMAT = "https://{0}/admin/api/2019-04/orders.json";
 	
+	private static final String ORDER_FORMAT = "https://{0}/admin/api/2019-04/orders/{1}.json";
+	
 	private static final String TRANSACTION_ENDPOINT_FORMAT = "https://{0}/admin/api/2020-01/orders/{1}/transactions.json";
 	
 	private static final String ORDER_FULFILLMENT_ENDPOINT_FORMAT = "https://{0}/admin/api/2020-01/orders/{1}/fulfillments.json";
@@ -54,7 +62,13 @@ public class ShopifyApiClient {
 	
 	private static final String DISCOUNT_FORMAT = "https://{0}/admin/api/2020-10/price_rules/{1}/discount_codes.json";
 	
+	private static final String PRODUCTS_FORMAT = "https://{0}/admin/api/2019-04/products.json";
+	
 	public static final String SHOPIFY_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
+	
+	private static final String DRAFT_ORDER_FORMAT = "https://{0}/admin/api/2019-04/draft_orders.json";
+	
+	private static final String COMPLETE_DRAFT_ORDER_FORMAT = "https://{0}/admin/api/2019-04/draft_orders/{1}/complete.json?payment_pending=true";
 	
 	@Value("${fulfillment.tracking-url}")
 	private String trackingUrl;
@@ -118,6 +132,26 @@ public class ShopifyApiClient {
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		OrdersWrapper wrapper = mapper.readValue(responseBodyString, OrdersWrapper.class);
 		return wrapper.orders;
+	}
+	
+	
+	private static class OrderWrapper {
+		@JsonProperty
+		private ShopifyOrder order;
+	}
+	
+	public ShopifyOrder getOrder(String orderId) throws Exception {
+		String url = MessageFormat.format(ORDER_FORMAT, clientHost, orderId);
+		Request request = new Request.Builder()
+			      .url(url)
+			      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+			      .build();
+		Response response = client.newCall(request).execute();
+		String responseBodyString = response.body().string();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		OrderWrapper wrapper = mapper.readValue(responseBodyString, OrderWrapper.class);
+		return wrapper.order;
 	}
 	
 	private static class TransactionsWrapper {
@@ -317,5 +351,99 @@ public class ShopifyApiClient {
 		if (!response.isSuccessful()) {
 			throw new RuntimeException("Could not create discount: " + responseBody);
 		}
+	}
+	
+	public static class ProductsWrapper {
+		
+		@JsonProperty
+		private List<ShopifyProduct> products;
+	}
+	
+	public List<ShopifyProduct> getProducts(String title) throws Exception {
+		if (StringUtils.isBlank(title) || title.trim().length() < 3) {
+			return Collections.emptyList();
+		}
+		String url = MessageFormat.format(PRODUCTS_FORMAT, clientHost);
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
+		params.add("title", title);
+		
+		
+		Request request = new Request.Builder()
+			      .url(buildUri(url, params))
+			      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+			      .build();
+		Response response = client.newCall(request).execute();
+		String responseBodyString = response.body().string();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		ProductsWrapper wrapper = mapper.readValue(responseBodyString, ProductsWrapper.class);
+		return wrapper.products;
+	}
+	
+	public static class DraftOrderWrapper {
+		
+		@JsonProperty("draft_order")
+		private ShopifyCreateDraftOrder draft;
+	}
+	
+	public static class DraftResponse {
+		
+		@JsonProperty
+		private String id;
+	
+		@JsonProperty("order_id")
+		private String orderId;
+	}
+	
+	
+	public static class DraftResponseWrapper {
+		
+		@JsonProperty("draft_order")
+		private DraftResponse draft;
+	}
+	
+	public String createDraftOrder(ShopifyCreateDraftOrder order) throws Exception {
+		String url = MessageFormat.format(DRAFT_ORDER_FORMAT, clientHost);
+		
+		
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		DraftOrderWrapper requestWrapper = new DraftOrderWrapper();
+		requestWrapper.draft = order;
+		String requestBody = mapper.writeValueAsString(requestWrapper);
+		Request request = new Request.Builder()
+				.url(url)
+				.header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+				.post(RequestBody.create(MediaType.get("application/json"), requestBody))
+				.build();
+		Response response = client.newCall(request).execute();
+		String responseBody = response.body().string();
+		if (!response.isSuccessful()) {
+			throw new RuntimeException("Could not create draft order: " + responseBody);
+		}
+		DraftResponseWrapper resp = mapper.readValue(responseBody, DraftResponseWrapper.class);
+		return resp.draft.id;
+		
+	}
+	
+	public String completeDraftOrder(String draftId) throws Exception {
+		String url = MessageFormat.format(COMPLETE_DRAFT_ORDER_FORMAT, clientHost, draftId);
+		
+		
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		Request request = new Request.Builder()
+				.url(url)
+				.header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+				.put(RequestBody.create(null, new byte[] {}))
+				.build();
+		Response response = client.newCall(request).execute();
+		String responseBody = response.body().string();
+		if (!response.isSuccessful()) {
+			throw new RuntimeException("Could not create complete draft: " + responseBody);
+		}
+		DraftResponseWrapper resp = mapper.readValue(responseBody, DraftResponseWrapper.class);
+		return resp.draft.orderId;
+		
 	}
 }

@@ -68,6 +68,30 @@ public class PaymentOrder extends Order {
 		super();
 	};
 	
+	public PaymentOrder(ShopifyOrder shopifyOrder, PaymentType paymentType, String taxRate, String shippingTitle) {
+		if (shopifyOrder == null) {
+			throw new RuntimeException("Shopify order can not be null");
+		}
+		this.creationDate = new Date();
+		
+		this.shopifyOrderId = shopifyOrder.getId();
+		this.shopifyOrderNumber = shopifyOrder.getNumber();
+		this.shippingInfo = new Address(shopifyOrder.getShippingAddress());
+		this.contact = shopifyOrder.getEmail();
+		this.creationDate = shopifyOrder.getCreated();
+		this.paymentType = paymentType;
+		this.contact = shopifyOrder.getEmail();
+		this.items = shopifyOrder.getLineItems().stream().map(lineItem -> new Item(lineItem, taxRate)).collect(Collectors.toList());
+		
+		if (!shopifyOrder.getShippingPrice().equals("0.00")) {
+			items.add(new Item(shippingTitle, shopifyOrder.getShippingPrice(), 1, "0", taxRate));
+		}
+		this.note = shopifyOrder.getNote();
+			
+		
+		
+	}
+	
 	public PaymentOrder(ShopifyOrder shopifyOrder, GatewayToPaymentTypeMapper paymentTypeMapper, String taxRate, String shippingTitle) {
 		if (shopifyOrder == null) {
 			throw new RuntimeException("Shopify order can not be null");
