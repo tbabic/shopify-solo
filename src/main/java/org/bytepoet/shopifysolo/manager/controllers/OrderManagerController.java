@@ -270,7 +270,7 @@ public class OrderManagerController {
 		if (order.getStatus()!= OrderStatus.IN_PROCESS) {
 			logger.warn("Order not in process: " + order.getId());
 		}
-		if (order.getId() != null && order.getType() == OrderType.GIVEAWAY) {
+		if (order.getId() != null || order.getType() == OrderType.GIVEAWAY) {
 			Order savedOrder = orderRepository.save(order);
 			return savedOrder;
 		}
