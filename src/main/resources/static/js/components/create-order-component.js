@@ -3,12 +3,28 @@ var createOrderComponent = new Vue({
 	data: {
 		shopifyOrder : {
 			shipping_address : {
-				
+				country: "Croatia"
 			},
 			line_items : [],			
 		},
 		giveawayOrder : {
-			
+
+			type: "GIVEAWAY",
+			contact: null,
+			shippingInfo: {
+				fullName: null,
+				companyName: null,
+				streetAndNumber: null,
+				other: null,
+				city: null,
+				postalCode: null,
+				country: "Croatia",
+				phoneNumber: null
+			},
+			personalTakeover: false,
+			items:[],
+			note: null,
+			giveawayPlatform: null
 		},
 		type: "PAYMENT",
 		productSearch : "",
@@ -18,7 +34,7 @@ var createOrderComponent = new Vue({
 			value : "",
 			lineItem : null
 		},
-		
+		giveawayItemName : "",
 		debounceCounter: 0,
 		loadingCount: 0,
 		role : null
@@ -168,6 +184,44 @@ var createOrderComponent = new Vue({
 				this.showError(error.response.data.message);
 			}).finally(() => {
 				this.endLoader();
+			});
+		},
+		
+		addItemToGiveaway : function() {
+			if (this.giveawayItemName == undefined || this.giveawayItemName == null || this.giveawayItemName.length < 1) {
+				return;
+			}
+			
+			let filtered = this.giveawayOrder.items.filter((item) => {
+				return item.name == this.giveawayItemName;
+			});
+			
+			if (filtered.length < 1) {
+			
+				this.giveawayOrder.items.push({
+					name: this.giveawayItemName,
+					quantity: 1,
+					price: null
+				});
+			} else {
+				filtered[0].quantity++;
+			}
+			this.giveawayItemName = "";
+		},
+		
+		removeGiveawayItem : function(index) {
+			this.giveawayOrder.items.splice(index,1);
+		},
+		
+		saveGiveawayOrder : function() {			
+			this.startLoader();
+			return axios.post('/manager/orders/', this.giveawayOrder).then(response => {
+				console.log(response);
+				alert("Giveaway uspješno napravljen");
+				this.endLoader();
+			}).catch(error => {
+				this.endLoader();
+				this.showError(error.response.data.message);
 			});
 		},
 	

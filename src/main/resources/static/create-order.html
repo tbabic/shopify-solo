@@ -157,6 +157,104 @@
 				</div>
 			</div>
 			
+			<div v-if="type == 'GIVEAWAY'" class="row">
+				<div id="giveawayProduct" class="col-6">
+					<div class="input-group mb-3 input-combobox">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Proizvod:</span>
+						</div>
+						<input v-model="giveawayItemName"  type="text" class="form-control">
+						<div v-bind:class="(productList.length > 0 ? 'show ' : '')+ 'dropdown-menu'">
+							 <button v-for="product in productList" class="dropdown-item" type="button" v-on:click="selectProduct(product)">{{ product.title }}</button>
+						</div>
+						<button class="btn btn-primary" v-on:click="addItemToGiveaway">+</button>
+					</div>
+					<div v-for="(item, index) in giveawayOrder.items" class="row">
+						<div class="col-4">
+							{{ item.name }}
+						</div>
+						<div class="col-3">
+							<div class ="input-group">
+								<div class="input-group-prepend">
+									<span class="input-group-text">kol.</span>
+								</div>
+								<input v-model="item.quantity" type="number" class="form-control">
+							</div>
+						</div>
+						<div class="col-1">
+							<button v-on:click="removeGiveawayItem(index)" class="btn btn-danger">X</button>
+						</div>
+						
+					</div>
+					
+					<div  class="row">
+						<div class="col">
+							<button v-on:click="saveGiveawayOrder" class="btn btn-primary">SPREMI</button>
+						</div>
+					</div>
+				</div>
+				<div id="giveawayCustomer" class="col-6">
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">email</span>
+						</div>
+						<input v-model="giveawayOrder.contact" type="text" class="form-control">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Platforma</span>
+						</div>
+						<input v-model="giveawayOrder.giveawayPlatform" type="text" class="form-control">
+					</div>					
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text" id="">Ime i prezime</span>
+						</div>
+						<input v-model="giveawayOrder.shippingInfo.fullName" type="text" class="form-control">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Tvrtka</span>
+						</div>
+						<input v-model="giveawayOrder.shippingInfo.companyName" type="text" class="form-control">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Adresa</span>
+						</div>
+						<input v-model="giveawayOrder.shippingInfo.streetAndNumber" type="text" class="form-control">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Ostalo</span>
+						</div>
+						<input v-model="giveawayOrder.shippingInfo.other" type="text" class="form-control">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span  class="input-group-text">Grad</span>
+						</div>
+						<input v-model="giveawayOrder.shippingInfo.city" type="text" class="form-control">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Poštanski broj</span>
+						</div>
+						<input v-model="giveawayOrder.shippingInfo.postalCode" type="text" class="form-control">
+					</div>
+
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Država</span>
+						</div>
+						<input v-model="giveawayOrder.shippingInfo.country" type="text" class="form-control">
+					</div>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text">Telefon</span>
+						</div>
+						<input v-model="giveawayOrder.shippingInfo.phoneNumber" type="text" class="form-control">
+					</div>
+				</div>
+			</div>
 			<div class="modal fade" id="discountModal" role="dialog">
 				<div class="modal-dialog" role="document">
 					<div class="modal-content">
