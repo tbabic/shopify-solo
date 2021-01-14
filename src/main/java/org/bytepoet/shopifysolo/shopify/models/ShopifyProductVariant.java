@@ -14,4 +14,10 @@ public class ShopifyProductVariant {
 	
 	@JsonProperty
 	private String price;
+	
+	@JsonProperty("compare_at_price")
+	private String compareAtPrice;
+	
+	@JsonProperty("inventory_quantity")
+	private String quantity;
 }

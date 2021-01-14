@@ -20,6 +20,7 @@ import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyPriceRule;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyProduct;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyUpdateVariantRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +70,8 @@ public class ShopifyApiClient {
 	private static final String DRAFT_ORDER_FORMAT = "https://{0}/admin/api/2019-04/draft_orders.json";
 	
 	private static final String COMPLETE_DRAFT_ORDER_FORMAT = "https://{0}/admin/api/2019-04/draft_orders/{1}/complete.json?payment_pending=true";
+	
+	private static final String UPDATE_PRODUCT_VARIANT = "https://{0}/admin/api/2021-01/variants/{1}.json";
 	
 	@Value("${fulfillment.tracking-url}")
 	private String trackingUrl;
@@ -359,13 +362,13 @@ public class ShopifyApiClient {
 		private List<ShopifyProduct> products;
 	}
 	
-	public List<ShopifyProduct> getProducts(String title) throws Exception {
-		if (StringUtils.isBlank(title) || title.trim().length() < 3) {
-			return Collections.emptyList();
-		}
+	public List<ShopifyProduct> getProducts(String title, int limit) throws Exception {
 		String url = MessageFormat.format(PRODUCTS_FORMAT, clientHost);
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
-		params.add("title", title);
+		if (StringUtils.isNotBlank(title)) {
+			params.add("title", title);
+		}
+		params.add("limit", Integer.toString(limit));
 		
 		
 		Request request = new Request.Builder()
@@ -444,6 +447,35 @@ public class ShopifyApiClient {
 		}
 		DraftResponseWrapper resp = mapper.readValue(responseBody, DraftResponseWrapper.class);
 		return resp.draft.orderId;
+		
+	}
+	
+	public static class VariantWrapper {
+		
+		@JsonProperty
+		private ShopifyUpdateVariantRequest variant;
+	}
+	
+	public void updateProductVariant(String variantId, ShopifyUpdateVariantRequest variantRequest) throws Exception {
+		String url = MessageFormat.format(UPDATE_PRODUCT_VARIANT, clientHost, variantId);
+		
+		
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		VariantWrapper requestWrapper = new VariantWrapper();
+		requestWrapper.variant = variantRequest;
+		String requestBody = mapper.writeValueAsString(requestWrapper);
+		
+		Request request = new Request.Builder()
+				.url(url)
+				.header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+				.put(RequestBody.create(MediaType.get("application/json"), requestBody))
+				.build();
+		Response response = client.newCall(request).execute();
+		String responseBody = response.body().string();
+		if (!response.isSuccessful()) {
+			throw new RuntimeException("Could not update variant: " + responseBody);
+		}
 		
 	}
 }
