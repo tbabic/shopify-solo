@@ -55,6 +55,9 @@
 							<span class="input-group-text">Traži proizvode</span>
 						</div>
 						<input v-model="productSearch" v-on:keyup="searchProduct" type="text" class="form-control">
+						<div class="input-group-append">
+							<button class="btn btn-primary" data-toggle="modal" data-target="#customLineItemModal" >Custom</button>
+						</div>
 						<div v-bind:class="(productList.length > 0 ? 'show ' : '')+ 'dropdown-menu'">
 							 <button v-for="product in productList" class="dropdown-item" type="button" v-on:click="selectProduct(product)">{{ product.title }}</button>
 						</div>
@@ -255,6 +258,49 @@
 					</div>
 				</div>
 			</div>
+			
+			
+			<div class="modal fade" id="customLineItemModal" role="dialog">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="exampleModalLabel">Novi artikl</h5>
+							<button type="button" class="close" data-dismiss="modal">
+								<span>&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<div class="input-group mb-3">
+								<div class="input-group-prepend">
+									<span class="input-group-text">Naziv</span>
+								</div>
+								<input v-model="customItem.title" type="text" class="form-control">
+							</div>
+							
+							<div class="input-group mb-3">
+								<div class="input-group-prepend">
+									<span class="input-group-text">Cijena</span>
+								</div>
+								<input v-model="customItem.price" type="number" step="0.01" class="form-control">
+							</div>
+							
+							<div class="input-group mb-3">
+								<div class="input-group-prepend">
+									<span class="input-group-text">Količina</span>
+								</div>
+								<input v-model="customItem.quantity" type="number" class="form-control">
+							</div>
+						
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="addCustomItem" >Spremi</button>
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">Zatvori</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			
 			<div class="modal fade" id="discountModal" role="dialog">
 				<div class="modal-dialog" role="document">
 					<div class="modal-content">

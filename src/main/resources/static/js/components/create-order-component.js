@@ -29,6 +29,12 @@ var createOrderComponent = new Vue({
 		type: "PAYMENT",
 		productSearch : "",
 		productList : [],
+		customItem : {
+			title : null,
+			price : null,
+			quantity : 1,
+			
+		},
 		lineItemDiscount : {
 			valueType : "",
 			value : "",
@@ -166,6 +172,22 @@ var createOrderComponent = new Vue({
 				lineItem.discountedPrice = +lineItem.originalPrice - +discountAmount;
 				
 			}
+		},
+		
+		addCustomItem : function() {
+			let lineItem = {
+					title : this.customItem.title,
+					price : this.customItem.price,
+					quantity : this.customItem.quantity,
+					originalPrice : this.customItem.price,
+					discountedPrice : this.customItem.price
+			}
+			
+			this.customItem.title = null;
+			this.customItem.price = null;
+			this.customItem.quantity = 1;
+			
+			this.shopifyOrder.line_items.push(lineItem);
 		},
 		
 		saveShopifyOrder : function() {

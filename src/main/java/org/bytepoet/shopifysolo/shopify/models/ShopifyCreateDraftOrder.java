@@ -34,6 +34,12 @@ public class ShopifyCreateDraftOrder {
 		private String variantId;
 		
 		@JsonProperty
+		private String title;
+		
+		@JsonProperty
+		private String price;
+		
+		@JsonProperty
 		private long quantity;
 		
 		@JsonProperty("applied_discount")
