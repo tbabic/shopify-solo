@@ -51,7 +51,7 @@ public class EpkRegisteredMail implements EpkMailable {
 		
 		
 		row.category.setValue("R");
-		row.receptionNumber.setValue(trackingNumber);
+		row.receptionNumber.setValue(trackingNumber.toUpperCase());
 		row.domesticInternationalTraffic.setValue(isCroatia ? "U" : "M");
 		row.externalNumber.setValue(order.getId().toString());
 		

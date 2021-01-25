@@ -45,10 +45,10 @@ public class EpkService {
 				if (StringUtils.isBlank(order.getTrackingNumber())) {
 					throw new RuntimeException("Order " + order.getId() + " does not have tracking number");
 				}
-				if (order.getTrackingNumber().startsWith("EM")) {
+				if (order.getTrackingNumber().toUpperCase().startsWith("EM")) {
 					epkMail = EpkExpressMail.createRow(order.getTrackingNumber(), order);
-				} else if (order.getTrackingNumber().startsWith("RF")) {
-					epkMail = EpkRegisteredMail.createRow(order.getTrackingNumber(), order);
+				} else if (order.getTrackingNumber().toUpperCase().startsWith("RF")) {
+					epkMail = EpkRegisteredMail.createRow(order.getTrackingNumber().toUpperCase(), order);
 				}
 				
 				addNewLine(stream);
