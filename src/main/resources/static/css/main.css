@@ -210,6 +210,10 @@ th {
 	width: 0.45em;
 }
 
+.border.border-width-2 {
+	border-width: 2px !important;
+}
+
 .chevron.right:before {
 	left: 0;
 	transform: rotate(45deg);
