@@ -201,7 +201,7 @@
 								<th>webshop narudzba</th>
 								<th>model</th>
 								<th>Napomena</th>
-								<th v-if="role == 'ROLE_ADMIN'">uplata</th>
+								<th v-if="role == 'ROLE_CREATOR' || role == 'ROLE_ADMIN'">uplata</th>
 								<th>nacin placanja</th>
 								<th>naruceno</th>
 								<th>poslati</th>
@@ -234,7 +234,7 @@
 									  N
 									</button>
 								</td>
-								<td v-if="role == 'ROLE_ADMIN'">{{ order.totalPrice }} kn</td>
+								<td v-if="role == 'ROLE_CREATOR' || role == 'ROLE_ADMIN'">{{ order.totalPrice }} kn</td>
 								<td>
 									<img v-if="order.paymentType == 'CREDIT_CARD' " src="/icons/credit-card.svg" alt="" width="32" height="32" title="left"/>
 									<img v-if="order.paymentType == 'BANK_TRANSACTION' " src="/icons/document-diff.svg" alt="" width="32" height="32" title="left"/>
@@ -590,14 +590,14 @@
 											<thead>
 												<tr>
 													<th>Model</th>
-													<th v-if="role == 'ROLE_ADMIN' || role == 'ROLE_CREATOR'">Cijena</th>
+													<th v-if="role == 'ROLE_CREATOR' || role == 'ROLE_ADMIN'">Cijena</th>
 													<th>Kolicina</th>
 												</tr>
 											</thead>
 											<tbody>
 												<tr v-for="item in editingOrder.items">
 													<td> {{ item.name }}</td>
-													<td v-if="role == 'ROLE_ADMIN' || role == 'ROLE_CREATOR'"> {{ item.price }} </td>
+													<td v-if="role == 'ROLE_CREATOR' || role == 'ROLE_ADMIN'"> {{ item.price }} </td>
 													<td> {{ item.quantity }} </td>
 												</tr>
 											</tbody>
