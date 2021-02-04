@@ -590,14 +590,14 @@
 											<thead>
 												<tr>
 													<th>Model</th>
-													<th v-if="role == 'ROLE_ADMIN'">Cijena</th>
+													<th v-if="role == 'ROLE_ADMIN' || role == 'ROLE_CREATOR'">Cijena</th>
 													<th>Kolicina</th>
 												</tr>
 											</thead>
 											<tbody>
 												<tr v-for="item in editingOrder.items">
 													<td> {{ item.name }}</td>
-													<td v-if="role == 'ROLE_ADMIN'"> {{ item.price }} </td>
+													<td v-if="role == 'ROLE_ADMIN' || role == 'ROLE_CREATOR'"> {{ item.price }} </td>
 													<td> {{ item.quantity }} </td>
 												</tr>
 											</tbody>
