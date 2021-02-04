@@ -1,0 +1,136 @@
+<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="css/main.css"/>
+	<link rel="stylesheet" type="text/css" href="css/text-records.css"/>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+	<script src="https://unpkg.com/vue@2.5.16/dist/vue.js"></script>
+	<script src="https://unpkg.com/vue-router@3.0.1/dist/vue-router.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
+	<script src="js/http-vue.js"></script>
+	<script src="js/main.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue-clipboard2@0.3.1/dist/vue-clipboard.min.js"></script>
+	<script src="js/debounce.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/4.4.0/font/octicons.css"/>
+	
+	
+	
+	<script src="https://unpkg.com/vuejs-datepicker@1.6.2/dist/vuejs-datepicker.js"></script>
+	
+</head>
+
+<body>
+	<div class="container">
+
+		<div id="reports">
+			<div class="pb-2 mt-4 mb-2 border-bottom">
+				<div class ="row">
+					<div class ="col">
+						IZVJEŠTAJI
+					</div>
+				</div>
+			</div>
+			
+			<div class="row">
+				<div class="col">
+					Početak: <vuejs-datepicker v-model="startDate" format="dd.MM.yyyy" typeable calendar-button calendar-button-icon="datepicker-icon" v-on:input="startChange"></vuejs-datepicker>
+				</div>
+				<div class="col">
+					Kraj: <vuejs-datepicker v-model="endDate" format="dd.MM.yyyy" typeable calendar-button calendar-button-icon="datepicker-icon" v-on:input="endChange"></vuejs-datepicker>
+				</div>
+			</div>
+			
+			<div class ="row">
+				<div class="col-2">
+				
+				</div>
+				<div class="col-2">
+				Iznos
+				</div>
+				<div class="col-2">
+				količina
+				</div>
+			</div>
+			
+			<div class ="row">
+				<div class="col-2">
+					Narudžbe
+				</div>
+				<div class="col-2">
+					{{ report.orderSum.toFixed(2) }}
+				</div>
+				<div class="col-2">
+					{{ report.orderCount }}
+				</div>
+			</div>
+			<div class ="row">
+				<div class="col-2">
+					Povrati
+				</div>
+				<div class="col-2">
+					{{ report.refundSum.toFixed(2) }}
+				</div>
+				<div class="col-2">
+					{{ report.refundCount }}
+				</div>
+			</div>
+			<div class ="row">
+				<div class="col-2">
+					Ukupno
+				</div>
+				<div class="col-2">
+					{{ report.totalSum.toFixed(2) }}
+				</div>
+			</div>
+			
+		
+			<div class ="row">
+				<div class="col">
+					<button class="btn btn-primary" v-on:click="loadData"> Dohvati</button>
+				</div>
+			</div>
+		
+			
+			
+			<div class="modal fade" id=errorModal role="dialog">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="exampleModalLabel">Greška</h5>
+							<button type="button" class="close" data-dismiss="modal">
+								<span>&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<div  class="row">
+								<div id="errorContent" class="col">
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">Zatvori</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			
+			
+		</div>
+		
+		</div>
+		<div id= "overlay">
+			<div class="w-100 d-flex justify-content-center align-items-center">
+				<div class="spinner"></div>
+			</div>
+		</div>
+	</div>
+	
+<script src="js/components/reports-component.js"></script>
+</body>
+</html>

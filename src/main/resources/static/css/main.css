@@ -259,6 +259,10 @@ th {
 	
 }
 
+.datepicker-icon {
+	background: "..:/icons/calendar.svg"
+}
+
 @-webkit-keyframes rotation {
 	from {
 		-webkit-transform: rotate(0deg);

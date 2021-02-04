@@ -113,6 +113,9 @@ public class OrderManagerController {
 	@Value("${email.always-bcc:}")
 	private String alwaysBcc;
 	
+	@Value("${error.email:}")
+	private String errorEmail;
+	
 	@Value("${shopify.bank-deposit-gateway}")
 	private List<String> bankDepositGateway;
 	
@@ -446,6 +449,11 @@ public class OrderManagerController {
 				.content(new ByteArrayInputStream(pdfInvoice));	
 		
 		mailService.sendEmail(to, subject, refundBody, Collections.singletonList(attachment));
+	}
+	
+	@RequestMapping(path="/{id}/duplicate", method=RequestMethod.POST)
+	public void duplicateOrder() {
+		
 	}
 	
 }
