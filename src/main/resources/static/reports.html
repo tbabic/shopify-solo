@@ -62,7 +62,7 @@
 					Narudžbe
 				</div>
 				<div class="col-2">
-					{{ report.orderSum.toFixed(2) }}
+					{{ report.orderSum.toLocaleString() }}
 				</div>
 				<div class="col-2">
 					{{ report.orderCount }}
@@ -73,7 +73,7 @@
 					Povrati
 				</div>
 				<div class="col-2">
-					{{ report.refundSum.toFixed(2) }}
+					{{ report.refundSum.toLocaleString() }}
 				</div>
 				<div class="col-2">
 					{{ report.refundCount }}
@@ -84,7 +84,7 @@
 					Ukupno
 				</div>
 				<div class="col-2">
-					{{ report.totalSum.toFixed(2) }}
+					{{ report.totalSum.toLocaleString() }}
 				</div>
 			</div>
 			
