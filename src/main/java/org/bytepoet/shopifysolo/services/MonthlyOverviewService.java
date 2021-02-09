@@ -1,0 +1,183 @@
+package org.bytepoet.shopifysolo.services;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.math.RoundingMode;
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.TimeZone;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.bytepoet.shopifysolo.manager.models.Invoice;
+import org.bytepoet.shopifysolo.manager.models.Item;
+import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
+import org.bytepoet.shopifysolo.manager.models.PaymentType;
+import org.bytepoet.shopifysolo.manager.models.Refund;
+import org.bytepoet.shopifysolo.manager.models.RefundInvoice;
+import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
+import org.bytepoet.shopifysolo.manager.repositories.RefundRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+@Service
+public class MonthlyOverviewService {
+
+	@Value("${soloapi.shipping-title}")
+	private String shippingTitle;
+	
+	@Autowired
+	private OrderRepository orderRepository;
+	
+	@Autowired
+	private RefundRepository refundRepository;
+	
+	private static class OverviewInvoice {
+		String invoiceNumber;
+		String invoiceDate;
+		String paymentDate;
+		String amount;
+		String shipping;
+		String paymentType;
+		
+		public OverviewInvoice(PaymentOrder order, String shippingTitle) {
+			this.invoiceNumber = order.getInvoiceNumber();
+			DateFormat df = new SimpleDateFormat("dd.MM.yyyy");
+			this.invoiceDate = df.format(order.getPaymentDate());
+			this.paymentDate = df.format(order.getPaymentDate());
+			this.amount = getDecimalFormat().format(order.getTotalPrice());
+			Optional<Item> shippingItem = order.getItems().stream().filter(i -> i.getName().equalsIgnoreCase(shippingTitle)).findFirst();
+			this.shipping = "0,00";
+			if (shippingItem.isPresent()) {
+				this.shipping = getDecimalFormat().format(shippingItem.get().getTotalPrice());
+			}
+			this.paymentType = mapPaymentType(order.getPaymentType());
+			
+			
+		}
+		
+		public OverviewInvoice(Refund refund, String shippingTitle) {
+			this.invoiceNumber = refund.getInvoice().getNumber();
+			DateFormat df = new SimpleDateFormat("dd.MM.yyyy");
+			this.invoiceDate = df.format(refund.getInvoice().getDate());
+			this.paymentDate = df.format(refund.getInvoice().getDate());
+			this.amount = getDecimalFormat().format(-refund.getTotalPrice());
+			Optional<Item> shippingItem = refund.getItems().stream().filter(i -> i.getName().equalsIgnoreCase(shippingTitle)).findFirst();
+			this.shipping = "-0,00";
+			if (shippingItem.isPresent()) {
+				this.shipping = getDecimalFormat().format(-shippingItem.get().getTotalPrice());
+			}
+			this.paymentType = mapPaymentType(refund.getOrder().getPaymentType());
+		}
+		
+		private static DecimalFormat getDecimalFormat() {
+			DecimalFormat df = new DecimalFormat("0.00");
+			df.setRoundingMode(RoundingMode.HALF_UP);
+			DecimalFormatSymbols newSymbols = new DecimalFormatSymbols();
+			newSymbols.setDecimalSeparator(',');
+			df.setDecimalFormatSymbols(newSymbols);
+			return df;
+		}
+		
+		private static String mapPaymentType(PaymentType paymentType) {
+			if (paymentType == PaymentType.BANK_TRANSACTION) {
+				return "TK";
+			} else {
+				return "K";
+			}
+		}
+	}
+	
+	
+	public String createMonthlyOverviewFile(int month, int year) {
+		
+		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone(ZoneId.of("Europe/Zagreb")));
+		cal.set(Calendar.YEAR, year);
+		cal.set(Calendar.MONTH, month-1);
+		cal.set(Calendar.DAY_OF_MONTH, 1);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		Date start = cal.getTime();
+		cal.add(Calendar.MONTH, 1);
+		cal.add(Calendar.MILLISECOND, -1);
+		Date end = cal.getTime();
+
+		
+		List<PaymentOrder> paymentOrders = orderRepository.getByPamentDateBetween(start, end);
+		List<Refund> refunds = refundRepository.getByInvoiceDateBetween(start, end);
+		
+		List<OverviewInvoice> overviewInvoices = Stream
+				.concat(paymentOrders.stream().map(o -> new OverviewInvoice(o, shippingTitle)), 
+						refunds.stream().map(r -> new OverviewInvoice(r, shippingTitle)))
+				.sorted((a,b) -> {
+					int lengthCompare = Integer.compare(a.invoiceNumber.length(), b.invoiceNumber.length());
+					if (lengthCompare == 0) {
+						return a.invoiceNumber.compareTo(b.invoiceNumber);
+					}
+					return lengthCompare;
+					
+				})
+				.collect(Collectors.toList());
+		
+		double totalIncome = paymentOrders.stream().collect(Collectors.summingDouble(po -> po.getTotalPrice()))
+				- refunds.stream().collect(Collectors.summingDouble(r -> r.getTotalPrice()));
+		
+		double creditCardIncome = paymentOrders.stream().filter(po -> po.getPaymentType() == PaymentType.CREDIT_CARD ).collect(Collectors.summingDouble(po -> po.getTotalPrice()))
+				- refunds.stream().filter(r -> r.getOrder().getPaymentType() == PaymentType.CREDIT_CARD ).collect(Collectors.summingDouble(r -> r.getTotalPrice()));
+		
+		double bankIncome = paymentOrders.stream().filter(po -> po.getPaymentType() == PaymentType.BANK_TRANSACTION ).collect(Collectors.summingDouble(po -> po.getTotalPrice()))
+				- refunds.stream().filter(r -> r.getOrder().getPaymentType() == PaymentType.BANK_TRANSACTION ).collect(Collectors.summingDouble(r -> r.getTotalPrice()));
+		
+		
+		
+		StringBuilder builder = new StringBuilder();
+		builder.append("Broj RN;");
+		builder.append("Datum RN;");
+		builder.append("Datum dospijeća;");
+		builder.append("Iznos RN;");
+		builder.append("poštarina;");
+		builder.append("Način plaćanja;");
+		builder.append("Transackije ukupno");
+		builder.append("\n");
+		
+		boolean bankIncomePrinted = false;
+		
+		for (OverviewInvoice o : overviewInvoices) {
+			builder.append(o.invoiceNumber);
+			builder.append(";");
+			builder.append(o.invoiceDate);
+			builder.append(";");
+			builder.append(o.paymentDate);
+			builder.append(";");
+			builder.append(o.amount);
+			builder.append(";");
+			builder.append(o.shipping);
+			builder.append(";");
+			builder.append(o.paymentType);
+			
+			if (!bankIncomePrinted) {
+				builder.append(";");
+				builder.append(OverviewInvoice.getDecimalFormat().format(bankIncome));
+				bankIncomePrinted = true;
+			}
+			
+			builder.append("\n");
+		}
+			
+		return builder.toString();		
+				
+	}
+}

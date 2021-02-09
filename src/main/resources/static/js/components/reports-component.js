@@ -14,6 +14,8 @@ var createOrderComponent = new Vue({
 			
 		},
 		
+		invoiceOverviewMonth : (new Date()).getMonth()+1,
+		invoiceOverviewYear : (new Date()).getFullYear(),
 		loadingCount: 0,
 		role : null
 		
@@ -51,6 +53,38 @@ var createOrderComponent = new Vue({
 		
 		dateFormat : function() {
 			
+		},
+		
+		downloadInvoiceOverview : function() {
+			this.startLoader();
+			
+			
+			return axios.get("/manager/overview", {
+				params: {
+					month : this.invoiceOverviewMonth,
+					year : this.invoiceOverviewYear
+				}
+			}).then(function(response) {
+							
+				var binaryString = window.atob(response.data.base64Data);
+			    var binaryLen = binaryString.length;
+			    var bytes = new Uint8Array(binaryLen);
+			    for (var i = 0; i < binaryLen; i++) {
+			       var ascii = binaryString.charCodeAt(i);
+			       bytes[i] = ascii;
+			    }
+				
+			    var blob = new Blob([bytes], {type: "application/csv"});
+			    var link = document.createElement('a');
+			    link.href = window.URL.createObjectURL(blob);
+			    var fileName = response.data.fileName;
+			    link.download = fileName;
+			    link.click();
+			}).catch(error => {
+				this.showError(error.response.data.message);
+			}).finally(() => {
+				this.endLoader();
+			});
 		},
 		
 		showError: function(errorMsg) {
