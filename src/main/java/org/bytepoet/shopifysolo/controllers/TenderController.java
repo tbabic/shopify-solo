@@ -1,5 +1,6 @@
 package org.bytepoet.shopifysolo.controllers;
 
+import java.util.Arrays;
 import java.util.List;
 import org.bytepoet.shopifysolo.authorization.AuthorizationService;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
@@ -52,12 +53,15 @@ public class TenderController {
 	
 	@Value("${soloapi.shipping-title}")
 	private String shippingTitle;
-
 	
 	@PostMapping
 	public void postOrder(@RequestBody ShopifyOrder shopifyOrder, ContentCachingRequestWrapper request) throws Exception {
 		authorizationService.processRequest(request);
 		if (!bankDepositGateway.contains(shopifyOrder.getGateway())) {
+			return;
+		}
+		List<String> ignoreReceiptsList = Arrays.asList(ignoreTenders.split(","));
+		if (ignoreReceiptsList.contains(shopifyOrder.getNumber())) {
 			return;
 		}
 		logger.debug(shopifyOrder.toString());
