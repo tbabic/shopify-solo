@@ -477,6 +477,20 @@ var orderTableComponent = new Vue({
 				this.endLoader();
 			});
 		},
+		
+		processFulfillmentInPost : function() {
+			this.startLoader();
+			return axios.post('/manager/orders/process-fulfillment-in-post-async')
+			.then(response => {
+				console.log(response);
+			}).catch(error => {
+				this.showError(error.response.data.message);
+			}).finally(() => {
+				this.endLoader();
+			});
+		},
+		
+		
 		selectOrderForEditing : function(order, modalId) {
 			this.editingOrder = order;
 			$(modalId).modal('show');

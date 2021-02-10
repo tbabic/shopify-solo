@@ -30,6 +30,7 @@ import org.bytepoet.shopifysolo.manager.models.ShippingSearchStatus;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.manager.repositories.RefundRepository;
 import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
+import org.bytepoet.shopifysolo.services.AsyncOrderFulfillmentService;
 import org.bytepoet.shopifysolo.services.FulfillmentMaillingService;
 import org.bytepoet.shopifysolo.services.InvoiceService;
 import org.bytepoet.shopifysolo.services.MailService;
@@ -127,6 +128,9 @@ public class OrderManagerController {
 	
 	@Autowired
 	private OrderFulfillmentService orderFulfillmentService;
+	
+	@Autowired
+	private AsyncOrderFulfillmentService asyncOrderFulfillmentService;
 	
 	
 	@RequestMapping(method=RequestMethod.GET)
@@ -249,6 +253,11 @@ public class OrderManagerController {
 		for (Order order : orders) {
 			orderFulfillmentService.fulfillOrder(order);
 		}
+	}
+	
+	@RequestMapping(path="/process-fulfillment-in-post-async", method=RequestMethod.POST)
+	public void fullfillOrdersAsync() throws Exception {
+		asyncOrderFulfillmentService.fullfillOrders();
 	}
 	
 	

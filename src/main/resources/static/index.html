@@ -121,8 +121,8 @@
 											<a class="btn btn-primary" href="/create-order.html">
 												<img src="/icons/plus.svg" alt="" width="20" height="20" title="left">
 											</a>
-											<button type="button" class="btn btn-default" data-toggle="modal" data-target="#createOrderModal">
-												GA
+											<button v-if="role == 'ROLE_ADMIN' "type="button" class="btn btn-default" data-toggle="modal" data-target="#processFulfillmentInPostModal">
+												<img src="/icons/envelope.svg" alt="" width="20" height="20" title="left">
 											</button>
 										</div>
 										
@@ -831,7 +831,32 @@
 				</div>
 				
 				
-				<div class="modal fade" id=fulfillmentModal role="dialog">
+				<div class="modal fade" id="processFulfillmentInPostModal" role="dialog">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Obavijest o slanje</h5>
+								<button type="button" class="close" data-dismiss="modal">
+									<span>&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<div  class="row">
+									<div class="col">
+										Pošalji obavijest o slanje za sve narudžbe sa statusom: "U POŠTI"
+									</div>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button  type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="processFulfillmentInPost">Potvrdi</button>
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				
+				<div class="modal fade" id="fulfillmentModal" role="dialog">
 					<div class="modal-dialog" role="document">
 						<div class="modal-content">
 							<div class="modal-header">
