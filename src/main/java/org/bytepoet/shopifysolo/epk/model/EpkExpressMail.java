@@ -77,7 +77,7 @@ public class EpkExpressMail implements EpkMailable {
 		row.additionalAddressInfo.setValue(getCompanyAndOther(address));
 		
 		row.shipmentType.setValue("E");
-		row.mass.setValue(49);
+		row.mass.setValue(60);
 		row.deadline.setValue("3");
 		row.payer.setValue("P");
 		row.volumetricMass.setValue(false);
