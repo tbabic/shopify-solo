@@ -30,10 +30,11 @@ var createOrderComponent = new Vue({
 		applyDiscount : function(variant) {
 			if (variant.discount == 0) {
 				if (variant.compare_at_price == undefined || variant.compare_at_price == null || variant.compare_at_price == 0) {
-					//do nothing
+					variant.regularPrice = variant.price;
+					variant.compare_at_price = 0;
 				} else {
 					variant.price = variant.compare_at_price;
-					variant.compare_at_price == null;
+					variant.compare_at_price = 0;
 					variant.change = true;
 				}
 				
@@ -42,8 +43,9 @@ var createOrderComponent = new Vue({
 			else {
 				if (variant.compare_at_price == undefined || variant.compare_at_price == null || variant.compare_at_price == 0) {		
 					variant.compare_at_price = variant.price;
+					variant.regularPrice = variant.price;
 				}
-				variant.price = (100- +variant.discount) * +variant.compare_at_price / 100;
+				variant.price = (100- +variant.discount) * +variant.regularPrice / 100;
 			}
 			
 			variant.change = variant.loadedPrice != variant.price;
@@ -66,8 +68,10 @@ var createOrderComponent = new Vue({
 						variant.change = false;
 						if (variant.compare_at_price == undefined || variant.compare_at_price == null || variant.compare_at_price == 0) {
 							variant.discount = 0;
+							Vue.set(variant, "regularPrice", variant.price)
 						} else {
-							variant.discount = (100*+variant.compare_at_price - 100*+variant.price) / +variant.compare_at_price;
+							Vue.set(variant, "regularPrice", variant.compare_at_price)
+							variant.discount = (100*+variant.regularPrice - 100*+variant.price) / +variant.regularPrice;
 						}
 						variant.loadedPrice = variant.price;
 						variant.selected = false;
@@ -98,8 +102,8 @@ var createOrderComponent = new Vue({
 			
 			let promise = null;
 			this.startLoader();
-			for (let variant in this.variants) {
-				let orderId = id;
+			for (let i = 0; i < this.variants.length; i++) {
+				let variant = this.variants[i];
 				if (promise == null) {
 					promise = this.updateVariant(variant);
 				} else {
