@@ -7,6 +7,8 @@ var createOrderComponent = new Vue({
 		bulkDiscount : 0,
 		selectAll : false,
 		
+		filter : "",
+		
 		loadingCount: 0,
 		role : null
 	},
@@ -138,7 +140,7 @@ var createOrderComponent = new Vue({
 				this.endLoader();
 			});
 		},
-		
+
 		showError: function(errorMsg) {
 			if (errorMsg === undefined) {
 				errorMsg = "Unexpected error";
@@ -163,6 +165,20 @@ var createOrderComponent = new Vue({
 			
 		}
 	},
+	
+	computed : {
+		filtered : function() {
+			if (this.filter.trim() == "" || this.filter == undefined || this.filter == null ) {
+				return this.variants;
+			}
+			
+			let filteredVariants = this.variants.filter(variant => {
+				return variant.title.toLowerCase().includes(this.filter.toLowerCase());
+			});
+			return filteredVariants;
+		}
+	},
+	
 	mounted : function() {
 		this.startLoader();
 		let token = localStorage.getItem("token");
