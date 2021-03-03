@@ -183,8 +183,8 @@ public class PdfInvoiceService {
 				"Jed.",
 				"Kol.",
 				"Cijena",
+				"PDV",
 				"Popust",
-				"Cijena popust",
 				"Iznos stavke"
 		};
 		
@@ -206,8 +206,8 @@ public class PdfInvoiceService {
 					"kom",
 					String.valueOf(item.getQuantity()),
 					price(item),
-					discount(item),
-					discountOneItemPrice(item),
+					item.getTaxRate() + "%",
+					discount(item) + "%",
 					discountAllItemsPrice(item)
 			};
 			
@@ -250,7 +250,7 @@ public class PdfInvoiceService {
 	
 	
 	private String price(Item item) {
-		return getDecimalFormat().format(Double.parseDouble(item.getPrice()));
+		return getDecimalFormat().format(item.getPriceWithTaxRate());
 	}
 	
 	private String discount(Item item) {
@@ -277,7 +277,7 @@ public class PdfInvoiceService {
 	}
 	
 	private String discountAllItemsPrice(Item item) {
-		return getDecimalFormat().format(priceWithDiscount(item)*item.getQuantity());
+		return getDecimalFormat().format(item.getTotalPrice());
 	}
 	
 	private String sumAllItemsPrice(PaymentOrder order) {

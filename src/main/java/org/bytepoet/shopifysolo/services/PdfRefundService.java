@@ -171,8 +171,8 @@ public class PdfRefundService {
 				"Jed.",
 				"Kol.",
 				"Cijena",
+				"PDV",
 				"Popust",
-				"Cijena popust",
 				"Iznos stavke"
 		};
 		
@@ -194,8 +194,8 @@ public class PdfRefundService {
 					"kom",
 					String.valueOf(item.getQuantity()),
 					price(item),
+					item.getTaxRate() + "%",
 					discount(item),
-					discountOneItemPrice(item),
 					discountAllItemsPrice(item)
 			};
 			
@@ -238,7 +238,7 @@ public class PdfRefundService {
 	
 	
 	private String price(Item item) {
-		return getDecimalFormat().format(-Double.parseDouble(item.getPrice()));
+		return getDecimalFormat().format(-item.getPriceWithTaxRate());
 	}
 	
 	private String discount(Item item) {
@@ -272,7 +272,7 @@ public class PdfRefundService {
 	}
 	
 	private String discountAllItemsPrice(Item item) {
-		return getDecimalFormat().format(-priceWithDiscount(item)*item.getQuantity());
+		return getDecimalFormat().format(-item.getTotalPrice());
 	}
 	
 	private String sumAllItemsPrice(Refund refund) {
