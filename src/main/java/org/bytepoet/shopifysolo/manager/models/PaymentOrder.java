@@ -87,6 +87,9 @@ public class PaymentOrder extends Order {
 			items.add(new Item(shippingTitle, shopifyOrder.getShippingPrice(), 1, "0", taxRate));
 		}
 		this.note = shopifyOrder.getNote();
+		if(this.getTotalPrice() >= 500.0) {
+			this.note += "\nPoslati bon od 50 kn";
+		}
 			
 		
 		
@@ -111,7 +114,9 @@ public class PaymentOrder extends Order {
 			items.add(new Item(shippingTitle, shopifyOrder.getShippingPrice(), 1, "0", taxRate));
 		}
 		this.note = shopifyOrder.getNote();
-			
+		if(this.getTotalPrice() >= 500.0) {
+			this.note += "\nPoslati bon od 50 kn";
+		}
 		
 		
 	}
@@ -264,7 +269,7 @@ public class PaymentOrder extends Order {
 
 	public Invoice getCancelInvoice() {
 		return cancelInvoice;
-	}	
+	}
 	
 	public Refund createRefund(List<Long> itemsIds) {
 		List<Item> refundedItems = items.stream()
