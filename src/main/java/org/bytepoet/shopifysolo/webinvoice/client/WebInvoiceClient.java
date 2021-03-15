@@ -117,6 +117,8 @@ public class WebInvoiceClient {
 			if (response.code() == 401) {
 				invalidateToken();
 				throw new RuntimeException("Invalid token");
+			} else if (response.code() >= 400) {
+				throw new RuntimeException("Error creating invoice, responseCode: " + response.code() + ", body:\n" + response.body());
 			}
 			ObjectMapper mapper = new ObjectMapper();
 			return mapper.readValue(responseBody, WebInvoiceDetails.class);
