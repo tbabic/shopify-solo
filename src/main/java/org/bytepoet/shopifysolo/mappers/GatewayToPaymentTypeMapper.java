@@ -2,6 +2,7 @@ package org.bytepoet.shopifysolo.mappers;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.manager.models.PaymentType;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +21,13 @@ public class GatewayToPaymentTypeMapper {
 	private List<String> cardGateway;
 	
 	public PaymentType getPaymentType(ShopifyOrder order) {
+		if (StringUtils.isNotBlank(order.getTags())) {
+			for (String cg : cardGateway) {
+				if (order.getTags().toLowerCase().contains(cg.toLowerCase())) {
+					return PaymentType.CREDIT_CARD;
+				}
+			}
+		}
 		return getPaymentType(order.getGateway());
 	}
 	

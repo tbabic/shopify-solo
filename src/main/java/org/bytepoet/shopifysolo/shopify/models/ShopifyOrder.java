@@ -29,6 +29,9 @@ public class ShopifyOrder {
 	@JsonProperty("total_price")
 	private String totalPrice;
 	
+	@JsonProperty("tags")
+	private String tags;
+	
 	@JsonProperty("subtotal_price")
 	private String subTotalPrice;
 	
@@ -46,6 +49,9 @@ public class ShopifyOrder {
 	
 	@JsonProperty("line_items")
 	private List<ShopifyLineItem> lineItems;
+	
+	@JsonProperty("discount_codes")
+	private List<ShopifyDiscountCode> discountCodes;
 	
 	@JsonProperty("total_shipping_price_set")
 	private ShopifyPriceSet shipping;
@@ -101,6 +107,10 @@ public class ShopifyOrder {
 		return note;
 	}
 
+	public String getTags() {
+		return tags;
+	}
+
 	@JsonIgnore
 	public String getTaxPercent() {
 		double totalPrice = Double.parseDouble(this.totalPrice);
@@ -116,6 +126,11 @@ public class ShopifyOrder {
 	@JsonProperty
 	public String getFullAddress() {
 		return shippingAddress.getFullAddress();
+	}
+	
+
+	public List<ShopifyDiscountCode> getDiscountCodes() {
+		return discountCodes;
 	}
 
 	@Override
