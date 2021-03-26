@@ -201,6 +201,12 @@ public class Item {
 		this.refund = refund;
 	}
 	
+	@JsonIgnore
+	public double getDiscountAmount() {
+		double discountMultiplier = Double.parseDouble(this.discount) / 100;;
+		return this.getPriceWithTaxRate() * quantity * discountMultiplier;
+	}
+	
 	
 	
 }

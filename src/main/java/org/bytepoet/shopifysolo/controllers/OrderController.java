@@ -67,6 +67,9 @@ public class OrderController {
 	@Value("${soloapi.shipping-title}")
 	private String shippingTitle;
 	
+	@Value("${shopify.gift-code-type}")
+	private String giftCodeType;
+	
 	@Autowired
 	private InvoiceService invoiceService;
 	
@@ -82,7 +85,7 @@ public class OrderController {
 		PaymentOrder order;
 		synchronized(this.getClass()) {
 			order = orderRepository.getOrderWithShopifyId(shopifyOrder.getId()).orElseGet(() -> {
-				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, paymentTypeMapper, taxRate, shippingTitle));
+				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, paymentTypeMapper, taxRate, shippingTitle, giftCodeType));
 			});
 		}
 		

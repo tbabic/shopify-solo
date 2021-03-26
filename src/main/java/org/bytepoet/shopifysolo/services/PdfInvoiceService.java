@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +53,9 @@ public class PdfInvoiceService {
 	
 	@Value("${soloapi.non-fiscal-note}")
 	private String nonFiscalNote;
+	
+	@Value("${soloapi.gift-code-note}")
+	private String giftCodeNote;
 	
 
 	public byte[] createInvoice(PaymentOrder order, boolean r1, String oib) throws Exception {
@@ -207,7 +211,7 @@ public class PdfInvoiceService {
 					String.valueOf(item.getQuantity()),
 					price(item),
 					item.getTaxRate() + "%",
-					discount(item) + "%",
+					discount(item),
 					discountAllItemsPrice(item)
 			};
 			
@@ -254,14 +258,7 @@ public class PdfInvoiceService {
 	}
 	
 	private String discount(Item item) {
-		return getDecimalFormat().format(Double.parseDouble(item.getDiscount()));
-	}
-	
-	private String discountOneItemPrice(Item item) {
-		double price = priceWithDiscount(item);
-		
-		return getDecimalFormat().format(price);
-
+		return getDecimalFormat().format(item.getDiscountAmount());
 	}
 
 	private double priceWithDiscount(Item item) {
@@ -393,13 +390,21 @@ public class PdfInvoiceService {
 	}
 	
 	private String noteValue(PaymentOrder order) {
+		StringBuilder sb = new StringBuilder();
 		if (order.getPaymentType() == PaymentType.BANK_TRANSACTION) {
-			return note + "\n" + nonFiscalNote;
+			sb.append(note + "\n" + nonFiscalNote);
 		}
-		if (order.getPaymentType() == PaymentType.CREDIT_CARD) {
-			return note;
+		else if (order.getPaymentType() == PaymentType.CREDIT_CARD) {
+			sb.append(note);
 		}
-		throw new RuntimeException("unknown payment type");
+		else {
+			throw new RuntimeException("unknown payment type");
+		}
+		for (String giftCode : order.getGiftCodes()) {
+			sb.append("\n").append(MessageFormat.format(giftCodeNote, giftCode));
+		}
+		return sb.toString();
+		
 	}
 	
 	private Paragraph footer() {

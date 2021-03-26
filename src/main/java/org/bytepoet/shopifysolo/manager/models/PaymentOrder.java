@@ -1,6 +1,9 @@
 package org.bytepoet.shopifysolo.manager.models;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -14,10 +17,13 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Transient;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyDiscountCode;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.springframework.util.CollectionUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -63,6 +69,9 @@ public class PaymentOrder extends Order {
 	
 	@Embedded
 	private Invoice cancelInvoice;
+	
+	@JsonProperty
+	private String giftCode;
 
 	protected PaymentOrder() {
 		super();
@@ -90,12 +99,9 @@ public class PaymentOrder extends Order {
 		if(this.getTotalPrice() >= 500.0) {
 			this.note += "\nPoslati bon od 50 kn";
 		}
-			
-		
-		
 	}
 	
-	public PaymentOrder(ShopifyOrder shopifyOrder, GatewayToPaymentTypeMapper paymentTypeMapper, String taxRate, String shippingTitle) {
+	public PaymentOrder(ShopifyOrder shopifyOrder, GatewayToPaymentTypeMapper paymentTypeMapper, String taxRate, String shippingTitle, String giftCodeType) {
 		if (shopifyOrder == null) {
 			throw new RuntimeException("Shopify order can not be null");
 		}
@@ -117,6 +123,15 @@ public class PaymentOrder extends Order {
 		if(this.getTotalPrice() >= 500.0) {
 			this.note += "\nPoslati bon od 50 kn";
 		}
+		
+		List<String> giftCodes = new ArrayList<>();
+		for (ShopifyDiscountCode discountCode : shopifyOrder.getDiscountCodes()) {
+			if (discountCode.getType().equalsIgnoreCase(giftCodeType)) {
+				giftCodes.add(discountCode.getCode());
+			}
+		}
+		this.giftCode = String.join(";", giftCodes);
+		
 		
 		
 	}
@@ -282,6 +297,14 @@ public class PaymentOrder extends Order {
 			super.status = OrderStatus.REFUNDED;
 		}
 		return new Refund(this, refundedItems);
+	}
+	
+	@JsonIgnore
+	public List<String> getGiftCodes() {
+		if (StringUtils.isBlank(this.giftCode)) {
+			return Collections.emptyList();
+		}
+		return Arrays.asList(this.giftCode.split(";"));
 	}
 	
 }

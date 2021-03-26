@@ -249,14 +249,7 @@ public class PdfRefundService {
 		if (discountDouble == 0.0) {
 			return "0";
 		}
-		return getDecimalFormat().format(-Double.parseDouble(item.getDiscount()));
-	}
-	
-	private String discountOneItemPrice(Item item) {
-		double price = priceWithDiscount(item);
-		
-		return getDecimalFormat().format(-price);
-
+		return getDecimalFormat().format(-item.getDiscountAmount());
 	}
 
 	private double priceWithDiscount(Item item) {
