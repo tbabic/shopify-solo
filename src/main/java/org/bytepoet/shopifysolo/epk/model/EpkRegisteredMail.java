@@ -7,6 +7,9 @@ import org.bytepoet.shopifysolo.services.IsoCountriesService;
 
 import static org.bytepoet.shopifysolo.epk.model.fields.EpkValidation.*;
 
+import java.text.Normalizer;
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.epk.model.fields.EpkDecimal;
 import org.bytepoet.shopifysolo.epk.model.fields.EpkInteger;
@@ -63,11 +66,11 @@ public class EpkRegisteredMail implements EpkMailable {
 		else { 
 			row.internationalPostalCode.setValue(address.getPostalCode().replaceAll(" ", ""));
 		}
-		row.recepientName.setValue(address.getFullName().split(" ", 2)[0]);
-		row.recepientLastName.setValue(address.getFullName().split(" ", 2)[1]);
-		row.city.setValue(address.getCity());
-		row.street.setValue(address.getStreetAndNumber());
-		row.additionalAddressInfo.setValue(getCompanyAndOther(address));
+		row.recepientName.setValue(unaccent(address.getFullName().split(" ", 2)[0]));
+		row.recepientLastName.setValue(unaccent(address.getFullName().split(" ", 2)[1]));
+		row.city.setValue(unaccent(address.getCity()));
+		row.street.setValue(unaccent(address.getStreetAndNumber()));
+		row.additionalAddressInfo.setValue(unaccent(getCompanyAndOther(address)));
 		
 		row.shipmentType.setValue("R");
 		row.mass.setValue(60);
@@ -87,6 +90,12 @@ public class EpkRegisteredMail implements EpkMailable {
 		}
 		return "";
 	}
+	
+	private static String unaccent(String string) {
+	    return StringUtils.stripAccents(string.replace("đ", "d").replace("Đ", "D"));
+		
+	}
+		
 	
 	/* (non-Javadoc)
 	 * @see org.bytepoet.shopifysolo.epk.model.EpkMailable#getData()

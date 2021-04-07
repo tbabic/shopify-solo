@@ -8,6 +8,7 @@ public class EpkDecimal extends EpkField<Double> {
 	
 	public EpkDecimal(int length, int decimalLength, EpkValidation requirement) {
 		super(length, requirement);
+		this.decimalLength = decimalLength;
 	}
 
 	@Override
