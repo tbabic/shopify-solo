@@ -67,6 +67,9 @@ var createOrderComponent = new Vue({
 						} else {
 							variant.title = product.title + " / " + variant.title;
 						}
+						if(variant.title.includes("POKLON")) {
+							return;
+						}
 						variant.change = false;
 						if (variant.compare_at_price == undefined || variant.compare_at_price == null || variant.compare_at_price == 0) {
 							variant.discount = 0;
