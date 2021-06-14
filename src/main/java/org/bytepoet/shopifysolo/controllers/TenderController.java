@@ -7,11 +7,13 @@ import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
 import org.bytepoet.shopifysolo.services.CachedFunctionalService;
+import org.bytepoet.shopifysolo.services.DiscountService;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,6 +59,9 @@ public class TenderController {
 	@Value("${shopify.gift-code-type}")
 	private String giftCodeType;
 	
+	@Autowired
+	private DiscountService discountService;
+	
 	@PostMapping
 	public void postOrder(@RequestBody ShopifyOrder shopifyOrder, ContentCachingRequestWrapper request) throws Exception {
 		authorizationService.processRequest(request);
@@ -73,6 +78,19 @@ public class TenderController {
 			order = orderRepository.getOrderWithShopifyId(shopifyOrder.getId()).orElseGet(() -> {
 				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, paymentTypeMapper, taxRate, shippingTitle, giftCodeType));
 			});
+		}
+		
+		if(CollectionUtils.isEmpty(shopifyOrder.getDiscountCodes())) {
+			return;
+		}
+		if(shopifyOrder.getDiscountCodes().get(0).getType().equalsIgnoreCase("fixed_amount")) {
+			String discountCode = shopifyOrder.getDiscountCodes().get(0).getCode();
+			CachedFunctionalService.<ShopifyOrder>cacheAndExecute(
+					shopifyOrder,
+					o -> "discounts/" + o.getId() + "/" + discountCode,
+					o -> {
+						discountService.processDiscount(shopifyOrder.getDiscountCodes().get(0));
+					});
 		}
 	}
 

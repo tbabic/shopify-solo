@@ -10,6 +10,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -21,10 +22,12 @@ import java.util.stream.Stream;
 
 import org.bytepoet.shopifysolo.manager.models.Invoice;
 import org.bytepoet.shopifysolo.manager.models.Item;
+import org.bytepoet.shopifysolo.manager.models.OrderArchive;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.models.PaymentType;
 import org.bytepoet.shopifysolo.manager.models.Refund;
 import org.bytepoet.shopifysolo.manager.models.RefundInvoice;
+import org.bytepoet.shopifysolo.manager.repositories.OrderArchiveRepository;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.manager.repositories.RefundRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +45,9 @@ public class MonthlyOverviewService {
 	
 	@Autowired
 	private RefundRepository refundRepository;
+	
+	@Autowired
+	private OrderArchiveRepository orderArchiveRepository;
 	
 	private static class OverviewInvoice {
 		String invoiceNumber;
@@ -99,8 +105,27 @@ public class MonthlyOverviewService {
 		}
 	}
 	
+	public String createYearlyOverviewFile(int year, boolean useArchive) {
+		
+		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone(ZoneId.of("Europe/Zagreb")));
+		cal.set(Calendar.YEAR, year);
+		cal.set(Calendar.MONTH, 0);
+		cal.set(Calendar.DAY_OF_MONTH, 1);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		Date start = cal.getTime();
+		cal.add(Calendar.YEAR, 1);
+		cal.add(Calendar.MILLISECOND, -1);
+		Date end = cal.getTime();
+		
+		return createOverviewFile(start, end, useArchive);		
+				
+	}
 	
-	public String createMonthlyOverviewFile(int month, int year) {
+	
+	public String createMonthlyOverviewFile(int month, int year, boolean useArchive) {
 		
 		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone(ZoneId.of("Europe/Zagreb")));
 		cal.set(Calendar.YEAR, year);
@@ -114,10 +139,36 @@ public class MonthlyOverviewService {
 		cal.add(Calendar.MONTH, 1);
 		cal.add(Calendar.MILLISECOND, -1);
 		Date end = cal.getTime();
-
 		
-		List<PaymentOrder> paymentOrders = orderRepository.getByPamentDateBetween(start, end);
+		return createOverviewFile(start, end, useArchive);		
+				
+	}
+
+
+	private String createOverviewFile(Date start, Date end, boolean useArchive) {
+		
+		
+		List<PaymentOrder> paymentOrders = new ArrayList<PaymentOrder>();
+		if (useArchive) {
+			OrderArchive orderArchive = orderArchiveRepository.findAll().stream().findFirst().orElse(new OrderArchive());
+			List<PaymentOrder> archived = orderArchive.getOrders().stream().filter((order) -> {
+				if (order instanceof PaymentOrder) {
+					if (((PaymentOrder) order).isPaid() && ((PaymentOrder) order).getPaymentDate() != null && 
+							((PaymentOrder) order).getPaymentDate().after(start) && ((PaymentOrder) order).getPaymentDate().before(end)) {
+						return true;
+					}
+				}
+				return false;
+			}).map(o -> ((PaymentOrder) o)).collect(Collectors.toList());
+			paymentOrders.addAll(archived);
+		}
+		
+		List<PaymentOrder> respositoryOrders = orderRepository.getByPamentDateBetween(start, end);
 		List<Refund> refunds = refundRepository.getByInvoiceDateBetween(start, end);
+		
+		
+		
+		paymentOrders.addAll(respositoryOrders);
 		
 		List<OverviewInvoice> overviewInvoices = Stream
 				.concat(paymentOrders.stream().map(o -> new OverviewInvoice(o, shippingTitle)), 
@@ -177,7 +228,6 @@ public class MonthlyOverviewService {
 			builder.append("\n");
 		}
 			
-		return builder.toString();		
-				
+		return builder.toString();
 	}
 }

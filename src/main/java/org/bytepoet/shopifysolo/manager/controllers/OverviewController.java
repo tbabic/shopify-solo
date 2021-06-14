@@ -36,9 +36,13 @@ public class OverviewController {
 	}
 	
 	@RequestMapping(method = RequestMethod.GET)
-	public OverviewResponse overview( @RequestParam("month") int month,  @RequestParam("year") int year) {
-		
-		String csv = monthlyOverviewService.createMonthlyOverviewFile(month, year);
+	public OverviewResponse overview( @RequestParam("month") int month,  @RequestParam("year") int year, @RequestParam("useArchive") boolean useArchive) {
+		String csv;
+		if (month < 1 || month > 12) {
+			csv = monthlyOverviewService.createYearlyOverviewFile(year, useArchive);
+		} else {
+			csv = monthlyOverviewService.createMonthlyOverviewFile(month, year, useArchive);
+		}
 		String base64Value = Base64.encodeBase64String(csv.getBytes());
 		String fileName = "overview-"+month+"-"+year+".csv";
 		return new OverviewResponse(fileName, base64Value);

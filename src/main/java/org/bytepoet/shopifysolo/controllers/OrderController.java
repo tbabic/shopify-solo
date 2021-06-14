@@ -12,6 +12,7 @@ import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
 import org.bytepoet.shopifysolo.services.CachedFunctionalService;
+import org.bytepoet.shopifysolo.services.DiscountService;
 import org.bytepoet.shopifysolo.services.InvoiceService;
 import org.bytepoet.shopifysolo.services.MailService;
 import org.bytepoet.shopifysolo.services.PdfInvoiceService;
@@ -22,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -73,6 +75,9 @@ public class OrderController {
 	@Autowired
 	private InvoiceService invoiceService;
 	
+	@Autowired
+	private DiscountService discountService;
+	
 	
 	@PostMapping
 	public void postOrder(@RequestBody ShopifyOrder shopifyOrder, ContentCachingRequestWrapper request) throws Exception {
@@ -107,6 +112,19 @@ public class OrderController {
 			order.setReceiptSent(true);
 			orderRepository.save(order);
 			//TODO: upload pdf Invoice to google drive
+		}
+		
+		if(CollectionUtils.isEmpty(shopifyOrder.getDiscountCodes())) {
+			return;
+		}
+		if(shopifyOrder.getDiscountCodes().get(0).getType().equalsIgnoreCase("fixed_amount")) {
+			String discountCode = shopifyOrder.getDiscountCodes().get(0).getCode();
+			CachedFunctionalService.<ShopifyOrder>cacheAndExecute(
+					shopifyOrder,
+					o -> "discounts/" + o.getId() + "/" + discountCode,
+					o -> {
+						discountService.processDiscount(shopifyOrder.getDiscountCodes().get(0));
+					});
 		}
 		return;
 	}

@@ -16,6 +16,7 @@ var createOrderComponent = new Vue({
 		
 		invoiceOverviewMonth : (new Date()).getMonth()+1,
 		invoiceOverviewYear : (new Date()).getFullYear(),
+		useArchive : false,
 		loadingCount: 0,
 		role : null
 		
@@ -62,7 +63,8 @@ var createOrderComponent = new Vue({
 			return axios.get("/manager/overview", {
 				params: {
 					month : this.invoiceOverviewMonth,
-					year : this.invoiceOverviewYear
+					year : this.invoiceOverviewYear,
+					useArchive : this.useArchive
 				}
 			}).then(function(response) {
 							

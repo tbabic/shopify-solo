@@ -15,6 +15,7 @@ import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDiscount;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDraftOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreatePriceRule;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateTransaction;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyDiscountCode;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyFulfillment;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyPriceRule;
@@ -34,6 +35,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -59,11 +61,13 @@ public class ShopifyApiClient {
 	
 	private static final String UPDATE_ORDER_FULFILLMENT_ENDPOINT_FORMAT = "https://{0}/admin/api/2020-01/orders/{1}/fulfillments/{2}.json";
 	
-	private static final String PRICE_RULE_FORMAT = "https://{0}/admin/api/2020-10/price_rules.json";
+	private static final String PRICE_RULES_FORMAT = "https://{0}/admin/api/2020-10/price_rules.json";
+	
+	private static final String PRICE_RULE_FORMAT = "https://{0}/admin/api/2020-10/price_rules/{1}.json";
 	
 	private static final String DISCOUNT_FORMAT = "https://{0}/admin/api/2020-10/price_rules/{1}/discount_codes.json";
 	
-	private static final String PRODUCTS_FORMAT = "https://{0}/admin/api/2019-04/products.json";
+	private static final String PRODUCTS_FORMAT = "https://{0}/admin/api/2021-04/products.json";
 	
 	public static final String SHOPIFY_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 	
@@ -72,6 +76,9 @@ public class ShopifyApiClient {
 	private static final String COMPLETE_DRAFT_ORDER_FORMAT = "https://{0}/admin/api/2019-04/draft_orders/{1}/complete.json?payment_pending=true";
 	
 	private static final String UPDATE_PRODUCT_VARIANT = "https://{0}/admin/api/2021-01/variants/{1}.json";
+	
+	private static final String DISCOUNT_CODE_LOOKUP = "https://{0}/admin/api/2021-04/discount_codes/lookup.json?code={1}";
+
 	
 	@Value("${fulfillment.tracking-url}")
 	private String trackingUrl;
@@ -323,7 +330,7 @@ public class ShopifyApiClient {
 	}
 	
 	public String createPriceRule(ShopifyCreatePriceRule priceRule) throws Exception	{
-		String url = MessageFormat.format(PRICE_RULE_FORMAT, clientHost);
+		String url = MessageFormat.format(PRICE_RULES_FORMAT, clientHost);
 		ObjectMapper mapper = new ObjectMapper();
 		String requestBody = mapper.writeValueAsString(priceRule);
 		Request request = new Request.Builder()
@@ -476,6 +483,73 @@ public class ShopifyApiClient {
 		if (!response.isSuccessful()) {
 			throw new RuntimeException("Could not update variant: " + responseBody);
 		}
+		
+	}
+
+	public ShopifyPriceRule getDiscountPriceRule(String discountCode) throws IOException {
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
+		
+		String url = MessageFormat.format(DISCOUNT_CODE_LOOKUP, clientHost, discountCode);
+		Request request = new Request.Builder()
+			      .url(url)
+			      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+			      .build();
+		Response response = client.newCall(request).execute();
+		String priceRuleId = null;
+		if (response.code() == 303) {
+			String location = response.header("location");
+			priceRuleId = location.split("price_rules/")[1].split("/")[0];
+			
+		} else if (response.isSuccessful()) {
+			String responseBody = response.body().string();
+			TypeReference<Map<String, Map<String, String>>> typeRef = new TypeReference<Map<String, Map<String, String>>>() {};
+			Map<String, Map<String, String>> wrapper = mapper.readValue(responseBody, typeRef);
+			priceRuleId = wrapper.get("discount_code").get("price_rule_id");
+		} else {
+			throw new RuntimeException("could not fetch code" + response.body().string());
+		}
+		
+		
+		if (priceRuleId == null) {
+			throw new RuntimeException("could not find code:" + discountCode);
+		}
+
+		
+		url = MessageFormat.format(PRICE_RULE_FORMAT, clientHost, priceRuleId);
+		request = new Request.Builder()
+			      .url(url)
+			      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+			      .build();
+		response = client.newCall(request).execute();
+		
+		if (!response.isSuccessful()) {
+			throw new RuntimeException("Could not fetch price rule: " + priceRuleId + ", " + discountCode);
+		}
+		
+		String responseBody = response.body().string();
+
+		ShopifyPriceRule wrapper = mapper.readValue(responseBody, ShopifyPriceRule.class);		
+		return wrapper;
+	}
+
+	public ShopifyPriceRule updatePriceRule(ShopifyPriceRule priceRule) throws IOException {
+		String url = MessageFormat.format(PRICE_RULE_FORMAT, clientHost, priceRule.getPriceRule().getId());
+		ObjectMapper mapper = new ObjectMapper();
+		String requestBody = mapper.writeValueAsString(priceRule);
+		Request request = new Request.Builder()
+				.url(url)
+				.header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+				.put(RequestBody.create(MediaType.get("application/json"), requestBody))
+				.build();
+		Response response = client.newCall(request).execute();
+		String responseBody = response.body().string();
+		if (!response.isSuccessful()) {
+			throw new RuntimeException("Could not update price rule: " + responseBody);
+		}
+		ShopifyPriceRule priceRuleResponse = mapper.readValue(responseBody, ShopifyPriceRule.class);
+		return priceRuleResponse;
 		
 	}
 }
