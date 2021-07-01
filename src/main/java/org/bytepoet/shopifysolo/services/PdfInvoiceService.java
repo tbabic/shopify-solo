@@ -62,7 +62,7 @@ public class PdfInvoiceService {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		PdfWriter writer = new PdfWriter(outputStream); 
 		PdfDocument pdfDoc = new PdfDocument(writer); 
-		Document document = new Document(pdfDoc);
+		Document document = new Document(pdfDoc, pdfDoc.getDefaultPageSize(), false);
 		document.setLeftMargin(LEFT_MARGIN);
 		document.setTopMargin(TOP_MARGIN);
 		document.setBottomMargin(100f);
@@ -77,12 +77,12 @@ public class PdfInvoiceService {
 		document.add(new Paragraph("\n"));
 		document.add(otherInvoiceDetails(order));
 		//document.add(footer().setFixedPosition(0, 0, 1000));
-		document.flush();
+		
 		
 		for (int i = 1; i <= document.getPdfDocument().getNumberOfPages(); i++) {
 			document.showTextAligned(footer(), 20, 20, i, TextAlignment.LEFT, VerticalAlignment.BOTTOM, 0);
 		}
-		
+		document.flush();
 		document.close();
 		return outputStream.toByteArray();
 	}
@@ -316,6 +316,7 @@ public class PdfInvoiceService {
 	
 	private Div otherInvoiceDetails(PaymentOrder order) {
 		Div div = new Div();
+		div.setKeepTogether(true);
 		div.add(paymentType(order));
 		div.add(operator());
 		div.add(note(order));

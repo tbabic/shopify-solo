@@ -248,8 +248,11 @@
 										</button>
 										<div class="dropdown-menu dropdown-primary" aria-labelledby="dropdownMenuButton">
 											<button  type="button" class="btn btn-primary" v-on:click.stop="selectOrderForEditing(order, '#editOrderModal')">Editiraj</button>
+											<button  v-if="order.isPaid && role == 'ROLE_ADMIN'" type="button" class="btn btn-primary" data-toggle="modal" data-target="#refundOrderModal" v-on:click="setRefundOrder(order)" >Refund</button>
 											<button  v-if="!order.isPaid && role == 'ROLE_ADMIN'" type="button" class="btn btn-primary" v-on:click.stop="selectOrderForPayment(order, '#paymentModal')">Plaćeno</button>
 											<button  type="button" class="btn btn-primary" v-on:click.stop="selectOrderForFulfillment(order, '#fulfillmentModal')">Odrađeno</button>
+											<button  v-if="order.isPaid && order.receiptSent == false && role == 'ROLE_ADMIN'" type="button" class="btn btn-primary" v-on:click.stop="selectOrderForPayment(order, '#reissueInvoiceModal')">Ponovi račun</button>
+											<button  v-if="order.isPaid && role == 'ROLE_ADMIN'" type="button" class="btn btn-primary" v-on:click.stop="selectOrderForPayment(order, '#downloadInvoiceModal')">Skini račun</button>
 										</div>
 									</div>
 								</td>
@@ -325,6 +328,94 @@
 							</div>
 							<div class="modal-footer">
 								<button  type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="confirmPayment(paymentOrder)">Potvrdi</button>
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="modal fade" id=reissueInvoiceModal role="dialog">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Račun</h5>
+								<button type="button" class="close" data-dismiss="modal">
+									<span>&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<div  class="row">
+									<div class="col">
+										Ponovi račun: {{ paymentOrder.invoiceNumber }} kao plaćenu?
+									</div>
+								</div>
+								
+								<div  class="row">
+									<div class="col-3">
+										R1:
+									</div>
+									<div class="col">
+										<input class="form-check-input" type="checkbox" v-model="r1">
+									</div>
+									
+								</div>
+								
+								<div  class="row">
+									<div class="col-3">
+										OIB:
+									</div>
+									<div class="col">
+										<input class="form-check-input" type="text" v-model="oib">
+									</div>
+									
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button  type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="reissueInvoice(paymentOrder)">Potvrdi</button>
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="modal fade" id=downloadInvoiceModal role="dialog">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Račun</h5>
+								<button type="button" class="close" data-dismiss="modal">
+									<span>&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<div  class="row">
+									<div class="col">
+										Preuzmi račun: {{ paymentOrder.invoiceNumber }} ?
+									</div>
+								</div>
+								
+								<div  class="row">
+									<div class="col-3">
+										R1:
+									</div>
+									<div class="col">
+										<input class="form-check-input" type="checkbox" v-model="r1">
+									</div>
+									
+								</div>
+								
+								<div  class="row">
+									<div class="col-3">
+										OIB:
+									</div>
+									<div class="col">
+										<input class="form-check-input" type="text" v-model="oib">
+									</div>
+									
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button  type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="downloadInvoice(paymentOrder)">Potvrdi</button>
 								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
 							</div>
 						</div>
@@ -454,6 +545,119 @@
 							</div>
 							<div class="modal-footer">
 								<button type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="processStatusChange(statusChange.newStatus, statusChange.statusField)">Potvrdi</button>
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				
+				
+				<div class="modal fade" id=refundOrderModal role="dialog">
+					<div class="modal-dialog modal-lg" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Refundiraj narudžbu</h5>
+								<button type="button" class="close" data-dismiss="modal">
+									<span>&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<ul class="nav nav-tabs">
+									<li class="nav-item">
+										<button v-bind:class="'nav-link' + ((refund.type == 'standard') ? ' active' : '' )"
+										v-on:click="refund.type='standard';">
+											Postojeće stavke
+										</button>
+									</li>
+									<li class="nav-item">
+										<button v-bind:class="'nav-link' + ((refund.type == 'custom') ? ' active' : '' )"
+										v-on:click="refund.type='custom';">
+											Custom
+										</button>
+									</li>
+								</ul>
+								
+								<div  class="row mt-5">
+									<div class="col">
+										Rbr: {{ refund.order.id }}
+									</div>
+									<div class="col">
+										Račun: {{ refund.order.invoiceNumber }}
+									</div>
+									
+									<div class="col">
+									</div>
+								</div>
+								
+								<div class="row mt-5">
+									<div class="col">
+										Email: {{ refund.order.contact }}
+									</div>
+									<div class="col">
+										Ime i prezime: {{ refund.order.shippingInfo.fullName }}
+									</div>
+									
+									<div class="col">
+									</div>
+								</div>
+								
+								<div v-if="refund.type == 'standard'" class="mt-2 pt-3 border-top border-dark">
+									<div v-for="refundItem in refund.standard.items" >
+										<div class="row">
+										
+											<div class="input-group-prepend col-1">
+												<div class="input-group-text">
+													<input type="checkbox" v-model="refundItem.refund" v-on:change="calculateRefund">
+												</div>
+											</div>
+											
+											<div class="col-10">
+												<div class="row">
+													<span class="input-group-text col-7">{{refundItem.item.name}}</span>
+													<span class="input-group-text col-2">{{refundItem.item.priceWithTaxRate.toFixed(2)}} kn</span>
+													<span class="input-group-text col-1">x{{refundItem.item.quantity}} </span>
+													<span class="input-group-text col-2"> {{refundItem.item.totalPrice.toFixed(2)}} kn</span>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div v-if="refund.type == 'custom'">
+									<div v-for="refundItem in refund.custom.items" >
+										<div class="row">
+											<div class="col-8">
+												
+											</div>
+											<div class="col-4">
+												<div class="row">
+													<span class="input-group-text col-4">{{refundItem.item.priceWithTaxRate.toFixed(2)}} kn</span>
+													<span class="input-group-text col-2">x{{refundItem.item.quantity}} </span>
+													<span class="input-group-text col-4"> {{refundItem.item.totalPrice.toFixed(2)}} kn</span>
+												</div>
+											</div>
+										</div>
+									</div>
+									
+									<div class="row">
+										<div class="col">
+											<button class="btn btn-primary" v-on:click="addRefundCustomItem">+</button>
+										</div>
+									</div>
+								</div>
+								
+								<div class="row mt-3">
+									<div class="col">
+										Ukupan povrat:
+									</div>
+									<div class="col">
+										{{refund.amount}}
+									</div>
+								</div>
+							</div>
+							
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-dismiss="modal" v-on:click="saveRefund">Spremi</button>
 								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
 							</div>
 						</div>

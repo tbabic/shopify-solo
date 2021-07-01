@@ -38,6 +38,24 @@ var orderTableComponent = new Vue({
 				
 			}
 		},
+		refund : {
+			order : {
+				shippingInfo: {
+				
+				}
+			},
+			
+			standard : {
+				items : []
+			},
+			
+			custom : {
+				items : [],
+			},
+			
+			type : "standard",
+			amount : 0
+		},
 		fulfillment: {
 			order : {},
 			params : {
@@ -463,6 +481,66 @@ var orderTableComponent = new Vue({
 			this.fulfillment.params.sendNotification = true;
 			$(modalId).modal('show');
 		},
+		reissueInvoice: function(order) {
+			this.startLoader();
+			let url = '/manager/orders/' + order.id + '/reissue-invoice'
+			axios.post(url, null, {
+				params : {
+					r1 : this.r1,
+					oib : this.oib
+				}
+			}).then(response => {
+				console.log(response);
+				axios.get('/manager/orders/' + order.id).then(response => {
+					for (let prop in order) {
+						Vue.delete(order, prop);
+						
+					}
+					for (let prop in response.data) {
+						Vue.set(order, prop, response.data[prop]);
+					}
+					this.endLoader();
+					
+				}).catch(error => {
+					this.endLoader();
+					this.showError(error.response.data.message);
+				});
+			}).catch(error => {
+				this.endLoader();
+				this.showError(error.response.data.message);
+			});
+		},
+		
+		downloadInvoice: function(order) {
+			this.startLoader();
+			let url = '/manager/orders/' + order.id + '/download-invoice'
+			axios.post(url, null, {
+				params : {
+					r1 : this.r1,
+					oib : this.oib
+				}
+			}).then(response => {
+				var binaryString = window.atob(response.data.base64Data);
+			    var binaryLen = binaryString.length;
+			    var bytes = new Uint8Array(binaryLen);
+			    for (var i = 0; i < binaryLen; i++) {
+			       var ascii = binaryString.charCodeAt(i);
+			       bytes[i] = ascii;
+			    }
+				
+			    var blob = new Blob([bytes], {type: "application/pdf"});
+			    var link = document.createElement('a');
+			    link.href = window.URL.createObjectURL(blob);
+			    var fileName = response.data.fileName;
+			    link.download = fileName;
+			    link.click();
+			}).catch(error => {
+				this.showError(error.response.data.message);
+			}).finally(() => {
+				this.endLoader();
+			})
+		},
+		
 		fulfillOrder : function() {
 			this.startLoader();
 			let url = '/manager/orders/' + this.fulfillment.order.id + "/process-fulfillment"
@@ -489,7 +567,64 @@ var orderTableComponent = new Vue({
 				this.endLoader();
 			});
 		},
+		setRefundOrder: function(order) {
+			this.refund.order = order;
+			this.refund.type = 'standard';
+			this.refund.standard.items.splice(0, this.refund.standard.items.length);
+			this.refund.amount = 0;
+			
+			this.refund.order.items.forEach(item => {
+				this.refund.standard.items.push({
+					item : item,
+					refund : false
+				});
+			});
+			
+		},
 		
+		calculateRefund : function() {
+			let amount = 0;
+			if (this.refund.type == 'standard') {
+				this.refund.standard.items
+					.filter(item => item.refund == true)
+					.forEach(item => {
+						amount += +item.item.totalPrice; 
+					});
+			}
+			this.refund.amount = amount;
+		},
+		
+		addRefundCustomOrder : function() {
+			this.refund.custom.items.push(
+				{
+					"name": "",
+					"price": 0,
+					"priceWithTaxRate": 0,
+					"quantity": 1,
+					"taxRate": 25
+    			}
+			);
+		},
+		
+		refundCustomItemPriceChange(item) {
+			item.price = +item.priceWithTaxRate / 1.25;
+		},
+		
+		saveRefund : function() {
+			this.startLoader();
+			if (this.refund.type == 'standard') {
+				this.saveStandardRefund();
+			}
+			this.endLoader();
+		},
+		
+		saveStandardRefund : function() {
+			
+		},
+		
+		saveCustomRefund : function() {
+			
+		},
 		
 		selectOrderForEditing : function(order, modalId) {
 			this.editingOrder = order;

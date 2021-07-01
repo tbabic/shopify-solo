@@ -14,6 +14,7 @@ import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 import javax.transaction.Transactional;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.controllers.TenderController;
 import org.bytepoet.shopifysolo.manager.models.GiveawayOrder;
@@ -65,6 +66,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @RestController
 @RequestMapping("/manager/orders")
@@ -360,6 +363,10 @@ public class OrderManagerController {
 		paymentOrder.setReceiptSent(true);
 		orderRepository.save(paymentOrder);
 		
+		if (paymentOrder.getPaymentType() == PaymentType.CREDIT_CARD) {
+			return;
+		}
+		
 		List<ShopifyTransaction> transactions  = shopifyApiClient.getTransactions(paymentOrder.getShopifyOrderId());
 		if (transactions.size() != 1) {
 			throw new RuntimeException(MessageFormat.format("Order has {0} tranasctions but must have 1", transactions.size())); 
@@ -370,6 +377,32 @@ public class OrderManagerController {
 		}
 		
 		shopifyApiClient.createTransaction(transaction.createNewTransaction(), paymentOrder.getShopifyOrderId());
+		
+	}
+	
+	public class PdfInvoiceContent {
+
+		@JsonProperty
+		private String fileName;
+		
+		@JsonProperty
+		private String base64Data;		
+		
+	}
+	
+	@RequestMapping(path="/{id}/download-invoice", method=RequestMethod.POST)
+	public PdfInvoiceContent downloadInvoice(@PathVariable("id") Long orderId, 
+			@RequestParam(name="paymentDate", required=false) Date paymentDate,
+			@RequestParam(name="r1", required=false) boolean r1,
+			@RequestParam(name="oib", required=false) String oib) throws Exception {
+		
+		PaymentOrder paymentOrder = orderRepository.getPaymentOrderById(orderId).get();
+		byte [] pdfInvoice = pdfInvoiceService.createInvoice(paymentOrder, r1, oib);
+		
+		PdfInvoiceContent response = new PdfInvoiceContent();
+		response.fileName = paymentOrder.getInvoiceNumber() + ".pdf";
+		response.base64Data = Base64.encodeBase64String(pdfInvoice);
+		return response;
 		
 	}
 	
