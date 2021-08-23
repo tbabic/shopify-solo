@@ -77,11 +77,15 @@
 							
 							<div v-for="(link, index) in selectedInventoryItem.links" class="row" >
 								<div class = "col-2">
-									<a v-bind:href="link.value" target="_blank">LINK</a>
+									<a v-bind:href="link.link" target="_blank">LINK</a>
 								</div>
 								
-								<div class = "col-8">
-									<input type="text" v-model="link.value"/>
+								<div class = "col-4">
+									<input type="text" v-model="link.name"/>
+								</div>
+								
+								<div class = "col-4">
+									<input type="text" v-model="link.link"/>
 								</div>
 								<div class="col-2">
 									<button type="button" v-on:click="removeLink(index)" class="btn btn-primary">

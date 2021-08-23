@@ -44,7 +44,7 @@ var inventoryComponent = new Vue({
 			}
 			
 			this.selectedInventoryItem.links.forEach(link => {
-				inventoryToSave.links.push(link.value);
+				inventoryToSave.links.push(link);
 			});
 			
 			
@@ -67,7 +67,8 @@ var inventoryComponent = new Vue({
 			this.selectedInventoryItem.links.splice(0, this.selectedInventoryItem.links.length);
 			inventory.links.forEach(link => {
 				this.selectedInventoryItem.links.push({
-					value : link
+					name : link.name,
+					link : link.link
 				});
 			});
 		},

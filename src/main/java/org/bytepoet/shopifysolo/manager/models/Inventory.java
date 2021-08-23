@@ -2,6 +2,7 @@ package org.bytepoet.shopifysolo.manager.models;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -33,22 +34,61 @@ public class Inventory {
 	@Column
 	private String linksJson;
 	
+	public static class LinkContainer {
+		@JsonProperty
+		private String name;
+		@JsonProperty
+		private String link;
+		
+		public static LinkContainer create(String name, String link) {
+			LinkContainer linkContainer = new LinkContainer();
+			linkContainer.name = name;
+			linkContainer.link = link;
+			return linkContainer;
+		}
+	}
+	
 
 	@JsonProperty
 	@Transient
-	public List<String> getLinks() {
+	public List<LinkContainer> getLinks() {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			return mapper.readValue(
-					linksJson, new TypeReference<List<String>>() { });
+					linksJson, new TypeReference<List<LinkContainer>>() { });
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			// if reading containers fails, try reading just strings;
+			
+			try {
+				List<String> strings = mapper.readValue(
+						linksJson, new TypeReference<List<String>>() { });
+				return strings.stream().map(s -> {
+					LinkContainer link = new LinkContainer();
+					String a = s;
+					String [] array = a.split(" ", 2);
+					if (array.length < 0) {
+						link.name = "";
+						link.link = a;
+					}
+					else if (array.length == 1) {
+						link.name = "";
+						link.link = array[0];
+					} else {
+						link.name = array[0];
+						link.link = array[1];
+					}
+					
+					return link;
+				}).collect(Collectors.toList());
+			} catch (IOException e2) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 
 	@JsonProperty
 	@Transient
-	public void setLinks(List<String> links) {
+	public void setLinks(List<LinkContainer> links) {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			linksJson = mapper.writeValueAsString(links);

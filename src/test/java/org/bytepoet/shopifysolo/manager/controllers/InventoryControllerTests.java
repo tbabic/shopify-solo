@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.bytepoet.shopifysolo.manager.models.Inventory;
+import org.bytepoet.shopifysolo.manager.models.Inventory.LinkContainer;
 import org.bytepoet.shopifysolo.manager.repositories.InventoryRepository;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -37,16 +38,16 @@ public class InventoryControllerTests {
 	public void test_saveAndUpdateInventory( ) {
 		Inventory inventory = new Inventory();
 		inventory.setItem("Item");
-		inventory.setLinks(Arrays.asList("link1", "link2"));
+		inventory.setLinks(Arrays.asList(LinkContainer.create("l1", "link1"), LinkContainer.create("l2", "link2")));
 		
 		Inventory savedInventory = inventoryController.save(inventory);
 		Assert.assertThat(savedInventory.getItem(), equalTo("Item"));
-		Assert.assertThat(savedInventory.getLinks(), Matchers.containsInAnyOrder("link1", "link2"));
+		inventory.setLinks(Arrays.asList(LinkContainer.create("l1", "link1"), LinkContainer.create("l2", "link2")));
 		
 		inventory = new Inventory();
 		inventory.setId(savedInventory.getId());
 		inventory.setItem("Updated item");
-		inventory.setLinks(Arrays.asList("Updated1", "Updated2"));
+		inventory.setLinks(Arrays.asList(LinkContainer.create("l1", "Updated1"), LinkContainer.create("l2", "Updated2")));
 		
 		Inventory updatedInventory = inventoryController.save(inventory);
 		Assert.assertThat(updatedInventory.getItem(), equalTo("Updated item"));
@@ -59,12 +60,12 @@ public class InventoryControllerTests {
 	public void test_getInventory( ) {
 		Inventory inventory1 = new Inventory();
 		inventory1.setItem("Item");
-		inventory1.setLinks(Arrays.asList("link1", "link2"));
+		inventory1.setLinks(Arrays.asList(LinkContainer.create("l1", "link1"), LinkContainer.create("l2", "link2")));
 		inventoryController.save(inventory1);
 		
 		Inventory inventory2 = new Inventory();
 		inventory2.setItem("Second item");
-		inventory2.setLinks(Arrays.asList("link3", "link4"));
+		inventory2.setLinks(Arrays.asList(LinkContainer.create("l3", "link3"), LinkContainer.create("l4", "link4")));
 		inventoryController.save(inventory2);
 		
 		List<Inventory> inventoryList = inventoryController.getInventory(null);
