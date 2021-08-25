@@ -62,7 +62,7 @@ public class HibernateInterceptor extends EmptyInterceptor {
 				auditLog.setLogTime(new Date());
 				
 				Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-				auditLog.setChangedBy(authentication.getName());
+				auditLog.setChangedBy(authentication == null ? null : authentication.getName());
 				auditLogRepository.save(auditLog);
 			}
 			
