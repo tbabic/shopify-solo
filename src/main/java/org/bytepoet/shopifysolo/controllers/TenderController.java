@@ -1,5 +1,6 @@
 package org.bytepoet.shopifysolo.controllers;
 
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
 import org.bytepoet.shopifysolo.authorization.AuthorizationService;
@@ -59,6 +60,9 @@ public class TenderController {
 	@Value("${shopify.gift-code-type}")
 	private String giftCodeType;
 	
+	@Value("${soloapi.gift-code-note}")
+	private String giftCodeNote;
+	
 	@Autowired
 	private DiscountService discountService;
 	
@@ -85,12 +89,16 @@ public class TenderController {
 		}
 		if(shopifyOrder.getDiscountCodes().get(0).getType().equalsIgnoreCase("fixed_amount")) {
 			String discountCode = shopifyOrder.getDiscountCodes().get(0).getCode();
-			CachedFunctionalService.<ShopifyOrder>cacheAndExecute(
+			boolean hasDiscount = CachedFunctionalService.<ShopifyOrder, Boolean>cacheAndExecute(
 					shopifyOrder,
 					o -> "discounts/" + o.getId() + "/" + discountCode,
 					o -> {
-						discountService.processDiscount(shopifyOrder.getDiscountCodes().get(0));
+						return discountService.processDiscount(shopifyOrder.getDiscountCodes().get(0));
 					});
+			if(hasDiscount) {
+				order.addNote("\n" + MessageFormat.format(giftCodeNote, discountCode));
+				orderRepository.saveAndFlush(order);
+			}
 		}
 	}
 

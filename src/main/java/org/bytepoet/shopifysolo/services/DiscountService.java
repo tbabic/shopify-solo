@@ -18,14 +18,14 @@ public class DiscountService {
 	private ShopifyApiClient client;
 	
 	
-	public void processDiscount(ShopifyDiscountCode shopifyDiscountCode) {
+	public boolean processDiscount(ShopifyDiscountCode shopifyDiscountCode) {
 		String discountCode = shopifyDiscountCode.getCode();
 		if (!discountCode.startsWith("050") 
 				&& !discountCode.startsWith("150")
 				&& !discountCode.startsWith("200")
 				&& !discountCode.startsWith("250")
 				&& !discountCode.startsWith("400")) {
-			return;
+			return false;
 		}
 		
 		try {
@@ -41,7 +41,7 @@ public class DiscountService {
 				double totalAmount = Double.parseDouble(priceRule.getPriceRule().getValue());
 				totalAmount += discountAmount;
 				if (totalAmount >= 0) {
-					return;
+					return true;
 				}
 
 				DecimalFormat df = getDecimalFormat();
@@ -51,6 +51,7 @@ public class DiscountService {
 		} catch(IOException e) {
 			throw new RuntimeException(e.getMessage(), e);
 		}
+		return true;
 		
 	}
 	

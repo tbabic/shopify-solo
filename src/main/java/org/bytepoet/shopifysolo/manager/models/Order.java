@@ -180,6 +180,10 @@ public abstract class Order {
 	public void setNote(String note) {
 		this.note = note;
 	}
+	
+	public void addNote(String note) {
+		this.note += note;
+	}
 
 	public boolean isPersonalTakeover() {
 		return personalTakeover;
