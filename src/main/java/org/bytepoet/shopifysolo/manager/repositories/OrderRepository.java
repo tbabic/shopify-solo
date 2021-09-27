@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import org.bytepoet.shopifysolo.manager.models.GiveawayOrder;
 import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.OrderStatus;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
@@ -17,7 +18,13 @@ import org.springframework.stereotype.Repository;
 public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecificationExecutor<Order> {
 	
 	@Query(value="select order from PaymentOrder order where order.shopifyOrderId = :shopifyId")
-	Optional<PaymentOrder> getOrderWithShopifyId(@Param("shopifyId") String shopifyId);
+	Optional<PaymentOrder> getPaymentOrderWithShopifyId(@Param("shopifyId") String shopifyId);
+	
+	@Query(value="select order from GiveawayOrder order where order.shopifyOrderId = :shopifyId")
+	Optional<GiveawayOrder> getGiveawayOrderWithShopifyId(@Param("shopifyId") String shopifyId);
+	
+	@Query(value="select order from ManagedOrder order where order.shopifyOrderId = :shopifyId")
+	Optional<Order> getOrderWithShopifyId(@Param("shopifyId") String shopifyId);
 	
 	@Query(value="select order from PaymentOrder order where order.id = :id")
 	Optional<PaymentOrder> getPaymentOrderById(@Param("id") Long id);

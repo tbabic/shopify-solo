@@ -9,23 +9,12 @@ var createOrderComponent = new Vue({
 		},
 		giveawayOrder : {
 
-			type: "GIVEAWAY",
-			contact: null,
-			shippingInfo: {
-				fullName: null,
-				companyName: null,
-				streetAndNumber: null,
-				other: null,
-				city: null,
-				postalCode: null,
-				country: "Croatia",
-				phoneNumber: null
+			shipping_address : {
+				country: "Croatia"
 			},
-			personalTakeover: false,
-			items:[],
-			note: null,
-			giveawayPlatform: null
+			line_items : [],
 		},
+		giveawayPlatform : null,
 		type: "PAYMENT",
 		productSearch : "",
 		productList : [],
@@ -121,13 +110,31 @@ var createOrderComponent = new Vue({
 			});
 			
 			if (filtered.length < 1) {
-				this.shopifyOrder.line_items.push({
+				
+				lineItem = {
 					variant_id : product.id,
 					quantity : 1,
 					title : product.title,
-					originalPrice : product.price,
-					discountedPrice : product.price
-				});
+					originalPrice : this.type == "PAYMENT" ? product.price: 0,
+					discountedPrice : this.type == "PAYMENT" ? product.price: 0
+				};
+				if (this.type == "PAYMENT") {
+						this.shopifyOrder.line_items.push({
+						variant_id : product.id,
+						quantity : 1,
+						title : product.title,
+						originalPrice : product.price,
+						discountedPrice : product.price
+					});
+				} else {
+					this.giveawayOrder.line_items.push({
+						variant_id : product.id,
+						quantity : 1,
+						title : product.title,
+						price : 0,
+					});
+				}
+				
 			} else {
 				filtered[0].quantity++;
 			}
@@ -136,7 +143,11 @@ var createOrderComponent = new Vue({
 		},
 		
 		removeLineItem : function(index) {
-			this.shopifyOrder.line_items.splice(index,1);
+			if (this.type == "PAYMENT") {
+				this.shopifyOrder.line_items.splice(index,1);
+			} else {
+				this.giveawayOrder.line_items.splice(index,1);
+			}
 		},
 		
 		
@@ -209,35 +220,13 @@ var createOrderComponent = new Vue({
 			});
 		},
 		
-		addItemToGiveaway : function() {
-			if (this.giveawayItemName == undefined || this.giveawayItemName == null || this.giveawayItemName.length < 1) {
-				return;
-			}
-			
-			let filtered = this.giveawayOrder.items.filter((item) => {
-				return item.name == this.giveawayItemName;
-			});
-			
-			if (filtered.length < 1) {
-			
-				this.giveawayOrder.items.push({
-					name: this.giveawayItemName,
-					quantity: 1,
-					price: null
-				});
-			} else {
-				filtered[0].quantity++;
-			}
-			this.giveawayItemName = "";
-		},
-		
-		removeGiveawayItem : function(index) {
-			this.giveawayOrder.items.splice(index,1);
-		},
-		
 		saveGiveawayOrder : function() {			
 			this.startLoader();
-			return axios.post('/manager/orders/', this.giveawayOrder).then(response => {
+			return axios.post('/manager/orders/create-shopify-giveaway', this.giveawayOrder, {
+				params : {
+					giveawayPlatform : this.giveawayPlatform
+				}
+			}).then(response => {
 				console.log(response);
 				alert("Giveaway uspješno napravljen");
 				this.endLoader();

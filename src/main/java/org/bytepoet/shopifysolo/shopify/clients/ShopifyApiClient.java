@@ -13,6 +13,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDiscount;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDraftOrder;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreatePriceRule;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateTransaction;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyDiscountCode;
@@ -99,8 +100,8 @@ public class ShopifyApiClient {
 	private String clientPassword;
 	
 	@Autowired
-	OkHttpClient client;
-
+	private OkHttpClient client;
+	
 	private static class OrdersWrapper {
 		@JsonProperty
 		private List<ShopifyOrder> orders;
@@ -163,6 +164,37 @@ public class ShopifyApiClient {
 		OrderWrapper wrapper = mapper.readValue(responseBodyString, OrderWrapper.class);
 		return wrapper.order;
 	}
+	
+	private static class CreateOrderWrapper {
+		@JsonProperty
+		private ShopifyCreateOrder order;
+	}
+	
+	public ShopifyOrder createOrder(ShopifyCreateOrder order) throws Exception {
+		String url = MessageFormat.format(ENDPOINT_FORMAT, clientHost);
+		
+		
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		CreateOrderWrapper requestWrapper = new CreateOrderWrapper();
+		requestWrapper.order = order;
+		String requestBody = mapper.writeValueAsString(requestWrapper);
+		Request request = new Request.Builder()
+				.url(url)
+				.header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+				.post(RequestBody.create(MediaType.get("application/json"), requestBody))
+				.build();
+		Response response = client.newCall(request).execute();
+		String responseBody = response.body().string();
+		if (!response.isSuccessful()) {
+			throw new RuntimeException("Could not create order: " + responseBody);
+		}
+		OrderWrapper resp = mapper.readValue(responseBody, OrderWrapper.class);
+		return resp.order;
+		
+	}
+	
+	
 	
 	private static class TransactionsWrapper {
 		@JsonProperty

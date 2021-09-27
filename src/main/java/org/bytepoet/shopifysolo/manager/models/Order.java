@@ -3,6 +3,7 @@ package org.bytepoet.shopifysolo.manager.models;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -50,6 +51,13 @@ public abstract class Order {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	
+	@JsonProperty
+	@Column(unique = true)
+	protected String shopifyOrderId;
+	
+	@JsonProperty
+	protected String shopifyOrderNumber;
 	
 	@JsonProperty
 	protected String contact;

@@ -41,14 +41,7 @@ public class PaymentOrder extends Order {
 	private String tenderId;
 
 	@JsonProperty
-	@Column(unique = true)
-	private String shopifyOrderId;
-	
-	@JsonProperty
 	private String tenderNumber;
-
-	@JsonProperty
-	private String shopifyOrderNumber;
 	
 	@JsonProperty
 	@Enumerated(EnumType.STRING)

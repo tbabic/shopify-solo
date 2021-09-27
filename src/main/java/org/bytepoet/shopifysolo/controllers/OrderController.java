@@ -9,6 +9,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.authorization.AuthorizationService;
 import org.bytepoet.shopifysolo.manager.models.Invoice;
+import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
@@ -93,9 +94,14 @@ public class OrderController {
 		logger.debug(shopifyOrder.toString());
 		PaymentOrder order;
 		synchronized(this.getClass()) {
-			order = orderRepository.getOrderWithShopifyId(shopifyOrder.getId()).orElseGet(() -> {
+			Order o = orderRepository.getOrderWithShopifyId(shopifyOrder.getId()).orElseGet(() -> {
 				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, paymentTypeMapper, taxRate, shippingTitle, giftCodeType));
 			});
+			if (o instanceof PaymentOrder) {
+				order = (PaymentOrder) o;
+			} else {
+				return;
+			}
 		}
 		
 		

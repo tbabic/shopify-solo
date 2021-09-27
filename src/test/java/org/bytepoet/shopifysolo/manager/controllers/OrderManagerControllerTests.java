@@ -23,6 +23,7 @@ import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.manager.repositories.RefundRepository;
 import org.bytepoet.shopifysolo.manager.utils.RefundTransactionalService;
 import org.bytepoet.shopifysolo.services.MailService;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.webinvoice.client.WebInvoiceClient;
 import org.junit.Assert;
@@ -39,7 +40,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.restassured.RestAssured;
 
 @SpringBootTest
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -242,7 +242,15 @@ public class OrderManagerControllerTests {
 		
 	}
 	
+	@Test
+	public void createGiveaway_thenOrder_ok() {
+
+	}
 	
+	@Test
+	public void createGiveaway_thenTender_ok() {
+		
+	}
 	
 	
 	private void provideValidOrders(String... ids) throws Exception {

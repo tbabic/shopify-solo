@@ -16,6 +16,7 @@ import javax.transaction.Transactional;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
+import org.bytepoet.shopifysolo.controllers.OrderController;
 import org.bytepoet.shopifysolo.controllers.TenderController;
 import org.bytepoet.shopifysolo.manager.models.GiveawayOrder;
 import org.bytepoet.shopifysolo.manager.models.Invoice;
@@ -46,6 +47,7 @@ import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDraftOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDraftOrder.Discount;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDraftOrder.LineItem;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDraftOrder.ShippingAddress;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyFulfillment;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
@@ -264,6 +266,17 @@ public class OrderManagerController {
 	}
 	
 	
+	@RequestMapping(path="/create-shopify-giveaway", method=RequestMethod.POST)
+	public Order saveShopifyGiveaway(@RequestBody ShopifyCreateOrder shopifyCreateOrder, @RequestParam(name="giveawayPlatform", required=false) String platform) throws Exception {
+
+		synchronized(OrderController.class) {
+			ShopifyOrder shopifyOrder = shopifyApiClient.createOrder(shopifyCreateOrder);
+			return orderRepository.saveAndFlush(new GiveawayOrder(shopifyOrder, platform));
+		}
+		
+		
+	}
+	
 	@RequestMapping(path="/create-shopify-order", method=RequestMethod.POST)
 	public Order saveShopifyOrder(@RequestBody ShopifyCreateDraftOrder shopifyCreateOrder) throws Exception {
 
@@ -271,10 +284,7 @@ public class OrderManagerController {
 			String draftId = shopifyApiClient.createDraftOrder(shopifyCreateOrder);
 			String shopifyOrderId = shopifyApiClient.completeDraftOrder(draftId);
 			ShopifyOrder shopifyOrder = shopifyApiClient.getOrder(shopifyOrderId);
-			PaymentOrder paymentOrder = orderRepository.getOrderWithShopifyId(shopifyOrder.getId()).orElseGet(() -> {
-				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, PaymentType.BANK_TRANSACTION, taxRate, shippingTitle));
-			});
-			return paymentOrder;
+			return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, PaymentType.BANK_TRANSACTION, taxRate, shippingTitle));
 		}
 		
 		

@@ -58,13 +58,7 @@ dependencies {
 	
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	// https://mvnrepository.com/artifact/io.rest-assured/rest-assured
-	testCompile group: 'io.rest-assured', name: 'rest-assured', version: '4.1.1'
-	// https://mvnrepository.com/artifact/io.rest-assured/rest-assured-common
-	testCompile group: 'io.rest-assured', name: 'rest-assured-common', version: '4.1.1'
-	// https://mvnrepository.com/artifact/io.rest-assured/json-path
-	testCompile group: 'io.rest-assured', name: 'json-path', version: '4.1.1'
-	// https://mvnrepository.com/artifact/io.rest-assured/xml-path
-	testCompile group: 'io.rest-assured', name: 'xml-path', version: '4.1.1'
+
 	
 	testCompile group: 'com.h2database', name: 'h2', version: '1.4.200'
 

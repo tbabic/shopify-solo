@@ -27,9 +27,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import io.restassured.response.Response;
 
 
 
@@ -50,6 +47,9 @@ public class OrderControllerTests {
 	@Autowired
 	private OrderRepository orderRepository;
 	
+	@Autowired
+	private OrderController orderController;
+	
 	@LocalServerPort
 	private int serverPort;
 
@@ -57,7 +57,6 @@ public class OrderControllerTests {
 	public void setup() {
 		CachedFunctionalService.clearCache();
 		orderRepository.deleteAll();
-	    RestAssured.port = serverPort;
 		
 	}
 	
@@ -149,16 +148,17 @@ public class OrderControllerTests {
 		assertValidOrder("1");
 	}
 	
-	private Response postOrder(ShopifyOrder order1) throws Exception {
-		return RestAssured.given()
-			.contentType(ContentType.JSON)
-			.body(order1)
-			.post("/orders");
-		//orderController.postOrder(order1, null);
+	private void postOrder(ShopifyOrder order1) throws Exception {
+		try {
+			orderController.postOrder(order1, null);
+		} catch (Exception e) {
+			
+		}
+		
 	}
 	
 	private void assertValidOrder(String id) {
-		PaymentOrder paymentOrder = orderRepository.getOrderWithShopifyId(id).get();
+		PaymentOrder paymentOrder = orderRepository.getPaymentOrderWithShopifyId(id).get();
 		Assert.assertThat(paymentOrder.getInvoiceId(), notNullValue());
 		Assert.assertThat(paymentOrder.isReceiptCreated(), equalTo(true));
 		Assert.assertThat(paymentOrder.isReceiptSent(), equalTo(true));

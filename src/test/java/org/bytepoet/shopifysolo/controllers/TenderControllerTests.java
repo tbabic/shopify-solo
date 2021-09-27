@@ -78,7 +78,7 @@ public class TenderControllerTests {
 	
 	
 	private void assertValidOrder(String id) {
-		PaymentOrder paymentOrder = orderRepository.getOrderWithShopifyId(id).get();
+		PaymentOrder paymentOrder = orderRepository.getPaymentOrderWithShopifyId(id).get();
 		Assert.assertThat(paymentOrder.isReceiptCreated(), equalTo(false));
 		Assert.assertThat(paymentOrder.isReceiptSent(), equalTo(false));
 		Assert.assertThat(paymentOrder.isPaid(), equalTo(false));
