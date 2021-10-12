@@ -87,6 +87,9 @@ public class OrderController {
 	@PostMapping
 	public void postOrder(@RequestBody ShopifyOrder shopifyOrder, ContentCachingRequestWrapper request) throws Exception {
 		authorizationService.processRequest(request);
+		if(shopifyOrder.getTags().contains("giveaway")) {
+			return;
+		}
 		List<String> ignoreReceiptsList = Arrays.asList(ignoreReceipts.split(","));
 		if (ignoreReceiptsList.contains(shopifyOrder.getNumber())) {
 			return;

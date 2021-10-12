@@ -70,6 +70,9 @@ public class TenderController {
 	@PostMapping
 	public void postOrder(@RequestBody ShopifyOrder shopifyOrder, ContentCachingRequestWrapper request) throws Exception {
 		authorizationService.processRequest(request);
+		if(shopifyOrder.getTags().contains("giveaway")) {
+			return;
+		}
 		if (!bankDepositGateway.contains(shopifyOrder.getGateway())) {
 			return;
 		}
