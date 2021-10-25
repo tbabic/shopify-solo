@@ -782,6 +782,9 @@ var orderTableComponent = new Vue({
 				return "status-initial"
 			}
 			if (status == "IN_PROCESS") {
+				return "status-in-preparation"
+			}
+			if (status == "IN_PROCESS") {
 				return "status-in-process"
 			}
 			if (status == "IN_POST") {
@@ -799,6 +802,9 @@ var orderTableComponent = new Vue({
 		orderStatusCssClass : function(order) {
 			if (order.status == "INITIAL") {
 				return "order-initial"
+			}
+			if (order.status == "IN_PREPARATION") {
+				return "order-in-preparation"
 			}
 			if (order.status == "IN_PROCESS") {
 				return "order-in-process"
@@ -829,6 +835,9 @@ var orderTableComponent = new Vue({
 					return "Za potražni";
 				}
 			}
+			if (status == "IN_PREPARATION") {
+				return "U pripremi"
+			}
 			if (status == "IN_PROCESS") {
 				return "U izradi"
 			}
@@ -844,6 +853,9 @@ var orderTableComponent = new Vue({
 			return "";
 		},
 		orderStatusTooltip : function(order) {
+			if (order.status == "IN_PREPARATION") {
+				return "U pripremi"
+			}
 			if (order.status == "IN_PROCESS") {
 				return "Za izradu"
 			}

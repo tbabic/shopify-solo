@@ -64,6 +64,16 @@ th {
 	font-weight: 400;
 }
 
+.order-in-preparation .order-id,  .status-in-preparation{
+	background-color: rgb(255, 128, 0);
+}
+
+.btn-in-preparation{
+	color: black !important;
+    background-color: rgb(255, 128, 0) !important;
+    border-color: rgb(255, 128, 0) !important;
+}
+
 .order-in-process .order-id,  .status-in-process{
 	background-color: #dacca2;
 }
