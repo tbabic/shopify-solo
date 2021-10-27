@@ -4,11 +4,15 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDiscount;
@@ -421,6 +425,51 @@ public class ShopifyApiClient {
 		ProductsWrapper wrapper = mapper.readValue(responseBodyString, ProductsWrapper.class);
 		return wrapper.products;
 	}
+	
+	public List<ShopifyProduct> getProducts(String title) throws Exception {
+		String url = MessageFormat.format(PRODUCTS_FORMAT, clientHost);
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
+		if (StringUtils.isNotBlank(title)) {
+			params.add("title", title);
+		}
+		
+		
+		Request request = new Request.Builder()
+			      .url(buildUri(url, params))
+			      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+			      .build();
+		Response response = client.newCall(request).execute();
+		String responseBodyString = response.body().string();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		ProductsWrapper wrapper = mapper.readValue(responseBodyString, ProductsWrapper.class);
+		
+		List<ShopifyProduct> products = new ArrayList<>(wrapper.products);
+		
+		Map<String, String> links = Stream.of(response.header("link").split(",")).collect(Collectors.toMap(
+				h -> h.split(";")[1].trim(),
+				h -> h.split(";")[0].replace('<',' ').replace('>', ' ').trim()));
+		String nextUrl = links.get("rel=\"next\"");
+		
+		while (nextUrl != null) {
+			request = new Request.Builder()
+				      .url(nextUrl)
+				      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+				      .build();
+			response = client.newCall(request).execute();
+			responseBodyString = response.body().string();
+			wrapper = mapper.readValue(responseBodyString, ProductsWrapper.class);
+			products.addAll(wrapper.products);
+			
+			links = Stream.of(response.header("link").split(",")).collect(Collectors.toMap(
+					h -> h.split(";")[1].trim(),
+					h -> h.split(";")[0].replace('<',' ').replace('>', ' ').trim()));
+			nextUrl = links.get("rel=\"next\"");
+		}
+		
+		return products;
+	}
+	
 	
 	public static class DraftOrderWrapper {
 		

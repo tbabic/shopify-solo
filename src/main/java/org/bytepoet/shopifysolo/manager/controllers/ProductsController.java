@@ -37,7 +37,7 @@ public class ProductsController {
 	
 	@RequestMapping(path="/all",method=RequestMethod.GET)
 	public List<ShopifyProduct> getAllProducts(String title) throws Exception {
-		return apiClient.getProducts(null, 250);
+		return apiClient.getProducts(null);
 		
 	}
 	
