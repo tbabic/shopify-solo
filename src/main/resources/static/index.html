@@ -40,6 +40,9 @@
 												<button type="button" data-value="INITIAL" v-on:click="filtering('status', $event)" v-bind:class="'btn btn-filter ' + (filters.status == 'INITIAL' ? 'active' : '')">
 													Novo
 												</button>
+												<button type="button" data-value="IN_PREPARATION" v-on:click="filtering('status', $event)" v-bind:class="'btn btn-filter ' + (filters.status == 'IN_PREPARATION' ? 'active' : '')">
+													U pripremi
+												</button>
 												<button type="button" data-value="IN_PROCESS" v-on:click="filtering('status', $event)" v-bind:class="'btn btn-filter ' + (filters.status == 'IN_PROCESS' ? 'active' : '')">
 													U izradi
 												</button>
@@ -51,12 +54,6 @@
 												</button>
 												<button type="button" data-value="CANCELED" v-on:click="filtering('status', $event)" v-bind:class="'btn btn-filter ' + (filters.status == 'CANCELED' ? 'active' : '')">
 													Otkazano
-												</button>
-												<button type="button" data-value="REQUESTED" v-on:click="filtering('shippingSearchStatus', $event)" v-bind:class="'btn btn-filter ' + (filters.shippingSearchStatus == 'REQUESTED' ? 'active' : '')">
-													Za potražni
-												</button>
-												<button type="button" data-value="IN_PROCESS" v-on:click="filtering('shippingSearchStatus', $event)" v-bind:class="'btn btn-filter ' + (filters.shippingSearchStatus == 'IN_PROCESS' ? 'active' : '')">
-													U potražnom
 												</button>
 											</div>
 										</div>
@@ -171,10 +168,9 @@
 												</button>
 												<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
 													<button type="button" class="dropdown-item btn-initial" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('INITIAL', 'status')">Novo</button>
+													<button type="button" class="dropdown-item btn-in-preparation" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('IN_PREPARATION', 'status')">Za pripremu</button>
 													<button type="button" class="dropdown-item btn-in-process" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('IN_PROCESS', 'status')">Za izradu</button>
 													<button type="button" class="dropdown-item btn-in-post" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('IN_POST', 'status')">U posti</button>
-													<button type="button" class="dropdown-item btn-request-search" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('REQUESTED', 'shippingSearchStatus')">Za potražni</button>
-													<button type="button" class="dropdown-item btn-search-process" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('IN_PROCESS', 'shippingSearchStatus')">U potražnom</button>
 												</div>
 											</div>
 										</div>

@@ -3,6 +3,7 @@ package org.bytepoet.shopifysolo.manager.models;
 public enum OrderStatus {
 
 	INITIAL,
+	IN_PREPARATION,
 	IN_PROCESS,
 	IN_POST,
 	FULFILLED,

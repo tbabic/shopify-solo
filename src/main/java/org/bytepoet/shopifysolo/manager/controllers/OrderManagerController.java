@@ -268,7 +268,7 @@ public class OrderManagerController {
 	
 	@RequestMapping(path="/create-shopify-giveaway", method=RequestMethod.POST)
 	public Order saveShopifyGiveaway(@RequestBody ShopifyCreateOrder shopifyCreateOrder, @RequestParam(name="giveawayPlatform", required=false) String platform) throws Exception {
-
+		
 		synchronized(OrderController.class) {
 			ShopifyOrder shopifyOrder = shopifyApiClient.createOrder(shopifyCreateOrder);
 			return orderRepository.saveAndFlush(new GiveawayOrder(shopifyOrder, platform));

@@ -198,6 +198,13 @@ var createOrderComponent = new Vue({
 			this.customItem.price = null;
 			this.customItem.quantity = 1;
 			
+			if(this.type == 'GIVEAWAY') {
+				lineItem.price = 0;
+				lineItem.originalPrice = 0;
+				lineItem.discountedPrice = 0;
+				this.giveawayOrder.line_items.push(lineItem);
+			}
+			
 			this.shopifyOrder.line_items.push(lineItem);
 		},
 		

@@ -19,7 +19,7 @@ public class ShopifyCreateOrder {
 	private List<LineItem> lineItems;
 	
 	@JsonProperty("tags")
-	private String tags;
+	private String tags ="giveaway";
 	
 	@JsonProperty("inventory_behaviour")
 	private String inventoryBehaviour = "decrement_ignoring_policy";
