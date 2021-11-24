@@ -14,6 +14,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ShopifyLineItem {
 
+	@JsonProperty("id")
+	private String id;
+	
 	@JsonProperty("title")
 	private String title;
 	
@@ -34,6 +37,9 @@ public class ShopifyLineItem {
 	
 	@JsonProperty("discount_allocations")
 	private List<ShopifyDiscountAllocation> discountAllocations;
+	
+	@JsonProperty("grams")
+	private double grams;
 
 	public String getTitle() {
 		return title;
@@ -51,6 +57,14 @@ public class ShopifyLineItem {
 		return totalDiscount;
 	}
 	
+	public double getGrams() {
+		return grams;
+	}
+	
+	public String getId() {
+		return id;
+	}
+
 	public String getFullTitle() {
 		if (StringUtils.isBlank(variantTitle)) {
 			return title;
@@ -67,7 +81,7 @@ public class ShopifyLineItem {
 	public String getCurrency() {
 		return priceSet.getCurrency();
 	}
-	
+
 	@JsonIgnore
 	public String getDiscountPercent() {
 		if (discountAllocations.isEmpty()) {

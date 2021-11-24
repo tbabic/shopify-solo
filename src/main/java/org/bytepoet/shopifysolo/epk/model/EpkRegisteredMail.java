@@ -73,7 +73,7 @@ public class EpkRegisteredMail implements EpkMailable {
 		row.additionalAddressInfo.setValue(unaccent(getCompanyAndOther(address)));
 		
 		row.shipmentType.setValue("R");
-		row.mass.setValue(60);
+		row.mass.setValue((int) Math.ceil(order.getWeight()));
 		
 		return row;
 	}

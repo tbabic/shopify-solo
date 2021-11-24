@@ -3,6 +3,8 @@ package org.bytepoet.shopifysolo.manager.controllers;
 import java.io.ByteArrayInputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -33,6 +35,7 @@ import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.manager.repositories.RefundRepository;
 import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
 import org.bytepoet.shopifysolo.services.AsyncOrderFulfillmentService;
+import org.bytepoet.shopifysolo.services.AsyncService;
 import org.bytepoet.shopifysolo.services.FulfillmentMaillingService;
 import org.bytepoet.shopifysolo.services.InvoiceService;
 import org.bytepoet.shopifysolo.services.MailService;
@@ -136,6 +139,9 @@ public class OrderManagerController {
 	
 	@Autowired
 	private AsyncOrderFulfillmentService asyncOrderFulfillmentService;
+	
+	@Autowired
+	private AsyncService asyncService;
 	
 	
 	@RequestMapping(method=RequestMethod.GET)
@@ -317,6 +323,25 @@ public class OrderManagerController {
 		if (order instanceof PaymentOrder) {
 			syncOrder((PaymentOrder) order, sendNotification);
 		}
+	}
+	
+	@RequestMapping(path="/sync-from-shopify", method=RequestMethod.POST)
+	public void syncWeights() {
+		asyncService.run(() -> {
+			Calendar cal = Calendar.getInstance();
+			cal.add(Calendar.MONTH, -1);
+			List<Order> orders = orderRepository.getOrdersToSyncAfterDate(cal.getTime());
+			for(Order order : orders)  {
+				try {
+					ShopifyOrder shopifyOrder = shopifyApiClient.getOrder(order.getShopifyOrderId());
+					order.updateFromShopify(shopifyOrder);
+					orderRepository.save(order);
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
+				}
+			}
+			
+		});
 	}
 	
 	@RequestMapping(path="/{id}/process-payment", method=RequestMethod.POST)

@@ -38,6 +38,12 @@ public class Item {
 	@JsonProperty
 	private String taxRate;
 	
+	@JsonProperty
+	private double weight;
+	
+	@JsonProperty
+	private String shopifyId;
+	
 	@ManyToOne
     @JoinColumn(name = "refundId")
 	@JsonIgnore
@@ -51,6 +57,8 @@ public class Item {
 		this.quantity = lineItem.getQuantity();
 		this.discount = lineItem.getDiscountPercent();
 		this.taxRate = taxRate;
+		this.weight = lineItem.getGrams();
+		this.shopifyId = lineItem.getId();
 		applyTaxRate();
 	}
 	
@@ -85,8 +93,17 @@ public class Item {
 		return taxRate;
 	}
 	
+	public double getWeight() {
+		return weight;
+	}
+	
 	public Long getId() {
 		return id;
+	}
+	
+	public void updateFromShopify(ShopifyLineItem item) {
+		this.weight = item.getGrams();
+		this.shopifyId = item.getId();
 	}
 
 	public void applyTaxRate(String taxRate) {

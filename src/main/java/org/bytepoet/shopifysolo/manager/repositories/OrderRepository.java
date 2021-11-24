@@ -46,4 +46,12 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 			+ "LEFT JOIN FETCH o.items i "
 			+ "WHERE o.status = :status ")
 	List<Order> getByStatus(@Param("status") OrderStatus status);
+	
+	@Query(value="SELECT distinct o FROM ManagedOrder o "
+			+ "LEFT JOIN FETCH o.items i "
+			+ "WHERE (o.status = 'INITIAL' AND o.creationDate > :date) "
+			+ "OR o.status = 'IN_PREPARATION' "
+			+ "OR o.status = 'IN_PROCESS' "
+			+ "OR o.status = 'IN_POST' ")
+	List<Order> getOrdersToSyncAfterDate( @Param("date") Date date);
 }

@@ -19,6 +19,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.Transient;
 
+import org.bytepoet.shopifysolo.shopify.models.ShopifyLineItem;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -141,6 +143,10 @@ public abstract class Order {
 		return true;
 	}
 	
+	public String getShopifyOrderId() {
+		return shopifyOrderId;
+	}
+	
 	public List<Item> getItems() {
 		return items;
 	}
@@ -209,6 +215,34 @@ public abstract class Order {
     public void onPrePersist() {
 		if (this.getCreationDate() == null) {
 			this.creationDate = new Date();
+		}
+	}
+	
+	@JsonProperty(access = Access.READ_ONLY)
+	public double getWeight() {
+		double weight = 0;
+		double letterWeight = 5;
+		double itemBoxWeight = 6;
+		for (Item item : this.items) {
+			double itemWeight = item.getWeight();
+			if (!item.getName().toLowerCase().contains("poklon bon")) {
+				letterWeight = 23;
+				itemWeight+=itemBoxWeight;
+			}
+			weight+=itemWeight;
+		}
+		weight += letterWeight;
+		
+		return weight;
+	}
+	
+	public void updateFromShopify(ShopifyOrder shopifyOrder) {
+		for (Item item : this.items) {
+			for (ShopifyLineItem lineItem : shopifyOrder.getLineItems()) {
+				if (item.getName().equalsIgnoreCase(lineItem.getFullTitle())) {
+					item.updateFromShopify(lineItem);
+				}
+			}
 		}
 	}
 	

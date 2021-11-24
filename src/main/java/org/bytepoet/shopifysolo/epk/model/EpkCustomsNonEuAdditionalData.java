@@ -37,7 +37,7 @@ public class EpkCustomsNonEuAdditionalData implements EpkMailable {
 		}
 		row.quantity.setValue(quantity);
 		
-		row.totalMass.setValue(quantity*15);
+		row.totalMass.setValue((int) Math.ceil(order.getWeight()));
 
 		
 		if(order instanceof PaymentOrder) {
