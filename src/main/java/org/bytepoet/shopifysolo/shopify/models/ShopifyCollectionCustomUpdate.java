@@ -3,6 +3,7 @@ package org.bytepoet.shopifysolo.shopify.models;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -21,6 +22,9 @@ public class ShopifyCollectionCustomUpdate {
 		public String id;
 		
 		public List<ShopifyCollect> collects;
+		
+		@JsonProperty("sort_order")
+		public String sortOrder;
 	}
 	
 	
@@ -32,6 +36,14 @@ public class ShopifyCollectionCustomUpdate {
 			customCollection.collects = new ArrayList<>();
 		}
 		customCollection.collects.add(collect);
+	}
+	
+	@JsonIgnore
+	public void setSortOrder(String sortOrder) {
+		if (customCollection == null) {
+			customCollection = new ShopifyCustomCollection();
+		}
+		customCollection.sortOrder = sortOrder;
 	}
 	
 	

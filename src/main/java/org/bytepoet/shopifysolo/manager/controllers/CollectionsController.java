@@ -80,21 +80,35 @@ public class CollectionsController {
 		return products;
 	}
 	
-	private void updateSmartCollectionSort(List<ShopifyProduct> sortedProducts, String id) {
-		
+	private void updateSmartCollectionSort(List<ShopifyProduct> sortedProducts, String id) throws IOException {
+		List<String> ids = sortedProducts.stream().map(p -> p.id).collect(Collectors.toList());
+		apiClient.updateShopifySmartCollectionOrder(id, "manual", ids);
 	}
 	
 	private void updateCustomCollectionSort(List<ShopifyProduct> sortedProducts, String id) throws IOException {
 		List<ShopifyCollect> collects = apiClient.getShopifyCollects(id);
-		Map<String, ShopifyCollect> map = new HashMap<String, ShopifyCollect>(collects.size(), 1.0f);
+		Map<String, String> map = new HashMap<String, String>(collects.size(), 1.0f);
 		for (ShopifyCollect collect :collects) {
-			map.put(collect.productId, collect);
+			map.put(collect.productId, collect.id);
 		}
 		
 		ShopifyCollectionCustomUpdate custom = new ShopifyCollectionCustomUpdate();
+		custom.setSortOrder("manual");
+		apiClient.updateShopifyCustomCollection(id, custom);
+		
+		int i = 0;
 		for (ShopifyProduct product : sortedProducts) {
-			ShopifyCollect collect = map.get(product.id);
+			i++;
+			ShopifyCollect collect = new ShopifyCollect();
+			collect.id = map.get(product.id);
+			if (collect.id == null) {
+				throw new RuntimeException("Missing collect");
+			}
+			collect.position = String.valueOf(i);
+			custom.addCollect(collect);
 		}
+		custom.setSortOrder(null);
+		apiClient.updateShopifyCustomCollection(id, custom);
 		
 	}
 	

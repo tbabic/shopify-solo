@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCollect;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCollection;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyCollectionCustomUpdate;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDiscount;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDraftOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateOrder;
@@ -36,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponents;
@@ -96,9 +98,9 @@ public class ShopifyApiClient {
 	
 	private static final String SHOPIFY_CUSTOM_COLLECTION="https://{0}/admin/api/2021-10/custom_collections/{1}.json";
 
-	private static final String SHOPIFY_SMART_COLLECTION="https://{0}/admin/api/2021-10/smart_collections/{1}.json";
+	private static final String SHOPIFY_SMART_COLLECTION_ORDER="https://{0}/admin/api/2021-10/smart_collections/{1}/order.json";
 	
-	private static final String SHOPIFY_COLLECTS= "https://{0}/admin/api/2021-10/collects.json?limit=250";
+	private static final String SHOPIFY_COLLECTS= "https://{0}/admin/api/2021-10/collects.json";
 	
 	@Value("${fulfillment.tracking-url}")
 	private String trackingUrl;
@@ -722,12 +724,51 @@ public class ShopifyApiClient {
 	
 	
 	
-	public void updateShopifySmartCollection() {
+	public void updateShopifySmartCollectionOrder(String id, String sortingType, List<String> productIds) throws IOException {
+		if (sortingType != null && !"manual".equals(sortingType) && !CollectionUtils.isEmpty(productIds)) {
+			throw new RuntimeException("Incorrect sorting");
+		}
 		
+		String url = MessageFormat.format(SHOPIFY_SMART_COLLECTION_ORDER, clientHost, id);
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
+		if (StringUtils.isNotBlank(sortingType)) {
+			params.add("sort_order", sortingType);
+		}
+		
+		if(!CollectionUtils.isEmpty(productIds)) {
+			params.addAll("products[]", productIds);
+		}
+		
+		
+		
+		Request request = new Request.Builder()
+				.url(buildUri(url, params))
+				.header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+				.put(RequestBody.create(null, new byte[] {}))
+				.build();
+		Response response = client.newCall(request).execute();
+		String responseBody = response.body().string();
+		if (!response.isSuccessful()) {
+			throw new RuntimeException("Could not update sorting in smart collection: " + responseBody);
+		}
+		return;
 	}
 	
-	public void updateShopifyCustomCollection() {
-		
+	public void updateShopifyCustomCollection(String id, ShopifyCollectionCustomUpdate customCollectionUpdate) throws IOException {
+		String url = MessageFormat.format(SHOPIFY_CUSTOM_COLLECTION, clientHost, id);
+		ObjectMapper mapper = new ObjectMapper();
+		String requestBody = mapper.writeValueAsString(customCollectionUpdate);
+		Request request = new Request.Builder()
+				.url(url)
+				.header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+				.put(RequestBody.create(MediaType.get("application/json"), requestBody))
+				.build();
+		Response response = client.newCall(request).execute();
+		String responseBody = response.body().string();
+		if (!response.isSuccessful()) {
+			throw new RuntimeException("Could not update custom collection: " + responseBody);
+		}
+		return;
 	}
 	
 	public static class CollectsWrapper {
@@ -739,6 +780,7 @@ public class ShopifyApiClient {
 		
 		String url = MessageFormat.format(SHOPIFY_COLLECTS, clientHost);
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
+		params.add("limit", "250");
 		if (StringUtils.isNotBlank(collectionId)) {
 			params.add("collection_id", collectionId);
 		}
