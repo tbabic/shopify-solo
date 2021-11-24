@@ -2,6 +2,12 @@ var createOrderComponent = new Vue({
 	el:"#products",
 	data: {
 		variants : [],
+		
+		collections: [],
+		selectedCollection : null,
+		collectionSortings : [],
+		selectedCollectionSorting : null,
+		
 		discountOptions:[0, 10, 15, 20, 25, 30, 35, 40, 45, 50],
 		
 		bulkDiscount : 0,
@@ -56,47 +62,108 @@ var createOrderComponent = new Vue({
 		
 		loadProducts : function() {
 			this.startLoader();
-			axios.get('/manager/products/all')
+			return axios.get('/manager/products/all')
 			.then(response => {
 				console.log("foundProducts");
-				this.variants.splice(0,this.variants.length);
-				response.data.forEach(product => {
-					product.variants.forEach(variant => {
-						if (variant.title == 'Default Title') {
-							variant.title = product.title;
-						} else {
-							variant.title = product.title + " / " + variant.title;
-						}
-						if(variant.title.includes("POKLON")) {
-							return;
-						}
-						variant.change = false;
-						if (variant.compare_at_price == undefined || variant.compare_at_price == null || variant.compare_at_price == 0) {
-							variant.discount = 0;
-							Vue.set(variant, "regularPrice", variant.price)
-						} else {
-							Vue.set(variant, "regularPrice", variant.compare_at_price)
-							variant.discount = (100*+variant.regularPrice - 100*+variant.price) / +variant.regularPrice;
-						}
-						variant.loadedPrice = variant.price;
-						variant.selected = false;
-						this.variants.push(variant);
-					});
-				});
+				this.processResponse(response);
 				
 				// sort by title
-				this.variants.sort(function(a, b) {
-				  var nameA = a.title.toUpperCase(); // ignore upper and lowercase
-				  var nameB = b.title.toUpperCase(); // ignore upper and lowercase
-				  if (nameA < nameB) {
-				    return -1;
-				  }
-				  if (nameA > nameB) {
-				    return 1;
-				  }
-				  return 0;
-				});
+				this.sortVariants();
 				
+				
+			}).finally(() => {
+				this.endLoader();
+			});
+		},
+		
+		processResponse : function(response) {
+			this.variants.splice(0,this.variants.length);
+			response.data.forEach(product => {
+				product.variants.forEach(variant => {
+					if (variant.title == 'Default Title') {
+						variant.title = product.title;
+					} else {
+						variant.title = product.title + " / " + variant.title;
+					}
+					if(variant.title.includes("POKLON")) {
+						return;
+					}
+					variant.change = false;
+					if (variant.compare_at_price == undefined || variant.compare_at_price == null || variant.compare_at_price == 0) {
+						variant.discount = 0;
+						Vue.set(variant, "regularPrice", variant.price)
+					} else {
+						Vue.set(variant, "regularPrice", variant.compare_at_price)
+						variant.discount = (100*+variant.regularPrice - 100*+variant.price) / +variant.regularPrice;
+					}
+					variant.loadedPrice = variant.price;
+					variant.selected = false;
+					this.variants.push(variant);
+				});
+			});
+		},
+		
+		sortVariants : function() {
+			this.variants.sort(function(a, b) {
+			  var nameA = a.title.toUpperCase(); // ignore upper and lowercase
+			  var nameB = b.title.toUpperCase(); // ignore upper and lowercase
+			  if (nameA < nameB) {
+			    return -1;
+			  }
+			  if (nameA > nameB) {
+			    return 1;
+			  }
+			  return 0;
+			});
+		},
+		
+		loadCollections : function() {
+			console.log("loadingCollections");
+			this.collections.splice(0,this.variants.length);
+			this.startLoader();
+			return axios.get('/manager/collections')
+			.then(response => {
+				response.data.forEach(collection => {
+					this.collections.push(collection);
+				});
+			}).finally(() => {
+				this.endLoader();
+				console.log("collectionsLoadOver");
+			});
+		},
+		
+		loadCollectionProducts : function(collection) {
+			this.startLoader();
+			return axios.get('/manager/collections/'+collection.id+'/products')
+			.then(response => {
+				console.log("foundProducts");
+				this.processResponse(response);	
+				
+			}).finally(() => {
+				this.endLoader();
+			});
+		},
+		
+		selectCollection: function(collection) {
+			this.startLoader();
+			this.selectedCollection = collection;
+			this.loadCollectionProducts(collection);
+			this.endLoader();
+		},
+		
+		clearCollections : function() {
+			this.startLoader();
+			this.selectedCollection = null;
+			this.loadProducts();
+			this.endLoader();
+		},
+		
+		sortCollection : function(sorting) {
+			this.startLoader();
+			return axios.put('/manager/collections/'+this.selectedCollection.id+'/sort', sorting)
+			.then(response => {
+				console.log("foundProducts");
+				this.processResponse(response);	
 				
 			}).finally(() => {
 				this.endLoader();
@@ -179,7 +246,8 @@ var createOrderComponent = new Vue({
 				return variant.title.toLowerCase().includes(this.filter.toLowerCase());
 			});
 			return filteredVariants;
-		}
+		},
+		
 	},
 	
 	mounted : function() {
@@ -197,6 +265,47 @@ var createOrderComponent = new Vue({
 			});
 		}
 		
+		this.collectionSortings.push({
+			display : "Po cijeni od najmanje",
+			sorting: "PRICE",
+			direction: "ASCENDING"
+		});
+		this.collectionSortings.push({
+			display : "Po cijeni od najveće",
+			sorting: "PRICE",
+			direction: "DESCENDING"
+		});
+		this.collectionSortings.push({
+			display : "Po popustu od najmanjeg",
+			sorting: "DISCOUNT",
+			direction: "ASCENDING"
+		});
+		this.collectionSortings.push({
+			display : "Po popustu od najvećeg",
+			sorting: "DISCOUNT",
+			direction: "DESCENDING"
+		});
+		this.collectionSortings.push({
+			display : "Po dostupnosti i cijeni od najmanje",
+			sorting: "AVAILABLE_AND_PRICE",
+			direction: "ASCENDING"
+		});
+		this.collectionSortings.push({
+			display : "Po dostupnosti i cijeni od najveće",
+			sorting: "AVAILABLE_AND_PRICE",
+			direction: "DESCENDING"
+		});
+		this.collectionSortings.push({
+			display : "Po dostupnosti i popustu od najmanjeg",
+			sorting: "AVAILABLE_AND_DISCOUNT",
+			direction: "ASCENDING"
+		});
+		this.collectionSortings.push({
+			display : "Po dostupnosti i popustu od najvećeg",
+			sorting: "AVAILABLE_AND_DISCOUNT",
+			direction: "DESCENDING"
+		});
+		
 		
 		loginPromise.then(response => {
 			this.authToken = response.data.authToken;
@@ -204,8 +313,12 @@ var createOrderComponent = new Vue({
 			localStorage.setItem("token", this.authToken);
 			axios.defaults.headers.common['Authorization'] = this.authToken;
 		}).then(() => {
-			this.loadProducts();
+			return this.loadProducts();
 		}).then(() => {
+			return this.loadCollections();
+		}).then(() => {
+			
+		}).finally(() => {
 			this.endLoader();
 		})
 		

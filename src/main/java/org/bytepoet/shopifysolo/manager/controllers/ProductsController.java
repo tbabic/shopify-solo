@@ -7,6 +7,8 @@ import javax.websocket.server.PathParam;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.shopify.clients.ShopifyApiClient;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyCollect;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyCollection;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyProduct;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyUpdateVariantRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +38,7 @@ public class ProductsController {
 	
 	
 	@RequestMapping(path="/all",method=RequestMethod.GET)
-	public List<ShopifyProduct> getAllProducts(String title) throws Exception {
+	public List<ShopifyProduct> getAllProducts() throws Exception {
 		return apiClient.getProducts(null);
 		
 	}
@@ -46,4 +48,6 @@ public class ProductsController {
 		
 		apiClient.updateProductVariant(id, request);
 	}
+	
+	
 }

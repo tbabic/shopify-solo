@@ -7,17 +7,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ShopifyProductVariant {
 
 	@JsonProperty
-	private String id;
+	public String id;
 	
 	@JsonProperty
-	private String title;
+	public String title;
 	
 	@JsonProperty
-	private String price;
+	public String price;
 	
 	@JsonProperty("compare_at_price")
-	private String compareAtPrice;
+	public String compareAtPrice;
 	
 	@JsonProperty("inventory_quantity")
-	private String quantity;
+	public String quantity;
 }

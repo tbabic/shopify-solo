@@ -23,105 +23,162 @@
 </head>
 
 <body>
-	<div class="container">
+	<div class="container-fluid">
 		
 		
 		
-		<div id="products">
+		<div id="products" class="row">
+			<div class="col-9">
 		
-			<div class="pb-2 mt-4 mb-2 border-bottom">
-				<div class ="row">
-					<div class ="col-4">
-						PROIZVODI
+				<div class="pb-2 mt-4 mb-2 border-bottom">
+					<div class ="row">
+						<div class ="col-4">
+							PROIZVODI
+						</div>
+	
 					</div>
-
 				</div>
-			</div>
-			<div class="pb-2 mt-4 mb-2 border-bottom">
-				<div class ="row">
-					<div class ="col-4">
-						<div class="row">
-							<div class="col-12">
-								<div class="form-group form-inline">
-									<label>Naziv</label>
-									<input v-model="filter" type="text" class="form-control" placeholder="search"/>
+				<div class="pb-2 mt-4 mb-2 border-bottom">
+					<div class ="row">
+						<div class ="col-4">
+							<div class="row">
+								<div class="col-12">
+									<div class="form-group form-inline">
+										<label>Naziv</label>
+										<input v-model="filter" type="text" class="form-control" placeholder="search"/>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-4">
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input" v-model="selectAll" v-on:change="changeAllSelection" true-value="true" false-value="false">
+									</div>
 								</div>
 							</div>
 						</div>
-						<div class="row">
-							<div class="col-2">
-								<div class="form-check">
-									<input type="checkbox" class="form-check-input" v-model="selectAll" v-on:change="changeAllSelection" true-value="true" false-value="false">
+						
+						
+						 
+						<div class ="col-1 text-right">Kol. </div>
+						<div class ="col-3 col-sm-2 col-xl-1">
+							<div class="row">
+								<div class="col-12">
+									Popust
 								</div>
 							</div>
+							<div class="row">
+								<div class="col-12">
+									<div class="form-group">
+										<select class="form-control" v-model="bulkDiscount" v-on:change="applyBulkDiscount">
+											<option v-for="discount in discountOptions">{{ discount }} </option>
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>					
+						<div class ="col-1 text-right">Cijena </div>
+						<div class ="col-1 text-right">Cijena bez popusta</div>
+						<div class ="col-2">
+							<div class="row">
+								<div class="col">
+									<button v-on:click="saveAll" class="btn btn-primary">SPREMI SVE</button>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col">
+									<button v-on:click="loadProducts" class="btn btn-primary">OSVJEŽI</button>
+								</div>
+							</div>
+							
 						</div>
 					</div>
-					 
-					<div class ="col-1 text-right">Kol. </div>
+				</div>
+			
+				<div class ="row" v-for="(variant, index) in filtered">
+					<div class ="col-4">
+						<div class="form-check">
+							<input type="checkbox" class="form-check-input" v-model="variant.selected" true-value="true" false-value="false">
+							<label class="form-check-label" for="exampleCheck1">{{ variant.title }}</label>
+						</div>
+					</div>
+					
+					<div class ="col-1 text-right">
+						{{ variant.inventory_quantity }}
+					</div>
+					
 					<div class ="col-3 col-sm-2 col-xl-1">
+						<div class="form-group">
+							<select v-model="variant.discount" v-on:change="applyDiscount(variant)" class="form-control">
+								<option v-for="discount in discountOptions" v-bind:value="discount">{{ discount }} </option>
+							</select>
+						</div>
+					</div>
+					
+					
+					<div class ="col-1 text-right">
+						{{ variant.price }}
+					</div>
+					<div class ="col-1 text-right">
+						{{ variant.regularPrice }}
+					</div>
+					
+					<div class ="col-2">
+						<button v-on:click="updateVariant(variant)" v-bind:disabled="!variant.change" class="btn btn-primary">SPREMI</button>
+					</div>
+					
+				</div>
+			</div>
+			
+			<div class="col-3">
+				<div class="sticky-top">
+					<div class="pb-2 mt-4 mb-2 border-bottom">
+						<div class ="row">
+							<div class ="col-4">
+								KOLEKCIJE
+							</div>
+		
+						</div>
+					</div>
+					<div class="pb-2 mt-4 mb-2 border-bottom">
 						<div class="row">
-							<div class="col-12">
-								Popust
+							<div class="col-10">
+								<strong>Odabrano:</strong> {{selectedCollection != null ? selectedCollection.title : ''}}
+							</div>
+							<div class="col-2">
+								<button  v-if="selectedCollection != null" v-on:click="clearCollections" class="btn btn-danger">
+									X
+								</button>
 							</div>
 						</div>
 						<div class="row">
 							<div class="col-12">
-								<div class="form-group">
-									<select class="form-control" v-model="bulkDiscount" v-on:change="applyBulkDiscount">
-										<option v-for="discount in discountOptions">{{ discount }} </option>
-									</select>
+								<div class="dropdown">
+									<button :disabled="selectedCollection == null" class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										Sortiraj
+									</button>
+									<div  class="dropdown-menu">
+										<button v-for="sorting in collectionSortings" class="dropdown-item" v-on:click="sortCollection(sorting)">{{sorting.display}}</button>
+									</div>
 								</div>
 							</div>
 						</div>
-					</div>					
-					<div class ="col-1 text-right">Cijena </div>
-					<div class ="col-1 text-right">Cijena bez popusta</div>
-					<div class ="col-2">
-					
-						<button v-on:click="saveAll" class="btn btn-primary">SPREMI SVE</button>
-					</div>
-					<div class ="col-2">
-					
-						<button v-on:click="loadProducts" class="btn btn-primary">OSVJEŽI</button>
-					</div>
-					
-					
-				</div>
-			</div>
 		
-			<div class ="row" v-for="(variant, index) in filtered">
-				<div class ="col-4">
-					<div class="form-check">
-						<input type="checkbox" class="form-check-input" v-model="variant.selected" true-value="true" false-value="false">
-						<label class="form-check-label" for="exampleCheck1">{{ variant.title }}</label>
+						
+						
+					
+					</div>
+					
+					<div class="row" v-for="(collection, index) in collections">
+						<div class="col-12">
+							<button v-on:click="selectCollection(collection)" class="btn btn-link btn-collection">
+								{{collection.title}}
+							</button>
+						</div>
 					</div>
 				</div>
-				
-				<div class ="col-1 text-right">
-					{{ variant.inventory_quantity }}
-				</div>
-				
-				<div class ="col-3 col-sm-2 col-xl-1">
-					<div class="form-group">
-						<select v-model="variant.discount" v-on:change="applyDiscount(variant)" class="form-control">
-							<option v-for="discount in discountOptions" v-bind:value="discount">{{ discount }} </option>
-						</select>
-					</div>
-				</div>
-				
-				
-				<div class ="col-1 text-right">
-					{{ variant.price }}
-				</div>
-				<div class ="col-1 text-right">
-					{{ variant.regularPrice }}
-				</div>
-				
-				<div class ="col-2">
-					<button v-on:click="updateVariant(variant)" v-bind:disabled="!variant.change" class="btn btn-primary">SPREMI</button>
-				</div>
-				
 			</div>
+			
 		</div>
 		<div id= "overlay">
 			<div class="w-100 d-flex justify-content-center align-items-center">

@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyCollect;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyCollection;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDiscount;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDraftOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateOrder;
@@ -27,6 +29,7 @@ import org.bytepoet.shopifysolo.shopify.models.ShopifyPriceRule;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyProduct;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyUpdateVariantRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -83,7 +87,18 @@ public class ShopifyApiClient {
 	private static final String UPDATE_PRODUCT_VARIANT = "https://{0}/admin/api/2021-01/variants/{1}.json";
 	
 	private static final String DISCOUNT_CODE_LOOKUP = "https://{0}/admin/api/2021-04/discount_codes/lookup.json?code={1}";
+	
+	private static final String SHOPIFY_SMART_COLLECTIONS="https://{0}/admin/api/2021-10/smart_collections.json?limit=250";
+	
+	private static final String SHOPIFY_CUSTOM_COLLECTIONS="https://{0}/admin/api/2021-10/custom_collections.json?limit=250";
+	
+	private static final String SHOPIFY_COLLECTION_PRODUCTS="https://{0}/admin/api/2021-10/collections/{1}/products.json?limit=250";
+	
+	private static final String SHOPIFY_CUSTOM_COLLECTION="https://{0}/admin/api/2021-10/custom_collections/{1}.json";
 
+	private static final String SHOPIFY_SMART_COLLECTION="https://{0}/admin/api/2021-10/smart_collections/{1}.json";
+	
+	private static final String SHOPIFY_COLLECTS= "https://{0}/admin/api/2021-10/collects.json?limit=250";
 	
 	@Value("${fulfillment.tracking-url}")
 	private String trackingUrl;
@@ -633,4 +648,144 @@ public class ShopifyApiClient {
 		return priceRuleResponse;
 		
 	}
+	
+	public static class CollectionsWrapper {
+		@JsonProperty("smart_collections")
+		@JsonAlias("custom_collections")
+		public List<ShopifyCollection> collections;
+	}
+	
+	public List<ShopifyCollection> getShopifySmartCollections() throws IOException {
+		String url = MessageFormat.format(SHOPIFY_SMART_COLLECTIONS, clientHost);
+		Request request = new Request.Builder()
+			      .url(url)
+			      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+			      .build();
+		Response response = client.newCall(request).execute();
+		String responseBodyString = response.body().string();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
+		CollectionsWrapper wrapper = mapper.readValue(responseBodyString, CollectionsWrapper.class);
+		return wrapper.collections;
+	}
+	
+	public List<ShopifyCollection> getShopifyCustomCollections() throws IOException {
+		String url = MessageFormat.format(SHOPIFY_CUSTOM_COLLECTIONS, clientHost);
+		Request request = new Request.Builder()
+			      .url(url)
+			      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+			      .build();
+		Response response = client.newCall(request).execute();
+		String responseBodyString = response.body().string();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
+		CollectionsWrapper wrapper = mapper.readValue(responseBodyString, CollectionsWrapper.class);
+		return wrapper.collections;
+	}
+	
+
+	
+	public List<ShopifyProduct> getShopifyCollectionProducts(String id) throws IOException {
+		String url = MessageFormat.format(SHOPIFY_COLLECTION_PRODUCTS, clientHost, id);
+		Request request = new Request.Builder()
+			      .url(url)
+			      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+			      .build();
+		Response response = client.newCall(request).execute();
+		String responseBodyString = response.body().string();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
+		ProductsWrapper wrapper = mapper.readValue(responseBodyString, ProductsWrapper.class);
+		List<ShopifyProduct> list = new ArrayList<>(wrapper.products);
+		
+		String nextUrl = getNextPageLink(response);
+		
+		while (nextUrl != null) {
+			request = new Request.Builder()
+				      .url(nextUrl)
+				      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+				      .build();
+			response = client.newCall(request).execute();
+			responseBodyString = response.body().string();
+			wrapper = mapper.readValue(responseBodyString, ProductsWrapper.class);
+			list.addAll(wrapper.products);
+			
+			nextUrl = getNextPageLink(response);
+		}
+		
+		
+		return list;
+	}
+	
+	
+	
+	public void updateShopifySmartCollection() {
+		
+	}
+	
+	public void updateShopifyCustomCollection() {
+		
+	}
+	
+	public static class CollectsWrapper {
+		@JsonProperty("collects")
+		public List<ShopifyCollect> collects;
+	}
+	
+	public List<ShopifyCollect> getShopifyCollects(String collectionId) throws IOException {
+		
+		String url = MessageFormat.format(SHOPIFY_COLLECTS, clientHost);
+		MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
+		if (StringUtils.isNotBlank(collectionId)) {
+			params.add("collection_id", collectionId);
+		}
+		
+		
+		Request request = new Request.Builder()
+			      .url(buildUri(url, params))
+			      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+			      .build();
+		Response response = client.newCall(request).execute();
+		String responseBodyString = response.body().string();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
+		CollectsWrapper wrapper = mapper.readValue(responseBodyString, CollectsWrapper.class);
+		List<ShopifyCollect> list = new ArrayList<ShopifyCollect>(wrapper.collects);
+	
+		String nextUrl = getNextPageLink(response);
+		
+		while (nextUrl != null) {
+			request = new Request.Builder()
+				      .url(nextUrl)
+				      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+				      .build();
+			response = client.newCall(request).execute();
+			responseBodyString = response.body().string();
+			wrapper = mapper.readValue(responseBodyString, CollectsWrapper.class);
+			list.addAll(wrapper.collects);
+			
+			nextUrl = getNextPageLink(response);
+		}
+		
+		
+		return list;
+	}
+	
+	
+	private String getNextPageLink(Response response) {
+		String headerLink = response.header("link");
+		if (headerLink == null) {
+			return null;
+		}
+		Map<String, String> links = Stream.of(headerLink.split(",")).collect(Collectors.toMap(
+				h -> h.split(";")[1].trim(),
+				h -> h.split(";")[0].replace('<',' ').replace('>', ' ').trim()));
+		String nextUrl = links.get("rel=\"next\"");
+		return nextUrl;
+	}
+	
 }
