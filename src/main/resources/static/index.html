@@ -193,7 +193,7 @@
 								<th>rbr</th>
 								<th>racun</th>
 								<th>e-mail</th>
-								<th>ponuda</th>
+								<th>težina</th>
 								<th>webshop narudzba</th>
 								<th>model</th>
 								<th>Napomena</th>
@@ -215,7 +215,7 @@
 									<div class="row" v-if="order.giveawayPlatform != '' && order.type == 'GIVEAWAY'">{{order.giveawayPlatform}}</div>
 									<div class="row">{{ order.shippingInfo.fullName }}</div>
 								</td>
-								<td class="tender-number">{{ order.tenderNumber }}</td>
+								<td class="tender-number">{{ order.weight != 0 ? (order.weight +'g') : 'NN'}}</td>
 								<td class="shopify-number">{{ order.shopifyOrderNumber }}</td>
 								<td>
 									<span v-for="item in order.items">
@@ -792,6 +792,7 @@
 													<th>Model</th>
 													<th v-if="role == 'ROLE_CREATOR' || role == 'ROLE_ADMIN'">Cijena</th>
 													<th>Kolicina</th>
+													<th>Tezina</th>
 												</tr>
 											</thead>
 											<tbody>
@@ -799,6 +800,7 @@
 													<td> {{ item.name }}</td>
 													<td v-if="role == 'ROLE_CREATOR' || role == 'ROLE_ADMIN'"> {{ item.price }} </td>
 													<td> {{ item.quantity }} </td>
+													<td><input v-model="item.weight"> </td>
 												</tr>
 											</tbody>
 										</table>

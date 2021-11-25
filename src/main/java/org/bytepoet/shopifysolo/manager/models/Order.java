@@ -224,9 +224,15 @@ public abstract class Order {
 		double letterWeight = 5;
 		double itemBoxWeight = 6;
 		for (Item item : this.items) {
+			if (item.getName().toLowerCase().contains("poštarina")) {
+				continue;
+			}
 			double itemWeight = item.getWeight();
+			if (itemWeight == 0) {
+				return 0;
+			}
 			if (!item.getName().toLowerCase().contains("poklon bon")) {
-				letterWeight = 23;
+				letterWeight = 60;
 				itemWeight+=itemBoxWeight;
 			}
 			weight+=itemWeight;
@@ -236,14 +242,19 @@ public abstract class Order {
 		return weight;
 	}
 	
-	public void updateFromShopify(ShopifyOrder shopifyOrder) {
+	public boolean updateFromShopify(ShopifyOrder shopifyOrder) {
+		boolean orderSuccess = true;
 		for (Item item : this.items) {
 			for (ShopifyLineItem lineItem : shopifyOrder.getLineItems()) {
 				if (item.getName().equalsIgnoreCase(lineItem.getFullTitle())) {
-					item.updateFromShopify(lineItem);
+					boolean itemSuccess = item.updateFromShopify(lineItem);
+					if(!itemSuccess) {
+						orderSuccess = false;
+					}
 				}
 			}
 		}
+		return orderSuccess;
 	}
 	
 }

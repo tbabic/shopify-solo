@@ -14,6 +14,8 @@ import javax.persistence.Transient;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyLineItem;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyProductVariant;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -97,13 +99,34 @@ public class Item {
 		return weight;
 	}
 	
+	public String getShopifyId() {
+		return shopifyId;
+	}
+
 	public Long getId() {
 		return id;
 	}
 	
-	public void updateFromShopify(ShopifyLineItem item) {
-		this.weight = item.getGrams();
-		this.shopifyId = item.getId();
+	public boolean updateFromShopify(ShopifyLineItem item) {
+		if (this.weight == 0) {
+			this.weight = item.getGrams();
+		}
+		this.shopifyId = item.getVariantId();
+		if (item.getGrams() == 0) {
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean updateFromShopify(ShopifyProductVariant variant) {
+		if (this.weight == 0) {
+			this.weight = Double.parseDouble(variant.grams);
+		}
+		this.shopifyId = variant.id;
+		if (this.weight == 0) {
+			return false;
+		}
+		return true;
 	}
 
 	public void applyTaxRate(String taxRate) {

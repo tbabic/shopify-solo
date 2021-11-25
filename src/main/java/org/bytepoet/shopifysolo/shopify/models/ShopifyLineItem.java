@@ -38,6 +38,9 @@ public class ShopifyLineItem {
 	@JsonProperty("discount_allocations")
 	private List<ShopifyDiscountAllocation> discountAllocations;
 	
+	@JsonProperty("variant_id")
+	private String variantId;
+	
 	@JsonProperty("grams")
 	private double grams;
 
@@ -106,6 +109,12 @@ public class ShopifyLineItem {
 		return "ShopifyLineItem [title=" + title + ", quantity=" + quantity + ", price=" + price + ", variantTitle="
 				+ variantTitle + ", totalDiscount=" + totalDiscount + ", priceSet=" + priceSet + "]";
 	}
+
+	public String getVariantId() {
+		return variantId;
+	}
+	
+	
 	
 	
 	

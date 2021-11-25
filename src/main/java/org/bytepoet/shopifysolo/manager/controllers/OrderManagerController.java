@@ -53,6 +53,7 @@ import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateDraftOrder.ShippingA
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyFulfillment;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyProductVariant;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -332,16 +333,37 @@ public class OrderManagerController {
 			cal.add(Calendar.MONTH, -1);
 			List<Order> orders = orderRepository.getOrdersToSyncAfterDate(cal.getTime());
 			for(Order order : orders)  {
-				try {
-					ShopifyOrder shopifyOrder = shopifyApiClient.getOrder(order.getShopifyOrderId());
-					order.updateFromShopify(shopifyOrder);
-					orderRepository.save(order);
-				} catch (Exception e) {
-					logger.error(e.getMessage(), e);
-				}
+				syncOrderWeightInternal(order);
 			}
 			
 		});
+	}
+	
+	@RequestMapping(path="/{id}/sync-from-shopify", method=RequestMethod.POST)
+	public void syncWeights(@PathVariable("id") long id) {
+		Order order = orderRepository.findById(id).get();
+		syncOrderWeightInternal(order);
+	}
+
+	private void syncOrderWeightInternal(Order order) {
+		try {
+			ShopifyOrder shopifyOrder = shopifyApiClient.getOrder(order.getShopifyOrderId());
+			boolean updateSuccess = order.updateFromShopify(shopifyOrder);
+			if (!updateSuccess) {
+				for (Item item : order.getItems()) {
+					if (item.getWeight() == 0 && item.getShopifyId() != null) {
+						ShopifyProductVariant variant = shopifyApiClient.getShopifyVariant(item.getShopifyId());
+						if (variant != null) {
+							item.updateFromShopify(variant);
+						}
+						
+					}
+				}
+			}
+			orderRepository.save(order);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		}
 	}
 	
 	@RequestMapping(path="/{id}/process-payment", method=RequestMethod.POST)

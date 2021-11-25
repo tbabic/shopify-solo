@@ -28,6 +28,7 @@ import org.bytepoet.shopifysolo.shopify.models.ShopifyFulfillment;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyPriceRule;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyProduct;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyProductVariant;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyTransaction;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyUpdateVariantRequest;
 
@@ -101,6 +102,10 @@ public class ShopifyApiClient {
 	private static final String SHOPIFY_SMART_COLLECTION_ORDER="https://{0}/admin/api/2021-10/smart_collections/{1}/order.json";
 	
 	private static final String SHOPIFY_COLLECTS= "https://{0}/admin/api/2021-10/collects.json";
+	
+	private static final String SHOPIFY_VARIANT = "https://{0}/admin/api/2021-10/variants/{1}.json";
+	
+	private static final String SHOPIFY_PRODUCT = "https://{0}/admin/api/2021-10/products/{1}.json";
 	
 	@Value("${fulfillment.tracking-url}")
 	private String trackingUrl;
@@ -555,7 +560,7 @@ public class ShopifyApiClient {
 		
 	}
 	
-	public static class VariantWrapper {
+	public static class UpdateVariantWrapper {
 		
 		@JsonProperty
 		private ShopifyUpdateVariantRequest variant;
@@ -567,7 +572,7 @@ public class ShopifyApiClient {
 		
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		VariantWrapper requestWrapper = new VariantWrapper();
+		UpdateVariantWrapper requestWrapper = new UpdateVariantWrapper();
 		requestWrapper.variant = variantRequest;
 		String requestBody = mapper.writeValueAsString(requestWrapper);
 		
@@ -815,6 +820,60 @@ public class ShopifyApiClient {
 		
 		
 		return list;
+	}
+	
+	public static class VariantWrapper {
+		@JsonProperty("variant")
+		public ShopifyProductVariant variant;
+	}
+	
+	public ShopifyProductVariant getShopifyVariant(String id) throws IOException {
+		String url = MessageFormat.format(SHOPIFY_VARIANT, clientHost, id);
+		Request request = new Request.Builder()
+			      .url(url)
+			      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+			      .build();
+		Response response = client.newCall(request).execute();
+		String responseBodyString = response.body().string();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
+		if (StringUtils.isBlank(responseBodyString)) {
+			return null;
+		}
+		
+		VariantWrapper wrapper = mapper.readValue(responseBodyString, VariantWrapper.class);
+		if (wrapper == null) {
+			return null;
+		}
+		return wrapper.variant;
+	}
+	
+	public static class ProductWrapper {
+		@JsonProperty("variant")
+		public ShopifyProduct variant;
+	}
+	
+	public ShopifyProduct getShopifyProduct(String id) throws IOException {
+		String url = MessageFormat.format(SHOPIFY_PRODUCT, clientHost, id);
+		Request request = new Request.Builder()
+			      .url(url)
+			      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+			      .build();
+		Response response = client.newCall(request).execute();
+		String responseBodyString = response.body().string();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
+		if (StringUtils.isBlank(responseBodyString)) {
+			return null;
+		}
+		
+		ProductWrapper wrapper = mapper.readValue(responseBodyString, ProductWrapper.class);
+		if (wrapper == null) {
+			return null;
+		}
+		return wrapper.variant;
 	}
 	
 	
