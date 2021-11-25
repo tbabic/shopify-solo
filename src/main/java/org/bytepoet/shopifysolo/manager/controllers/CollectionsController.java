@@ -215,7 +215,7 @@ public class CollectionsController {
 			return 0;
 		}
 		double variantPrice = Double.parseDouble(variant.price);
-		return 100 * variantPrice / compareAtPrice;
+		return 100 - (100 * variantPrice / compareAtPrice);
 	}
 	
 	
