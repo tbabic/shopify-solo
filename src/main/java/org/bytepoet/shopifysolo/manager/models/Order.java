@@ -223,6 +223,7 @@ public abstract class Order {
 		double weight = 0;
 		double letterWeight = 5;
 		double itemBoxWeight = 6;
+		int count = 0;
 		for (Item item : this.items) {
 			if (item.getName().toLowerCase().contains("poštarina")) {
 				continue;
@@ -236,6 +237,10 @@ public abstract class Order {
 				itemWeight+=itemBoxWeight;
 			}
 			weight+=itemWeight;
+			count++;
+		}
+		if (count > 3) {
+			letterWeight = 60;
 		}
 		weight += letterWeight;
 		
