@@ -78,7 +78,11 @@ public class EpkExpressMail implements EpkMailable {
 		
 		row.shipmentType.setValue("E");
 		row.mass.setValue((int) Math.ceil( order.getWeight()));
-		row.deadline.setValue("3");
+		
+		//String areaCode = EpkLocations.getCode(address.getPostalCode().replaceAll(" ", ""), address.getCity().trim().toLowerCase());
+		//row.areaCode.setValue(areaCode);
+		
+		row.deadline.setValue("7");
 		row.payer.setValue("P");
 		row.volumetricMass.setValue(false);
 		row.groupedShipment.setValue(false);
