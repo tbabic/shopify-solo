@@ -235,8 +235,6 @@ public abstract class Order {
 			if (!item.getName().toLowerCase().contains("poklon bon")) {
 				letterWeight = 23;
 				itemWeight+=itemBoxWeight;
-			}
-			else {
 				count++;
 			}
 			weight+=itemWeight;
