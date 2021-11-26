@@ -233,11 +233,14 @@ public abstract class Order {
 				return 0;
 			}
 			if (!item.getName().toLowerCase().contains("poklon bon")) {
-				letterWeight = 60;
+				letterWeight = 23;
 				itemWeight+=itemBoxWeight;
 			}
+			else {
+				count++;
+			}
 			weight+=itemWeight;
-			count++;
+			
 		}
 		if (count > 3) {
 			letterWeight = 60;
