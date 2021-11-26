@@ -335,6 +335,7 @@ public class OrderManagerController {
 			for(Order order : orders)  {
 				syncOrderWeightInternal(order);
 			}
+			logger.info("Sync finished");
 			
 		});
 	}
