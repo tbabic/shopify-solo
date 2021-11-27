@@ -325,6 +325,14 @@ th {
 	display:none;
 }
 
+.recepient-address {
+		font-size: 16px;
+	}
+	
+	.sender-address {
+    	font-size: 13.5px;
+	}
+
 
 @media print {
 	
@@ -341,11 +349,16 @@ th {
 	}
 	
 	.address-element {
-		font-size: 13.5px;
+		
+	}
+	
+	.recepient-address {
+		font-size: 16px;
 	}
 	
 	.sender-address {
     	-webkit-print-color-adjust: exact; 
+    	font-size: 13.5px;
 	}
 	
 }

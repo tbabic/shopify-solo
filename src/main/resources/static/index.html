@@ -444,6 +444,13 @@
 													</div>
 												</div>
 												
+												<div class="">
+													<barcode tag="img" v-model="shippingOrder.id"
+														:options="{ displayValue: false, height:30 }"
+														
+													></barcode>
+												</div>
+												
 												<div class="sender-address address-element">
 													<div class="row">
 														Šalje: Imagine Now d.o.o.
@@ -455,12 +462,7 @@
 												</div>
 											</div>
 											<div class="col-6">
-												<div class="">
-													<barcode tag="img" v-model="shippingOrder.id"
-														:options="{ displayValue: false, height:30 }"
-														
-													></barcode>
-												</div>
+												
 												<div class="recepient-address address-element" contenteditable="true">
 													<div class="row">
 														Prima:
