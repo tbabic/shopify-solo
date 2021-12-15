@@ -230,7 +230,7 @@ public abstract class Order {
 			}
 			double itemWeight = item.getWeight();
 			if (itemWeight == 0) {
-				return 0;
+				itemWeight = 5;
 			}
 			if (!item.getName().toLowerCase().contains("poklon bon")) {
 				letterWeight = 23;
@@ -244,6 +244,13 @@ public abstract class Order {
 			letterWeight = 60;
 		}
 		weight += letterWeight;
+		
+		if (count <= 3 && weight >= 50) {
+			return 49;
+		}
+		if (weight >= 100) {
+			return 99;
+		}
 		
 		return weight;
 	}
