@@ -309,7 +309,7 @@
 									<div class="col-2">Naslov</div>
 									<div id="emailSubjectContent" class="col">{{ selectedOrder.trackingNumber }} - POTRAŽNI POSTUPAK</div>
 									<div class="col-1">
-										<button type="button" v-on:click="copyDivContent('#emailSubjectContent')">
+										<button type="button" class="btn btn-primary" v-on:click="copyDivContent('#emailSubjectContent')">
 											<img src="/icons/documents.svg" alt="" width="16" height="16" title="Kopiraj">
 										</button>
 									</div>
@@ -321,7 +321,7 @@
 tvrtka IMAGINE NOW d.o.o. vaš je poslovni korisnik (laus šifra: 680929).
 Pokrećemo potražni postupak za paket u maloj kartonskoj kutijici. Pri statusu piše da je od {{ formatDateShort(selectedOrder.sendingDate) }} u pošti i  ne mijenja status. Šifra za praćenje:
 
-{{ selectedOrder.trackingNumber }} {{ selectedOrder.shippingInfo.fullName }}, {{ selectedOrder.shippingInfo.streetAndNumber }}, {{ selectedOrder.shippingInfo.postalCode }} {{ selectedOrder.shippingInfo.city }}
+{{ selectedOrder.trackingNumber }} {{ selectedOrder.shippingInfo.fullName }}, {{ selectedOrder.shippingInfo.streetAndNumber }}, {{ selectedOrder.shippingInfo.postalCode }} {{ selectedOrder.shippingInfo.city }},  {{ selectedOrder.shippingInfo.country == 'Croatia' ? '' : selectedOrder.shippingInfo.country }}
 
 Molimo Vas očitovanje o istom.
 
@@ -329,7 +329,7 @@ Hvala!
 Lp
 									</div>
 									<div class="col-1">
-										<button type="button" v-on:click="copyDivContent('#emailBodyContent')">
+										<button type="button" class="btn btn-primary" v-on:click="copyDivContent('#emailBodyContent')">
 											<img src="/icons/documents.svg" alt="" width="16" height="16" title="Kopiraj">
 										</button>
 									</div>
