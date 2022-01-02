@@ -43,14 +43,11 @@ public class OrderFulfillmentService {
 		}
 		order.fulfill(order.getTrackingNumber());
 		order = orderRepository.save(order);
-		if (order instanceof PaymentOrder) {
-			syncOrder((PaymentOrder) order, true);
-		} else {
-			fulfillmentMaillingService.sendFulfillmentEmail(order.getContact(), order.getTrackingNumber());
-		}
+		syncOrder(order, true);
+		
 	}
 	
-	private boolean syncOrder(PaymentOrder order, boolean sendNotification) throws Exception {
+	private boolean syncOrder(Order order, boolean sendNotification) throws Exception {
 		List<ShopifyFulfillment> fulfillments = shopifyApiClient.getFulfillments(order.getShopifyOrderId());
 		sendNotification = sendNotification & !order.isPersonalTakeover();
 		logger.info(MessageFormat.format("notification id: {0}, shopify: {1}, {2}", order.getShopifyOrderNumber(), order.getShopifyOrderId(), sendNotification));

@@ -85,7 +85,7 @@ public class OrderManagerControllerTests {
 	@Test
 	public void getOrders_orderSentByShopify_oneOrderReturned() throws Exception {
 		provideValidOrders("1");
-		Page<Order> orderPage = orderManagerController.getOrders(null, null, null,null, null, null, null, null, 0, 1, null, null);
+		Page<Order> orderPage = orderManagerController.getOrders(null, null, null,null, null, null, null, null, null, 0, 1, null, null);
 		Assert.assertThat(orderPage.getTotalElements(), equalTo(1L));
 		assertValidOrder(orderPage.getContent().get(0), "1");
 	}
@@ -93,7 +93,7 @@ public class OrderManagerControllerTests {
 	@Test
 	public void getOrders_twoSameOrdersSentByShopify_oneOrderReturned() throws Exception {
 		provideValidOrders("1", "1");
-		Page<Order> orderPage = orderManagerController.getOrders(null, null, null,null, null, null, null, null, 0, 1, null, null);
+		Page<Order> orderPage = orderManagerController.getOrders(null, null, null,null, null, null, null, null, null, 0, 1, null, null);
 		Assert.assertThat(orderPage.getTotalElements(), equalTo(1L));
 		Assert.assertThat(orderPage.getContent().get(0), instanceOf(PaymentOrder.class));
 		assertValidOrder(orderPage.getContent().get(0), "1");
@@ -102,7 +102,7 @@ public class OrderManagerControllerTests {
 	@Test
 	public void getOrders_twoDifferentOrdersSentByShopify_twoOrdersReturned() throws Exception {
 		provideValidOrders("1", "2");
-		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, 0, 2, null, null);
+		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, null, 0, 2, null, null);
 		Assert.assertThat(orderPage.getTotalElements(), equalTo(2L));
 		
 		assertValidOrder(orderPage.getContent().get(0), "1");
@@ -113,7 +113,7 @@ public class OrderManagerControllerTests {
 	@Test
 	public void getOrders_tenderSentByShopify_oneOrderReturned() throws Exception {
 		provideValidTenders("1");
-		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null,  null, 0, 1, null, null);
+		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null,  null, 0, 1, null, null);
 		Assert.assertThat(orderPage.getTotalElements(), equalTo(1L));
 		assertValidUnpaidTender(orderPage.getContent().get(0), "1");
 	}
@@ -121,7 +121,7 @@ public class OrderManagerControllerTests {
 	@Test
 	public void getOrders_twoSameTendersSentByShopify_oneOrderReturned() throws Exception {
 		provideValidTenders("1", "1");
-		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, 0, 1, null, null);
+		Page<Order> orderPage = orderManagerController.getOrders(null, null, null,null, null, null, null, null, null, 0, 1, null, null);
 		Assert.assertThat(orderPage.getTotalElements(), equalTo(1L));
 		assertValidUnpaidTender(orderPage.getContent().get(0), "1");
 	}
@@ -129,7 +129,7 @@ public class OrderManagerControllerTests {
 	@Test
 	public void getOrders_twoDifferentTendersSentByShopify_twoOrdersReturned() throws Exception {
 		provideValidTenders("1", "2");
-		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, 0, 2, null, null);
+		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, null, 0, 2, null, null);
 		Assert.assertThat(orderPage.getTotalElements(), equalTo(2L));
 		
 		assertValidUnpaidTender(orderPage.getContent().get(0), "1");
@@ -141,7 +141,7 @@ public class OrderManagerControllerTests {
 	public void getOrders_twoTendersAndTwoOrders_fourOrdersReturned() throws Exception {
 		provideValidTenders("1", "2");
 		provideValidOrders("3", "4");
-		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, 0, 4, null, null);
+		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, null, 0, 4, null, null);
 		Assert.assertThat(orderPage.getTotalElements(), equalTo(4L));
 		
 		assertValidUnpaidTender(orderPage.getContent().get(0), "1");
@@ -154,7 +154,7 @@ public class OrderManagerControllerTests {
 	public void getOrders_twoTendersAndPaid_twoOrdersReturned() throws Exception {
 		provideValidTenders("1", "2");
 		provideValidOrders("1", "2");
-		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, 0, 2, null, null);
+		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, null, 0, 2, null, null);
 		Assert.assertThat(orderPage.getTotalElements(), equalTo(2L));
 		
 		assertValidTenderOrder(orderPage.getContent().get(0), "1");
@@ -165,7 +165,7 @@ public class OrderManagerControllerTests {
 	public void getOrders_twoTendersOnePaidOneOrder_twoOrdersReturned() throws Exception {
 		provideValidTenders("1", "2");
 		provideValidOrders("1", "3");
-		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, 0, 3, null, null);
+		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, null, 0, 3, null, null);
 		Assert.assertThat(orderPage.getTotalElements(), equalTo(3L));
 		
 		assertValidTenderOrder(orderPage.getContent().get(0), "1");
@@ -176,7 +176,7 @@ public class OrderManagerControllerTests {
 	@Test
 	public void refundOrder_ok() throws Exception {
 		provideValidOrders("1");
-		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, 0, 1, null, null);
+		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, null, 0, 1, null, null);
 		PaymentOrder order = (PaymentOrder) orderPage.getContent().get(0);
 		
 		Item item = order.getItems().get(0);
@@ -194,7 +194,7 @@ public class OrderManagerControllerTests {
 	@Test
 	public void refundOrderCustom_ok() throws Exception {
 		provideValidOrders("1");
-		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, 0, 1, null, null);
+		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, null, 0, 1, null, null);
 		PaymentOrder order = (PaymentOrder) orderPage.getContent().get(0);
 		
 		Item item = new Item("Custom refund", "100", 1, "0", "25");
@@ -214,7 +214,7 @@ public class OrderManagerControllerTests {
 	@Test
 	public void refundOrder_thenUpdateOrder_ok() throws Exception {
 		provideValidOrders("1");
-		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, 0, 1, null, null);
+		Page<Order> orderPage = orderManagerController.getOrders(null, null, null, null, null, null, null, null, null, 0, 1, null, null);
 		PaymentOrder order = (PaymentOrder) orderPage.getContent().get(0);
 		
 		Item item = order.getItems().get(0);

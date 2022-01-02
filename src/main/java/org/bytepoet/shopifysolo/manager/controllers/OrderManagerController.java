@@ -30,6 +30,7 @@ import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.models.PaymentType;
 import org.bytepoet.shopifysolo.manager.models.Refund;
 import org.bytepoet.shopifysolo.manager.models.RefundInvoice;
+import org.bytepoet.shopifysolo.manager.models.SearchProcedureStatus;
 import org.bytepoet.shopifysolo.manager.models.ShippingSearchStatus;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.manager.repositories.RefundRepository;
@@ -42,6 +43,7 @@ import org.bytepoet.shopifysolo.services.MailService;
 import org.bytepoet.shopifysolo.services.OrderFulfillmentService;
 import org.bytepoet.shopifysolo.services.PdfInvoiceService;
 import org.bytepoet.shopifysolo.services.PdfRefundService;
+import org.bytepoet.shopifysolo.services.PdfSearchRefundService;
 import org.bytepoet.shopifysolo.services.RefundService;
 import org.bytepoet.shopifysolo.services.MailService.MailAttachment;
 import org.bytepoet.shopifysolo.services.MailService.MailReceipient;
@@ -144,6 +146,9 @@ public class OrderManagerController {
 	@Autowired
 	private AsyncService asyncService;
 	
+	@Autowired
+	private PdfSearchRefundService pdfSearchRefundService;
+	
 	
 	@RequestMapping(method=RequestMethod.GET)
 	public Page<Order> getOrders(
@@ -152,7 +157,8 @@ public class OrderManagerController {
 			@RequestParam(name="personalTakeover", required=false) Boolean isPersonalTakeover,
 			@RequestParam(name="type", required=false) OrderType type,
 			@RequestParam(name="status", required=false) List<OrderStatus> statusList,
-			@RequestParam(name="shippingSearchStatus", required=false) ShippingSearchStatus shippingSearchStatus,
+			@RequestParam(name="searchProcedureStatus", required=false) List<SearchProcedureStatus> searchProcedureStatus,
+			@RequestParam(name="shippingSearchStatus", required=false) List<ShippingSearchStatus> shippingSearchStatus,
 			@RequestParam(name="hasNote", required=false) Boolean hasNote,
 			@RequestParam(name="search", required=false) String search,
 			@RequestParam(name="page", required=false, defaultValue = "0") int page,
@@ -193,8 +199,11 @@ public class OrderManagerController {
 				if(isPersonalTakeover != null) {
 					predicates.add(criteriaBuilder.equal(actualRoot.get("personalTakeover"), isPersonalTakeover.booleanValue()));
 				}
-				if(shippingSearchStatus != null) {
-					predicates.add(criteriaBuilder.equal(actualRoot.get("shippingSearchStatus"), shippingSearchStatus));
+				if(searchProcedureStatus != null && !searchProcedureStatus.isEmpty()) {
+					predicates.add(actualRoot.get("searchProcedureStatus").in(searchProcedureStatus));
+				}
+				if(shippingSearchStatus != null && !shippingSearchStatus.isEmpty()) {
+					predicates.add(actualRoot.get("shippingSearchStatus").in(shippingSearchStatus));
 				}
 				if(hasNote != null) {
 					if (hasNote.booleanValue()) {
@@ -210,9 +219,12 @@ public class OrderManagerController {
 				}
 				if (StringUtils.isNotBlank(search)) {
 					List<Predicate> searchPredicates = new ArrayList<>();
-					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("note")), "%"+search.toLowerCase()+"%"));
-					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("contact")), "%"+search.toLowerCase()+"%"));
-					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("shippingInfo").get("fullName")), "%"+search.toLowerCase()+"%"));
+					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("note")), "%"+search.trim().toLowerCase()+"%"));
+					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("contact")), "%"+search.trim().toLowerCase()+"%"));
+					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("shippingInfo").get("fullName")), "%"+search.trim().toLowerCase()+"%"));
+					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("trackingNumber")), "%"+search.trim().toLowerCase()+"%"));
+					searchPredicates.add(criteriaBuilder.like(actualRoot.get("shopifyOrderNumber"), "%"+search.trim()+"%"));
+					
 					
 					boolean paymentOrderIncluded = false;
 					
@@ -228,8 +240,7 @@ public class OrderManagerController {
 			
 						sq.select(sqRoot.get("id")).where(criteriaBuilder.or(
 								criteriaBuilder.like(sqRoot.get("tenderNumber"), "%"+search+"%"),
-								criteriaBuilder.like(sqRoot.get("invoice").get("number"), "%"+search+"%"),
-								criteriaBuilder.like(sqRoot.get("shopifyOrderNumber"), "%"+search+"%")));
+								criteriaBuilder.like(sqRoot.get("invoice").get("number"), "%"+search.trim()+"%")));
 						searchPredicates.add(criteriaBuilder.in(actualRoot.get("id")).value(sq));
 			
 					}
@@ -321,10 +332,10 @@ public class OrderManagerController {
 		Order order = orderRepository.getOne(orderId);
 		order.fulfill(trackingNumber);
 		order = orderRepository.save(order);
-		if (order instanceof PaymentOrder) {
-			syncOrder((PaymentOrder) order, sendNotification);
-		}
+		syncOrder((PaymentOrder) order, sendNotification);
 	}
+	
+	
 	
 	@RequestMapping(path="/sync-from-shopify", method=RequestMethod.POST)
 	public void syncWeights() {
@@ -438,7 +449,7 @@ public class OrderManagerController {
 		
 	}
 	
-	public class PdfInvoiceContent {
+	public class FileContent {
 
 		@JsonProperty
 		private String fileName;
@@ -449,7 +460,7 @@ public class OrderManagerController {
 	}
 	
 	@RequestMapping(path="/{id}/download-invoice", method=RequestMethod.POST)
-	public PdfInvoiceContent downloadInvoice(@PathVariable("id") Long orderId, 
+	public FileContent downloadInvoice(@PathVariable("id") Long orderId, 
 			@RequestParam(name="paymentDate", required=false) Date paymentDate,
 			@RequestParam(name="r1", required=false) boolean r1,
 			@RequestParam(name="oib", required=false) String oib) throws Exception {
@@ -457,7 +468,7 @@ public class OrderManagerController {
 		PaymentOrder paymentOrder = orderRepository.getPaymentOrderById(orderId).get();
 		byte [] pdfInvoice = pdfInvoiceService.createInvoice(paymentOrder, r1, oib);
 		
-		PdfInvoiceContent response = new PdfInvoiceContent();
+		FileContent response = new FileContent();
 		response.fileName = paymentOrder.getInvoiceNumber() + ".pdf";
 		response.base64Data = Base64.encodeBase64String(pdfInvoice);
 		return response;
@@ -516,6 +527,8 @@ public class OrderManagerController {
 		
 	}
 	
+	
+	
 	@RequestMapping(path="/{id}/refund-custom", method=RequestMethod.POST)
 	public void refundOrderCustom(@PathVariable("id") Long orderId, @RequestBody List<Item> items) throws Exception {
 		if (CollectionUtils.isEmpty(items)) {
@@ -550,6 +563,36 @@ public class OrderManagerController {
 		
 		mailService.sendEmail(to, subject, refundBody, Collections.singletonList(attachment));
 	}
+	
+	@RequestMapping(path="/{id}/search-refund", method=RequestMethod.GET)
+	public FileContent searchRefund(@PathVariable("id") Long orderId) throws Exception {
+
+		Order order = orderRepository.getOne(orderId);
+		byte [] data = pdfSearchRefundService.generateRefundRequest(order);
+		FileContent response = new FileContent();
+		response.fileName = "Zahtjev_za_naknadu_štete_"+order.getTrackingNumber()+ ".pdf";
+		response.base64Data = Base64.encodeBase64String(data);
+		return response;
+		
+	}
+	
+	@RequestMapping(path="/{id}/search-procedure-change", method=RequestMethod.POST)
+	public Order searchProcedureChange(@PathVariable("id") Long orderId,
+			@RequestParam(name="searchProcedureStatus", required=false) SearchProcedureStatus searchProcedureStatus,
+			@RequestParam(name="shippingSearchStatus", required=false) ShippingSearchStatus shippingSearchStatus) throws Exception {
+		Order order = orderRepository.getOne(orderId);
+		if (searchProcedureStatus != null) {
+			order.addStatus(searchProcedureStatus, new Date());
+		}
+		
+		if (shippingSearchStatus != null) {
+			order.addStatus(shippingSearchStatus, new Date());
+		}
+		
+		order = orderRepository.save(order);
+		return order;
+	}
+
 	
 	@RequestMapping(path="/{id}/duplicate", method=RequestMethod.POST)
 	public void duplicateOrder() {

@@ -1,0 +1,331 @@
+<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="css/main.css"/>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+	<script src="https://unpkg.com/vue@2.5.16/dist/vue.js"></script>
+	<script src="https://unpkg.com/vue-router@3.0.1/dist/vue-router.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
+	<script src="js/vue-barcode.js"></script>
+	<script src="js/debounce.min.js"></script>
+	<script src="js/vue-debounce.min.js"></script>
+	
+	<script>Vue.component(VueBarcode.name, VueBarcode);</script>
+	<script src="js/http-vue.js"></script>
+	<script src="js/main.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/4.4.0/font/octicons.css"/>
+	
+	
+	
+</head>
+
+<body>
+	<div id="noPrintSection" class="container-fluid">
+		<div id="app">
+			<div id="searchProcedure" v-bind:class="'row ' + role ">
+				<div class="col">
+					<table class="table small table-fix-header">
+						<thead class="thead-dark extra-small">
+							<tr class="sticky-header">
+								<th colspan="11">
+									<div class="row mb-2">
+										
+										<div class="col-1">
+											<span class="label label-default">Potražni status:</span>
+										</div>
+										<div class="col">
+											
+											<button v-for="status in procedureStatusList" type="button" v-on:click="listFiltering('searchProcedureStatus', status)"  
+												v-bind:class="'btn btn-filter mr-1 ' + (listFilters.searchProcedureStatus.includes(status) ? 'active' : '')">
+												{{ procedureStatusLabel(status) }}
+											</button>
+											
+										</div>
+									</div>
+									
+									<div class="row mb-2">
+										
+										<div class="col-1">
+											<span class="label label-default">Status paketa:</span>
+										</div>
+										<div class="col">
+											
+											<button v-for="status in shippingStatusList" type="button" v-on:click="listFiltering('shippingSearchStatus', status)"  
+												v-bind:class="'btn btn-filter mr-1 ' + (listFilters.shippingSearchStatus.includes(status) ? 'active' : '')">
+												{{ shippingStatusLabel(status) }}
+											</button>
+											
+										</div>
+									</div>
+								</th>
+							</tr>
+							<tr class="sticky-header">
+								<th colspan="11">
+									
+									<div class="row">
+										<div class="col-2">
+											<button type="button" class="btn btn-default" v-on:click="previousPage" v-bind:disabled="pagination.isFirst">
+												
+												<img src="/icons/arrow-left.svg" alt="" width="16" height="16" title="left">
+											</button>
+											{{ pagination.startElement }} - {{ pagination.endElement }} / {{ pagination.totalElements }}
+											<button type="button" class="btn btn-default" v-on:click="nextPage" v-bind:disabled="pagination.isLast">
+												
+												<img src="/icons/arrow-right.svg" alt="" width="16" height="16" title="right">
+											</button>
+										</div>
+										
+										
+										
+										<div class="col-2">
+											<div class="input-group mb-3">
+												<input type="text" class="form-control" v-model="searchFilter.value" v-on:keyup.enter="search">
+												<div class="input-group-append">
+													<button class="btn btn-primary" type="button" v-on:click="search">Traži</button>
+												</div>
+											</div>
+										</div>
+									</div>
+									
+								</th>
+							</tr>
+							<tr>
+								<th>rbr</th>
+								<th>e-mail</th>
+								<th>webshop narudzba</th>
+								<th>model</th>
+								<th>Napomena</th>
+								<th>Šifra za praćenje</th>
+								<th colspan="2">Status potražnog</th>
+								<th colspan="2">Status pošiljke</th>
+								<th>Ostale akcije</th>
+							</tr>
+						</thead>
+						<tbody class="">
+							<tr v-for="order in orders"
+									v-bind:class="(hasNote(order) ? ' note-highlight' : '')">
+								<td class="order-id" data-toggle="tooltip" data-placement="top" v-bind:title="orderStatusTooltip(order)" >{{ order.id }}</td>
+								<td class="contact" data-toggle="tooltip" data-placement="top" v-bind:title="orderContactTooltip(order)" >
+									<div class="row">{{ order.contact }}</div>
+									<div class="row" v-if="order.giveawayPlatform != '' && order.type == 'GIVEAWAY'">{{order.giveawayPlatform}}</div>
+									<div class="row">{{ order.shippingInfo.fullName }}</div>
+								</td>
+								<td class="shopify-number">{{ order.shopifyOrderNumber }}</td>
+								<td>
+									<span v-for="item in order.items">
+										<span v-if="item.name !== 'Preporučena poštarina'">
+											<a v-bind:href="linkifyItem(item.name)" target="_blank" >{{ item.name }}</a>
+											<span v-if="item.quantity > 1">(x{{ item.quantity }})</span>, 
+										</span>
+									</span>
+								</td>
+								<td>
+									<button v-if="hasNote(order)" type="button" class="btn btn-secondary" data-toggle="tooltip" data-placement="top" v-bind:title="order.note"
+										v-on:click.stop="selectOrder(order, '#editOrderModal')">
+									  N
+									</button>
+								</td>
+								
+								<td>
+									{{ order.trackingNumber }}
+								</td>
+								
+								<td>{{ formatDate(order.searchProcedureStatusDate) }}</td>
+								<td>
+									<div class="dropdown">
+										<button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											{{ procedureStatusLabel(order.searchProcedureStatus) }}
+										</button>
+										<div class="dropdown-menu dropdown-primary" >
+											<button v-for="status in procedureStatusList" type="button" class="btn btn-primary dropdown-item" v-on:click="changeOrderStatus(order, 'searchProcedureStatus', status)">{{ procedureStatusLabel(status) }}</button>
+										</div>
+									</div>
+								</td>
+								<td class="">{{ formatDate(order.shippingSearchStatusDate) }}</td>
+								<td>
+									<div class="dropdown">
+										<button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											{{ shippingStatusLabel(order.shippingSearchStatus) }}
+										</button>
+										<div class="dropdown-menu dropdown-primary">
+											<button v-for="status in shippingStatusList" type="button" class="btn btn-primary dropdown-item" v-on:click="changeOrderStatus(order, 'shippingSearchStatus', status)">{{ shippingStatusLabel(status) }}</button>
+										</div>
+									</div>
+								</td>
+								<td>
+									<div class="dropdown">
+										<button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											<img src="/icons/gear.svg" alt="" width="16" height="16" title="left">
+										</button>
+										<div class="dropdown-menu dropdown-primary" aria-labelledby="dropdownMenuButton">
+											<button type="button" class="btn btn-primary" v-on:click="downloadRefundRequest(order)">Generiraj zahtjev za naknadu</button>
+											<button v-bind:disabled="order.searchProcedureHistory == null" type="button" class="btn btn-primary" v-on:click="selectOrder(order, '#historyModal')">Povijest promjena</button>
+											<button  type="button" class="btn btn-primary" v-on:click.stop="selectOrder(order, '#editOrderModal')">Napomena</button>										
+										</div>
+									</div>
+								</td>
+							</tr>
+							
+						</tbody>
+					</table>
+				</div>
+				
+				
+				<div class="modal fade" id=editOrderModal role="dialog">
+					<div class="modal-dialog modal-lg" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Narudžba</h5>
+								<button type="button" class="close" data-dismiss="modal">
+									<span>&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+												
+								
+								<div  class="row">
+									<div class="col">
+										Napomena:
+										<textarea v-model="selectedOrder.note" rows="4" cols="50"></textarea>
+									</div>
+								</div>
+								
+								
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-dismiss="modal" v-on:click="saveEditOrder">Spremi</button>
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="modal fade" id=historyModal role="dialog">
+					<div class="modal-dialog modal-lg" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Povijest promjena potražnog</h5>
+								<button type="button" class="close" data-dismiss="modal">
+									<span>&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+												
+								
+								<div  class="row">
+									<div class="col">
+										<table class="table">
+											<thead>
+												<tr>
+													<th>Status potražnog</th>
+													<th>Status pošiljke</th>
+													<th>Šifra</th>
+													<th>Datum</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr v-for="status in selectedOrderHistory.statusList">
+													<td> {{ procedureStatusLabel(status.searchProcedureStatus) }}</td>
+													<td> {{ shippingStatusLabel(status.shippingSearchStatus) }}</td>
+													<td> {{ status.trackingNumber }}</td>
+													<td> {{ formatDate(status.date) }}</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</div>
+								
+								
+							</div>
+							<div class="modal-footer">
+								
+								<button type="button" class="btn btn-danger" data-dismiss="modal" v-on:click="clearHistory">Izbriši</button>
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				
+				
+				
+
+				<div class="modal fade" id=errorModal role="dialog">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Greška</h5>
+								<button type="button" class="close" data-dismiss="modal">
+									<span>&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<div  class="row">
+									<div id="errorContent" class="col">
+									</div>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Zatvori</button>
+							</div>
+						</div>
+					</div>
+				</div>
+						
+				
+				<div class="modal fade" id=loginModal role="dialog">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Prijava</h5>
+
+							</div>
+							<div class="modal-body">
+								<div  class="row">
+									<div class="form-inline">
+										<div class="input-group mb-2 mr-sm-2">
+											<div class="input-group-prepend">
+												<div class="input-group-text">Korisničko ime</div>
+											</div>
+											<input type="text" class="form-control">
+										</div>
+									</div>
+									<div class="form-inline">
+										<div class="input-group mb-2 mr-sm-2">
+											<div class="input-group-prepend">
+												<div class="input-group-text">Zaporka</div>
+											</div>
+											<input type="text" class="form-control">
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-primary" data-dismiss="modal">Prijava</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				
+				<div id= "overlay">
+					<div class="w-100 d-flex justify-content-center align-items-center">
+						<div class="spinner"></div>
+					</div>
+				</div>
+				
+			</div>
+				
+		</div>
+		
+	</div>
+	<div id="printSection" class="container"></div>
+	
+<script src="js/components/search-procedure-component.js"></script>
+</body>
+</html>

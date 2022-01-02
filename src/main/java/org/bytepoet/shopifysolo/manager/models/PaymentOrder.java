@@ -267,10 +267,6 @@ public class PaymentOrder extends Order {
 		}
 	}
 
-	public String getShopifyOrderNumber() {
-		return shopifyOrderNumber;
-	}
-
 	public Invoice getInvoice() {
 		return invoice;
 	}

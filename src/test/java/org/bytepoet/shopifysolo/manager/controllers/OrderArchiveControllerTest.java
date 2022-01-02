@@ -76,7 +76,7 @@ public class OrderArchiveControllerTest {
 		OrderArchive result = orderArchiveController.viewArchive();
 		
 		Assert.assertThat(result.getOrders().size(), equalTo(5));
-		Page<Order> page = orderManagerController.getOrders(null, null, null, null, null, null, null, null, 0, 20, null, null);
+		Page<Order> page = orderManagerController.getOrders(null, null, null, null, null, null, null, null, null, 0, 20, null, null);
 		Assert.assertThat(page.getTotalElements(), equalTo(0L));
 		
 	}
@@ -97,7 +97,7 @@ public class OrderArchiveControllerTest {
 		OrderArchive result = orderArchiveController.viewArchive();
 		
 		Assert.assertThat(result.getOrders().size(), equalTo(10));
-		Page<Order> page = orderManagerController.getOrders(null, null, null, null, null, null, null, null, 0, 20, null, null);
+		Page<Order> page = orderManagerController.getOrders(null, null, null, null, null, null, null, null, null, 0, 20, null, null);
 		Assert.assertThat(page.getTotalElements(), equalTo(0L));
 		
 	}

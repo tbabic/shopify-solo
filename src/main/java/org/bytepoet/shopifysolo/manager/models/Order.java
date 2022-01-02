@@ -17,8 +17,11 @@ import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Transient;
 
+import org.apache.commons.lang3.StringUtils;
+import org.bytepoet.shopifysolo.manager.models.SearchProcedureHistory.TrackingNumberHistory;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyLineItem;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.hibernate.annotations.Fetch;
@@ -27,6 +30,7 @@ import org.hibernate.annotations.FetchMode;
 import javax.persistence.DiscriminatorType;
 import javax.persistence.Embedded;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
@@ -91,18 +95,37 @@ public abstract class Order {
 	@Enumerated(EnumType.STRING)
 	protected OrderStatus status = OrderStatus.INITIAL;
 	
-	@JsonProperty
-	@Enumerated(EnumType.STRING)
-	private ShippingSearchStatus shippingSearchStatus = ShippingSearchStatus.NONE;
+	
 	
 	@JsonProperty
 	private String trackingNumber;
+	
+	@JsonProperty
+	private String oldTrackingNumber;
 	
 	@JsonProperty
 	private boolean isCanceled;
 	
 	@JsonProperty
 	protected String note;
+	
+	@JsonProperty
+	private Date shippingSearchStatusDate;
+	
+	@JsonProperty
+	private Date searchProcedureStatusDate;
+	
+	@JsonProperty
+	@Enumerated(EnumType.STRING)
+	private ShippingSearchStatus shippingSearchStatus = ShippingSearchStatus.NONE;
+	
+	@JsonProperty
+	@Enumerated(EnumType.STRING)
+	private SearchProcedureStatus searchProcedureStatus = SearchProcedureStatus.NONE;
+	
+	@Embedded
+	@JsonProperty
+	private SearchProcedureHistory searchProcedureHistory;
 
 	public static enum Type {
 		
@@ -175,6 +198,14 @@ public abstract class Order {
 		return trackingNumber;
 	}
 	
+	public String getOldTrackingNumber() {
+		return oldTrackingNumber;
+	}
+
+	public String getShopifyOrderNumber() {
+		return shopifyOrderNumber;
+	}
+	
 	@Transient
 	@JsonProperty(access = Access.READ_ONLY)
 	public abstract String getShippingSnapshot();
@@ -186,9 +217,37 @@ public abstract class Order {
 	public void fulfill(String trackingNumber) {
 		this.status = OrderStatus.FULFILLED;
 		this.isFulfilled = true;
-		if (!this.personalTakeover) {
-			this.trackingNumber = trackingNumber;
-		} 
+		this.shippingSearchStatus = ShippingSearchStatus.SENT;
+		if (StringUtils.isNotBlank( this.trackingNumber)) {
+			this.oldTrackingNumber = this.trackingNumber;
+			
+			if (searchProcedureHistoryExists()) {
+				this.searchProcedureHistory.addStatus(this.oldTrackingNumber, this.shippingSearchStatus, new Date());
+				
+				if (this.isPersonalTakeover()) {
+					if (this.shippingSearchStatus == ShippingSearchStatus.RESENT_FIRST_DELIVERED) {
+						this.shippingSearchStatus = ShippingSearchStatus.RESENT_BOTH_DELIVERED;
+					}else {
+						this.shippingSearchStatus = ShippingSearchStatus.RESENT_SECOND_DELIVERED;
+					}
+				} else {
+					if (this.shippingSearchStatus == ShippingSearchStatus.DELIVERED) {
+						this.shippingSearchStatus = ShippingSearchStatus.RESENT_FIRST_DELIVERED;
+					} else {
+						this.shippingSearchStatus = ShippingSearchStatus.RESENT;
+					}
+				}
+				
+				
+				
+				
+			}
+		}
+		this.trackingNumber = trackingNumber;
+		this.sendingDate = new Date();
+		this.shippingSearchStatusDate = new Date();
+		this.searchProcedureStatusDate = new Date();
+		
 	}
 	
 	public void setNote(String note) {
@@ -259,7 +318,7 @@ public abstract class Order {
 		boolean orderSuccess = true;
 		for (Item item : this.items) {
 			for (ShopifyLineItem lineItem : shopifyOrder.getLineItems()) {
-				if (item.getName().equalsIgnoreCase(lineItem.getFullTitle())) {
+				if (item.getName().equalsIgnoreCase(lineItem.getTitle())) {
 					boolean itemSuccess = item.updateFromShopify(lineItem);
 					if(!itemSuccess) {
 						orderSuccess = false;
@@ -269,5 +328,61 @@ public abstract class Order {
 		}
 		return orderSuccess;
 	}
+
+	public SearchProcedureHistory getSearchProcedureHistory() {
+		return searchProcedureHistory;
+	}
+	
+	public void setSearchProcedureHistory(SearchProcedureHistory searchProcedure) {
+		this.searchProcedureHistory = searchProcedure;
+	}
+
+	public boolean searchProcedureHistoryExists() {
+		return searchProcedureHistory != null && searchProcedureHistory.exists();
+	}
+	
+	
+	public void addStatus(SearchProcedureStatus status, Date date) {
+		if (!searchProcedureHistoryExists() && searchProcedureStatus == SearchProcedureStatus.NONE) {
+			searchProcedureStatus = status;
+			searchProcedureStatusDate = date;
+			return;
+		}
+		
+		if (searchProcedureHistory == null) {
+			this.searchProcedureHistory = new SearchProcedureHistory();
+			this.searchProcedureHistory.setOrder(this);
+		}
+		this.searchProcedureHistory.addStatus(this.trackingNumber, searchProcedureStatus, searchProcedureStatusDate);
+		
+		searchProcedureStatus = status;
+		searchProcedureStatusDate = date;
+		
+	}
+	
+	public void addStatus(ShippingSearchStatus status, Date date) {
+		if (!searchProcedureHistoryExists() && shippingSearchStatus == ShippingSearchStatus.NONE) {
+			shippingSearchStatus = status;
+			shippingSearchStatusDate = date;
+			return;
+		}
+		
+		if (searchProcedureHistory == null) {
+			this.searchProcedureHistory = new SearchProcedureHistory();
+			this.searchProcedureHistory.setOrder(this);
+		}
+		
+		if (shippingSearchStatus == ShippingSearchStatus.RESENT_FIRST_DELIVERED) {
+			this.searchProcedureHistory.addStatus(this.oldTrackingNumber, shippingSearchStatus, shippingSearchStatusDate);
+		}else {
+			this.searchProcedureHistory.addStatus(this.trackingNumber, shippingSearchStatus, shippingSearchStatusDate);
+		}
+		
+		
+		shippingSearchStatus = status;
+		shippingSearchStatusDate = date;
+	}
+	
+	
 	
 }
