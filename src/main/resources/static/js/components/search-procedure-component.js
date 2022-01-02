@@ -19,6 +19,9 @@ var orderTableComponent = new Vue({
 		searchFilter : {
 			value : ""
 		},
+		
+		
+		
 		pagination: {
 			page: 0,
 			size: 50,
@@ -34,7 +37,9 @@ var orderTableComponent = new Vue({
 			direction: "ASC"
 		},
 		orders: [],
-		selectedOrder : {},
+		selectedOrder : {
+			shippingInfo : {}
+		},
 		loadingCount: 0,
 		authToken : null,
 		role : null
@@ -231,6 +236,13 @@ var orderTableComponent = new Vue({
 			}
 			return (new Date(dateString)).toLocaleString('hr');
 		},
+		
+		formatDateShort : function(dateString) {
+			if (dateString == undefined || dateString == null) {
+				return "";
+			}
+			return (new Date(dateString)).toLocaleDateString('hr');
+		},
 		hasNote : function(order) {
 			return order.note != undefined && order.note != null && order.note.length > 0;
 		},
@@ -339,7 +351,19 @@ var orderTableComponent = new Vue({
 		},
 
 
-
+		copyDivContent : function(selector) {
+			let text = $(selector).text();
+			text = text.trim();
+			
+			function listener(e) {
+				e.clipboardData.setData("text/html", text);
+				e.clipboardData.setData("text/plain", text);
+				e.preventDefault();
+			}
+			document.addEventListener("copy", listener);
+			document.execCommand("copy");
+			document.removeEventListener("copy", listener);
+		},
 
 		linkifyItem: function(item) {
 			let link = item.toLowerCase();

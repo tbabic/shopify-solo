@@ -240,7 +240,7 @@ public class OrderManagerController {
 			
 						sq.select(sqRoot.get("id")).where(criteriaBuilder.or(
 								criteriaBuilder.like(sqRoot.get("tenderNumber"), "%"+search+"%"),
-								criteriaBuilder.like(sqRoot.get("invoice").get("number"), "%"+search.trim()+"%")));
+								criteriaBuilder.like(sqRoot.get("invoice").get("number"), search.trim())));
 						searchPredicates.add(criteriaBuilder.in(actualRoot.get("id")).value(sq));
 			
 					}
