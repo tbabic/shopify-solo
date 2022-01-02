@@ -491,12 +491,6 @@ var orderTableComponent = new Vue({
 					size : 1000
 				}
 			});
-		}).then(response => {
-			if (this.role != 'ROLE_LIMITED_USER')  {
-				response.data.content.forEach(order => { 
-					Vue.set(this.shippingOrders, order.id, order);
-				});
-			}
 		}).then( () => {
 			if (this.role != 'ROLE_LIMITED_USER')  {
 				this.loadOrders(0,50).finally( () => {

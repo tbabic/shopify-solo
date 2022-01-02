@@ -222,8 +222,8 @@ public class OrderManagerController {
 					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("note")), "%"+search.trim().toLowerCase()+"%"));
 					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("contact")), "%"+search.trim().toLowerCase()+"%"));
 					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("shippingInfo").get("fullName")), "%"+search.trim().toLowerCase()+"%"));
-					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("trackingNumber")), "%"+search.trim().toLowerCase()+"%"));
-					searchPredicates.add(criteriaBuilder.like(actualRoot.get("shopifyOrderNumber"), "%"+search.trim()+"%"));
+					searchPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(actualRoot.get("trackingNumber")), search.trim().toLowerCase()));
+					searchPredicates.add(criteriaBuilder.like(actualRoot.get("shopifyOrderNumber"), search.trim()));
 					
 					
 					boolean paymentOrderIncluded = false;
