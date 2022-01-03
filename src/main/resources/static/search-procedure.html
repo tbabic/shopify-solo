@@ -136,7 +136,13 @@
 								</td>
 								
 								<td>
-									{{ order.trackingNumber }}
+									<a v-bind:href="'https://posiljka.posta.hr/hr/tracking/trackingdata?barcode='+order.trackingNumber" target="_blank">
+										{{ order.trackingNumber }}
+									</a>
+									<div v-if="order.oldTrackingNumber != null">/</div>  
+									<a v-bind:href="'https://posiljka.posta.hr/hr/tracking/trackingdata?barcode='+order.oldTrackingNumber" target="_blank" v-if="order.oldTrackingNumber != null">
+										{{ order.oldTrackingNumber }}
+									</a>
 								</td>
 								
 								<td>{{ formatDateShort(order.searchProcedureStatusDate) }}</td>
