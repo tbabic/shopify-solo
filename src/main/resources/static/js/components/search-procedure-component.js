@@ -8,7 +8,7 @@ var orderTableComponent = new Vue({
 		
 		listFilters: {
 			
-			shippingSearchStatus : ["SENT"],
+			shippingSearchStatus : [],
 			searchProcedureStatus : ["FOR_SEARCH","SEARCH_REQUESTED", "REFUND_REQUESTED"],
 		},
 		
