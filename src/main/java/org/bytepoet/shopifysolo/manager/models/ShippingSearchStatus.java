@@ -5,6 +5,7 @@ public enum ShippingSearchStatus {
 	
 	NONE,
 	SENT,
+	UNKNOWN,
 	LOST,
 	DELIVERED,
 	RESENT,
