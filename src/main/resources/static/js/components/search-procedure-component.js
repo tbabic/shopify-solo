@@ -8,13 +8,13 @@ var orderTableComponent = new Vue({
 		
 		listFilters: {
 			
-			shippingSearchStatus : ["SENT"],
+			shippingSearchStatus : [],
 			searchProcedureStatus : ["FOR_SEARCH","SEARCH_REQUESTED", "REFUND_REQUESTED"],
 		},
 		
 		procedureStatusList : ["NONE", "FOR_SEARCH","SEARCH_REQUESTED", "REFUND_REQUESTED","REFUND_APPROVED","REFUND_DENIED","REFUNDED", "COMPLETED"],
 		
-		shippingStatusList : ["SENT","LOST", "DELIVERED", "RESENT", "RESENT_FIRST_DELIVERED", "RESENT_SECOND_DELIVERED", "RESENT_BOTH_DELIVERED"],
+		shippingStatusList : ["SENT","UNKNOWN", "LOST", "DELIVERED", "RESENT", "RESENT_FIRST_DELIVERED", "RESENT_SECOND_DELIVERED", "RESENT_BOTH_DELIVERED"],
 		
 		searchFilter : {
 			value : ""
@@ -432,6 +432,11 @@ var orderTableComponent = new Vue({
 			if (status == 'LOST') {
 				return "Izgubljen";
 			}
+			
+			if (status == 'UNKNOWN') {
+				return "Nepoznato";
+			}
+			
 			if (status == 'DELIVERED') {
 				return "Dostavljen / preuzet";
 			}
