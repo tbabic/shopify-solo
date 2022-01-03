@@ -3,13 +3,14 @@ var orderTableComponent = new Vue({
 	el:"#searchProcedure",
 	data: {
 		filters : {
-			paid : true
+			paid : true,
+			shippingSearchStatus : null,
+			searchProcedureStatus : "FOR_SEARCH"
 		},
 		
 		listFilters: {
 			
-			shippingSearchStatus : [],
-			searchProcedureStatus : ["FOR_SEARCH","SEARCH_REQUESTED", "REFUND_REQUESTED"],
+			
 		},
 		
 		procedureStatusList : ["NONE", "FOR_SEARCH","SEARCH_REQUESTED", "REFUND_REQUESTED","REFUND_APPROVED","REFUND_DENIED","REFUNDED", "COMPLETED"],
@@ -200,6 +201,8 @@ var orderTableComponent = new Vue({
 				}
 			} else {
 				params.search = this.searchFilter.value;
+				this.filters.shippingSearchStatus = null;
+				this.filters.searchProcedureStatus = null;
 			}
 			
 			console.log('get orders');

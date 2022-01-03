@@ -40,8 +40,8 @@
 										</div>
 										<div class="col">
 											
-											<button v-for="status in procedureStatusList" type="button" v-on:click="listFiltering('searchProcedureStatus', status)"  
-												v-bind:class="'btn btn-filter mr-1 ' + (listFilters.searchProcedureStatus.includes(status) ? 'active' : '')">
+											<button v-for="status in procedureStatusList" type="button" v-on:click="filtering('searchProcedureStatus', status)"  
+												v-bind:class="'btn btn-filter mr-1 ' + (filters.searchProcedureStatus == status ? 'active' : '')">
 												{{ procedureStatusLabel(status) }}
 											</button>
 											
@@ -55,8 +55,8 @@
 										</div>
 										<div class="col">
 											
-											<button v-for="status in shippingStatusList" type="button" v-on:click="listFiltering('shippingSearchStatus', status)"  
-												v-bind:class="'btn btn-filter mr-1 ' + (listFilters.shippingSearchStatus.includes(status) ? 'active' : '')">
+											<button v-for="status in shippingStatusList" type="button" v-on:click="filtering('shippingSearchStatus', status)"  
+												v-bind:class="'btn btn-filter mr-1 ' + (filters.shippingSearchStatus == status ? 'active' : '')">
 												{{ shippingStatusLabel(status) }}
 											</button>
 											
