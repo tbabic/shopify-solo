@@ -251,6 +251,9 @@ var orderTableComponent = new Vue({
 			}
 			this.startLoader();
 			return axios.get('/manager/orders/'+id).then(response => {
+				if (response.data.trackingNumber != null && response.data.trackingNumber.trim().length > 0 ) {
+					response.data.oldTrackingNumber = response.data.trackingNumber;
+				}
 				response.data.trackingNumber = '';
 				Vue.set(this.epk.orders, response.data.id, response.data);
 				this.epk.inputId = '';
@@ -259,7 +262,7 @@ var orderTableComponent = new Vue({
 				}, 1);
 				
 			}).finally(() => {
-				this.endLoader();
+				this.e();
 			});
 		},
 		clearEpk : function() {

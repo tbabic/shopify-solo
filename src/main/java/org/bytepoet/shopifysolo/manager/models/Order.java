@@ -218,9 +218,19 @@ public abstract class Order {
 		this.status = OrderStatus.FULFILLED;
 		this.isFulfilled = true;
 		this.shippingSearchStatus = ShippingSearchStatus.SENT;
-		if (StringUtils.isNotBlank( this.trackingNumber)) {
-			this.oldTrackingNumber = this.trackingNumber;
-			
+		
+		boolean trackingAlreadySet = false; // new and old tracking numbers already setted on frontend
+		if (this.trackingNumber == trackingNumber) {
+			trackingAlreadySet = true;
+		}
+		
+		boolean isFirstTracking = !trackingAlreadySet && StringUtils.isBlank(this.trackingNumber);
+		isFirstTracking = isFirstTracking || (trackingAlreadySet && StringUtils.isBlank(this.oldTrackingNumber));
+		
+		if (!isFirstTracking) {
+			if (!trackingAlreadySet) {
+				this.oldTrackingNumber = this.trackingNumber;
+			}
 			if (searchProcedureHistoryExists()) {
 				this.searchProcedureHistory.addStatus(this.oldTrackingNumber, this.shippingSearchStatus, new Date());
 				
