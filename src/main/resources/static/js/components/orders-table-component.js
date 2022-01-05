@@ -262,7 +262,7 @@ var orderTableComponent = new Vue({
 				}, 1);
 				
 			}).finally(() => {
-				this.e();
+				this.endLoader();
 			});
 		},
 		clearEpk : function() {
