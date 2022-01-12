@@ -75,7 +75,7 @@ public class EpkExpressMail implements EpkMailable {
 		row.city.setValue(address.getCity());
 		row.street.setValue(address.getStreetAndNumber());
 		row.additionalAddressInfo.setValue(getCompanyAndOther(address));
-		String phone = address.getPhoneNumber().replaceAll(" ", "").replaceAll("/", "").replaceAll("\\", "");
+		String phone = address.getPhoneNumber().replace(" ", "").replace("/", "").replace("\\", "");
 		row.phoneNumber.setValue(phone);
 		
 		row.shipmentType.setValue("E");
