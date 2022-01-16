@@ -7,7 +7,8 @@ var calendarComponent = new Vue({
 			id : null,
 			date : null,
 			content : null,
-			orderPosition : null
+			orderPosition : null,
+			isDone : false
 		}
 		
 		
@@ -51,15 +52,21 @@ var calendarComponent = new Vue({
 		},
 		
 		postToEvent : function(post) {
-			return {
+			let event = {
 				title : post.content,
 				start : new Date(post.date),
 				id : "POST-"+post.id,
 				type : "POST",
 				allDay : true,
 				backendId : post.id,
-				orderPosition : post.orderPosition
+				orderPosition : post.orderPosition,
+				isDone: post.isDone
 			};
+			if (event.isDone) {
+				event["classNames"] = "event-done";
+			}
+			
+			return event;
 		},
 		
 		savePost : function(stopSpinning) {
@@ -101,6 +108,7 @@ var calendarComponent = new Vue({
 			this.post.id = null;
 			this.post.content = null;
 			this.post.date = info.start;
+			this.post.isDone = false;
 			
 			let length = this.calendar.getEvents().filter(p => p.start.getTime() == info.start.getTime()).length;
 			this.post.orderPosition = length+1;
@@ -116,6 +124,7 @@ var calendarComponent = new Vue({
 			this.post.content = info.event.title;
 			this.post.date = info.event.start;
 			this.post.orderPosition = info.event.extendedProps.orderPosition;
+			this.post.isDone = info.event.extendedProps.isDone;
 			
 			$("#editPostModal").modal('show');
 		},
