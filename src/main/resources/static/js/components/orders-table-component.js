@@ -182,6 +182,9 @@ var orderTableComponent = new Vue({
 			this.loadOrders(true);
 		},
 		loadOrders : function(useSearch) {
+			if (this.role == 'ROLE_SMC_MANAGER') {
+				return;
+			}
 			this.startLoader();
 			
 			params = {
@@ -902,22 +905,8 @@ var orderTableComponent = new Vue({
 			this.role = response.data.role;
 			localStorage.setItem("token", this.authToken);
 			axios.defaults.headers.common['Authorization'] = this.authToken;
-		}).then(() => {
-			return axios.get('/manager/orders', {
-				params : {
-					status : 'IN_PROCESS',
-					page : 0,
-					size : 1000
-				}
-			});
-		}).then(response => {
-			if (this.role != 'ROLE_LIMITED_USER')  {
-				response.data.content.forEach(order => { 
-					Vue.set(this.shippingOrders, order.id, order);
-				});
-			}
 		}).then( () => {
-			if (this.role != 'ROLE_LIMITED_USER')  {
+			if (this.role != 'ROLE_LIMITED_USER' && this.role != 'ROLE_SMC_MANAGER')  {
 				this.loadOrders(0,50).finally( () => {
 					this.endLoader();
 				});

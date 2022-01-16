@@ -12,7 +12,7 @@
 <script src="https://unpkg.com/vuejs-datepicker@1.6.2/dist/vuejs-datepicker.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.9/dist/flatpickr.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.9/dist/plugins/confirmDate/confirmDate.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/vue-clipboard2@0.3.1/dist/vue-clipboard.min.js"></script>
 
 
 <head>
@@ -40,12 +40,95 @@
 		<div id="calendar-app">
 			<div id="calendar">
 			</div>
+			
+			<div class="modal fade" id=editPostModal role="dialog" data-bs-backdrop="static">
+				<div class="modal-dialog modal-lg" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title">Post / {{ formatDate(post.date)  }} #{{ post.orderPosition  }}</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+						</div>
+						<div class="modal-body">
+											
+							<div  class="row">
+								<div class="col"></div>
+							</div>
+							
+							
+							<div  class="row">
+								<div class="col-10">
+									<textarea v-model="post.content" rows="6" style="width: 100%; max-width:100%; resize: both;"></textarea>
+								</div>
+								
+								<div class="col-2">
+									<button type="button" class="btn btn-primary" v-clipboard:copy="post.content" >Kopiraj</button>
+								</div>
+							</div>
+							
+							
+						</div>
+						<div class="modal-footer">
+							<spinbutton type="button" class="btn btn-primary" v-on:click="savePost">Spremi</spinbutton>
+							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Otkaži</button>
+							<button v-if="post.id != null" type="button" class="btn btn-danger" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">Obriši</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class="modal fade" id=confirmDeleteModal role="dialog" data-bs-backdrop="static">
+				<div class="modal-dialog modal-lg" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title">Potvrdi brisanje</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+						</div>
+						<div class="modal-body">
+											
+							Želiš li stvarno obrisati? Ova akcija se ne može vratiti.
+							
+						</div>
+						<div class="modal-footer">
+							<spinbutton type="button" class="btn btn-danger" v-on:click="deletePost">Da</spinbutton>
+							<button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#editPostModal" >Ne</button>							
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			
 		</div>
 	</div>
 	
 </body>
 
-
+<script src="js/components/spin-button-component.js"></script>
 <script src="js/components/planner-component.js"></script>
+
+
+<style>
+	.fc-h-event {
+		margin-bottom: 20px;
+		background-color: #1a252f;
+		border-color: #1a252f;
+		white-space: normal !important;
+		
+	}
+	
+	
+	.fc-header-toolbar {
+		text-transform: uppercase !important;
+	}
+	
+	.fc-header-toolbar button {
+		text-transform: uppercase !important;
+	}
+	
+	.fc-col-header-cell-cushion  {
+		text-transform: uppercase;
+		color: black;
+	}
+
+</style>
 
 </html>

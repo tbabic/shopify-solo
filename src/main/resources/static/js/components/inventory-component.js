@@ -16,6 +16,9 @@ var inventoryComponent = new Vue({
 	},
 	methods: {
 		loadInventory : function() {
+			if (this.role == 'ROLE_SMC_MANAGER') {
+				return;
+			}
 			this.startLoader();
 			
 			params = {

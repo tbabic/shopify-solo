@@ -35,18 +35,18 @@
 			<div class="row">
 				<div class="col">
 					<div  class="row">
-						<div class="col-12 card-border" >
+						<div v-if="role == 'ROLE_CREATOR' || role == 'ROLE_ADMIN'" class="col-12 card-border" >
 							<a href="/index.html" class="btn btn-primary"> NARUDŽBE </a>
 						</div>
 					</div>
 					
 					<div  class="row">
-						<div class="col-12 card-border" >
+						<div v-if="role == 'ROLE_CREATOR' || role == 'ROLE_ADMIN'" class="col-12 card-border" >
 							<a href="/search-procedure.html" class="btn btn-primary"> POTRAŽNI </a>
 						</div>
 					</div>
 					
-					<div  class="row">
+					<div v-if="role == 'ROLE_CREATOR' || role == 'ROLE_ADMIN'" class="row">
 						<div class="col-12 card-border" >
 							<a href="/text-records.html" class="btn btn-primary"> PORUKE </a>
 						</div>
@@ -76,6 +76,12 @@
 					<div  v-if="role == 'ROLE_ADMIN'" class="row">
 						<div class="col-12 card-border" >
 							<a href="/audit-logs.html" class="btn btn-primary"> LOGOVI </a>
+						</div>
+					</div>
+					
+					<div  v-if="role == 'ROLE_ADMIN' || role == 'ROLE_SMC_MANAGER'" class="row">
+						<div class="col-12 card-border" >
+							<a href="/planner.html" class="btn btn-primary" target="_blank">PLANNER</a>
 						</div>
 					</div>
 					

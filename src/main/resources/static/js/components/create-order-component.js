@@ -209,6 +209,9 @@ var createOrderComponent = new Vue({
 		},
 		
 		saveShopifyOrder : function() {
+			if (this.role == 'ROLE_SMC_MANAGER') {
+				return;
+			}
 			this.startLoader();
 			return axios.post('/manager/orders/create-shopify-order', this.shopifyOrder).then(response => {
 				console.log(response);
@@ -227,7 +230,10 @@ var createOrderComponent = new Vue({
 			});
 		},
 		
-		saveGiveawayOrder : function() {			
+		saveGiveawayOrder : function() {
+			if (this.role == 'ROLE_SMC_MANAGER') {
+				return;
+			}			
 			this.startLoader();
 			return axios.post('/manager/orders/create-shopify-giveaway', this.giveawayOrder, {
 				params : {

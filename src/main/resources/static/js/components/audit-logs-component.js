@@ -77,6 +77,9 @@ var createOrderComponent = new Vue({
 		},
 		
 		loadLogs : function() {
+			if (this.role == 'ROLE_SMC_MANAGER') {
+				return;
+			}
 			this.startLoader();
 			
 			params = {

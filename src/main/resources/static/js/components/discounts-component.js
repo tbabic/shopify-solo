@@ -46,6 +46,9 @@ var homeComponent = new Vue({
 		},
 		
 		saveAllCodes : function() {
+			if (this.role == 'ROLE_SMC_MANAGER') {
+				return;
+			}
 			this.startLoader();
 			let promise = null;
 			for (let amount in this.categories) {
