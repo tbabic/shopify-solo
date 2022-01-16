@@ -51,7 +51,7 @@ public class PostsController {
 		Optional<SocialMediaPost> optional = Optional.empty();
 		if (post.id != null) {
 			optional = postRepository.findById(post.id);
-			if (optional.isEmpty()) {
+			if (!optional.isPresent()) {
 				throw new RuntimeException("No resource with id: " + post.id);
 			}
 		}
