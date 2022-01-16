@@ -152,6 +152,7 @@ var calendarComponent = new Vue({
 		let calendarEl = document.getElementById('calendar');
         this.calendar = new FullCalendar.Calendar(calendarEl, {
 			selectable: true,
+			height: 'auto',
 			initialView: 'dayGridWeek',
 			eventOrder : "orderPosition",
 			eventOrderStrict : true,
