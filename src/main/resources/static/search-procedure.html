@@ -329,9 +329,9 @@
 									<div class="col-2">Sadržaj</div>
 									<div id="emailBodyContent" class="col" style="white-space: pre-wrap;">Poštovani,  
 tvrtka IMAGINE NOW d.o.o. vaš je poslovni korisnik (laus šifra: 680929).
-Pokrećemo potražni postupak za paket u maloj kartonskoj kutijici. Pri statusu piše da je od {{ formatDateShort(selectedOrder.sendingDate) }} u pošti i  ne mijenja status. Šifra za praćenje:
+Pokrećemo potražni postupak za paket u maloj bijeloj kartonskoj kutijici. Pri statusu piše da je od {{ formatDateShort(selectedOrder.sendingDate) }} u pošti i  ne mijenja status. Šifra za praćenje:
 
-{{ selectedOrder.trackingNumber }} {{ selectedOrder.shippingInfo.fullName }}, {{ selectedOrder.shippingInfo.streetAndNumber }}, {{ selectedOrder.shippingInfo.postalCode }} {{ selectedOrder.shippingInfo.city }},  {{ selectedOrder.shippingInfo.country == 'Croatia' ? '' : selectedOrder.shippingInfo.country }}
+{{ selectedOrder.trackingNumber }} {{ selectedOrder.shippingInfo.fullName }}, {{ selectedOrder.shippingInfo.streetAndNumber }}, {{ selectedOrder.shippingInfo.postalCode }} {{ selectedOrder.shippingInfo.city }}  {{ selectedOrder.shippingInfo.country == 'Croatia' ? '' : ', ' + selectedOrder.shippingInfo.country }}.
 
 Molimo Vas očitovanje o istom.
 
