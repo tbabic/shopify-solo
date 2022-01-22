@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SearchProcedureDateRepository extends JpaRepository<SearchProcedureDate, UUID>{
 	
-	public SearchProcedureDate findTopByOrderByDateDesc();
+	public SearchProcedureDate findTopByOrderByDateEndDesc();
 	
 }

@@ -20,7 +20,7 @@ public class SearchProcedureDateController {
 	
 	@RequestMapping("/last")
 	public SearchProcedureDate getLast() {
-		return repository.findTopByOrderByDateDesc();
+		return repository.findTopByOrderByDateEndDesc();
 	}
 	
 	@RequestMapping(path="/{id}", method=RequestMethod.GET)

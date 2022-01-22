@@ -19,5 +19,8 @@ public class SearchProcedureDate {
 	private UUID id = UUID.randomUUID();
 	
 	@JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-	public Date date;
+	public Date dateStart;
+	
+	@JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+	public Date dateEnd;
 }

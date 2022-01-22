@@ -22,7 +22,8 @@ var orderTableComponent = new Vue({
 		},
 		
 		searchDateId : null,
-		searchDate : null,
+		searchDateStart : null,
+		searchDateEnd : null,
 		
 		
 		pagination: {
@@ -498,7 +499,8 @@ var orderTableComponent = new Vue({
 		saveSearchDate : function() {
 			this.startLoader()
 			let body = {
-				date : this.searchDate
+				dateStart : this.searchDateStart,
+				dateEnd : this.searchDateEnd
 			}
 			if (this.searchDateId != null) {
 				body.id = this.searchDateId;
@@ -515,10 +517,12 @@ var orderTableComponent = new Vue({
 		getLastSearchDate : function() {
 			this.startLoader()
 			return axios.get('/manager/search-procedure-date/last').then((response) => {
-				if (response.data.date != null) {
-					this.searchDate = response.data.date;
+				if (response.data.id != null) {
 					this.searchDateId = response.data.id;
-				} 
+				}
+				
+				this.searchDateStart = response.data.dateStart;
+				this.searchDateEnd = response.data.dateEnd;
 				
 			}).finally(() => {
 				this.endLoader();

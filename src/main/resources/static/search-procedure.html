@@ -97,9 +97,16 @@
 											<a class="btn btn-primary" type="button" target="_blank" href="https://epk.posta.hr/epk/index.xhtml">EPK</a>
 										</div>
 										
-										<div class="col-4">
-											Zadnji potražni: <vuejs-datepicker 
-												v-model="searchDate" format="dd.MM.yyyy"
+										<div class="col-2">
+											Zadnji potražni od: <vuejs-datepicker 
+												v-model="searchDateStart" format="dd.MM.yyyy"
+												v-on:input="saveSearchDate"
+												calendar-button calendar-button-icon="datepicker-icon" ></vuejs-datepicker>
+										</div>
+										
+										<div class="col-2">
+											do: <vuejs-datepicker 
+												v-model="searchDateEnd" format="dd.MM.yyyy"
 												v-on:input="saveSearchDate"
 												calendar-button calendar-button-icon="datepicker-icon" ></vuejs-datepicker>
 										</div>
