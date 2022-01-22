@@ -15,6 +15,8 @@
 	<script src="js/debounce.min.js"></script>
 	<script src="js/vue-debounce.min.js"></script>
 	
+	<script src="https://unpkg.com/vuejs-datepicker@1.6.2/dist/vuejs-datepicker.js"></script>
+	
 	<script>Vue.component(VueBarcode.name, VueBarcode);</script>
 	<script src="js/http-vue.js"></script>
 	<script src="js/main.js"></script>
@@ -94,6 +96,14 @@
 										<div class="col-3 ml-5">
 											<a class="btn btn-primary" type="button" target="_blank" href="https://epk.posta.hr/epk/index.xhtml">EPK</a>
 										</div>
+										
+										<div class="col-4">
+											Zadnji potražni: <vuejs-datepicker 
+												v-model="searchDate" format="dd.MM.yyyy"
+												v-on:input="saveSearchDate"
+												calendar-button calendar-button-icon="datepicker-icon" ></vuejs-datepicker>
+										</div>
+										
 									</div>
 									
 								</th>
@@ -428,5 +438,13 @@ Lp
 	<div id="printSection" class="container"></div>
 	
 <script src="js/components/search-procedure-component.js"></script>
+
+<style>
+	.vdp-datepicker__calendar {
+		color: black;
+	}
+</style>
+
 </body>
+
 </html>

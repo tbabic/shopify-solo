@@ -21,6 +21,8 @@ var orderTableComponent = new Vue({
 			value : ""
 		},
 		
+		searchDateId : null,
+		searchDate : null,
 		
 		
 		pagination: {
@@ -44,6 +46,9 @@ var orderTableComponent = new Vue({
 		loadingCount: 0,
 		authToken : null,
 		role : null
+	},
+	components: {
+		vuejsDatepicker
 	},
 	computed : {
 		itemsOfSelectedOrders : function() {
@@ -490,6 +495,37 @@ var orderTableComponent = new Vue({
 			return order.shippingInfo.fullName;
 		},
 		
+		saveSearchDate : function() {
+			this.startLoader()
+			let body = {
+				date : this.searchDate
+			}
+			if (this.searchDateId != null) {
+				body.id = this.searchDateId;
+			}
+			return axios.post('/manager/search-procedure-date', body).then((response) => {
+				this.searchDate = response.data.date;
+				this.searchDateId = response.data.id;
+			}).finally(() => {
+				this.endLoader();
+			})
+			
+		},
+		
+		getLastSearchDate : function() {
+			this.startLoader()
+			return axios.get('/manager/search-procedure-date/last').then((response) => {
+				if (response.data.date != null) {
+					this.searchDate = response.data.date;
+					this.searchDateId = response.data.id;
+				} 
+				
+			}).finally(() => {
+				this.endLoader();
+			})
+			
+		},
+		
 		logout : function() {
 			localStorage.removeItem("token");
 			axios.defaults.headers.common['Authorization'] = null;
@@ -516,13 +552,7 @@ var orderTableComponent = new Vue({
 			localStorage.setItem("token", this.authToken);
 			axios.defaults.headers.common['Authorization'] = this.authToken;
 		}).then(() => {
-			return axios.get('/manager/orders', {
-				params : {
-					status : 'IN_PROCESS',
-					page : 0,
-					size : 1000
-				}
-			});
+			return this.getLastSearchDate();
 		}).then( () => {
 			if (this.role != 'ROLE_LIMITED_USER')  {
 				this.loadOrders(0,50).finally( () => {
