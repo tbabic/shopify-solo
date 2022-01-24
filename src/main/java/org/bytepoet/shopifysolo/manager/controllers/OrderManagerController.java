@@ -333,7 +333,7 @@ public class OrderManagerController {
 		Order order = orderRepository.getOne(orderId);
 		order.fulfill(trackingNumber);
 		order = orderRepository.save(order);
-		syncOrder((PaymentOrder) order, sendNotification);
+		syncOrder(order, sendNotification);
 	}
 	
 	
@@ -476,7 +476,7 @@ public class OrderManagerController {
 		
 	}
 	
-	private boolean syncOrder(PaymentOrder order, boolean sendNotification) throws Exception {
+	private boolean syncOrder(Order order, boolean sendNotification) throws Exception {
 		List<ShopifyFulfillment> fulfillments = shopifyApiClient.getFulfillments(order.getShopifyOrderId());
 		sendNotification = sendNotification & !order.isPersonalTakeover();
 		logger.info(MessageFormat.format("notification id: {0}, shopify: {1}, {2}", order.getShopifyOrderNumber(), order.getShopifyOrderId(), sendNotification));
