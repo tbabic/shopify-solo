@@ -34,8 +34,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 @JsonTypeName(OrderType.PAYMENT_ORDER)
 public class PaymentOrder extends Order {
 	
-	private static final int WAITING_LIST_PERIOD = 7;
-	
 	@JsonProperty
 	@Column(unique = true)
 	private String tenderId;

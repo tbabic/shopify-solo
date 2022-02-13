@@ -1,5 +1,6 @@
 package org.bytepoet.shopifysolo.manager.models;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,10 @@ public class GiveawayOrder extends Order {
 		this.items = shopifyOrder.getLineItems().stream().map(lineItem -> new Item(lineItem, "0")).collect(Collectors.toList());
 		this.note = shopifyOrder.getNote();
 		this.giveawayPlatform = platform;
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(this.creationDate);
+		calendar.add(Calendar.DATE, WAITING_LIST_PERIOD);
+		this.sendingDate = calendar.getTime();
 	}
 	
 	
