@@ -133,11 +133,25 @@ public class PaymentOrder extends Order {
 		this.invoice = invoice;
 		this.invoice.setOrder(this);
 		this.isPaid = true;
-		if (this.sendingDate == null) {
+		
+		if (this.sendingDate != null) {
+			return;
+		}
+		
+		boolean isGiftCode = this.items.stream().allMatch(item -> 
+			item.getName().toLowerCase().contains("poklon") 
+			|| item.getName().toLowerCase().contains("poštarina"));
+		if (isGiftCode) {
+			this.sendingDate = invoice.getDate();
+		}
+		
+		else {
 			Calendar calendar = Calendar.getInstance();
 			calendar.add(Calendar.DATE, WAITING_LIST_PERIOD);
 			this.sendingDate = calendar.getTime();
 		}
+		
+		
 	}
 
 	@Transient
