@@ -23,6 +23,10 @@ var createOrderComponent = new Vue({
 				value:"INITIAL",
 			},
 			{
+				text:"U pripremi",
+				value:"IN_PREPARATION",
+			},
+			{
 				text:"U izradi",
 				value:"IN_PROCESS",
 			},

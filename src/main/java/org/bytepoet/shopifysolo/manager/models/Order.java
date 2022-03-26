@@ -52,6 +52,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class Order {
 	
+	protected static final int WAITING_LIST_PERIOD = 7;
 	
 	@JsonProperty
 	@Id
