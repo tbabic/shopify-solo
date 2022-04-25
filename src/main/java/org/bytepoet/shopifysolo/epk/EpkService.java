@@ -58,7 +58,7 @@ public class EpkService {
 				}
  				if (order.getTrackingNumber().toUpperCase().startsWith("EM")) {
 					epkMail = EpkExpressMail.createRow(order.getTrackingNumber(), order);
-				} else if (order.getTrackingNumber().toUpperCase().startsWith("RF")) {
+				} else if (order.getTrackingNumber().toUpperCase().startsWith("R")) {
 					epkMail = EpkRegisteredMail.createRow(order.getTrackingNumber().toUpperCase(), order);
 				}
 				
