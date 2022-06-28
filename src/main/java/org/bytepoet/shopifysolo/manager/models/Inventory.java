@@ -11,6 +11,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,6 +34,12 @@ public class Inventory {
 	
 	@Column
 	private String linksJson;
+	
+	@Column
+	@JsonProperty
+	private String shopifyVariantId;
+	
+	
 	
 	public static class LinkContainer {
 		@JsonProperty
@@ -121,6 +128,8 @@ public class Inventory {
 	public void setId(Long id) {
 		this.id = id;
 	}
+	
+	
 	
 	
 	

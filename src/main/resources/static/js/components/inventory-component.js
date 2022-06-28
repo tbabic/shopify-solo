@@ -1,20 +1,51 @@
 var inventoryComponent = new Vue({
 	el:"#inventory",
 	data: {
+		
+		variants : [],
+		
 		inventoryList : [],
+		
 		selectedInventoryItem : {
 			id: null,
 			item : '',
 			quantity : 0,
+			shopifyVariantId : null,
 			links: []
 		},
+		
+		
 		
 		searchFilter : {
 			value: ''
 		},
-		loadingCount: 0
+		
+		variantsFilter : {
+			value : "",
+			filtered : []
+		},
+		
+		loadingCount: 0,
+		debounceCounter: 0
 	},
+	
+	computed : {
+		filteredInventory : function() {
+			if (this.searchFilter == null || this.searchFilter.value.trim().length =='') {
+				return this.inventoryList;
+			}
+			let filtered = this.inventoryList.filter(inventory => {
+				
+				let b= inventory.item != null && inventory.item.toLowerCase().includes(this.searchFilter.value.toLowerCase().trim());
+				return b;
+				
+			});
+			return filtered;
+		}
+	},
+	
 	methods: {
+		
 		loadInventory : function() {
 			if (this.role == 'ROLE_SMC_MANAGER') {
 				return;
@@ -32,6 +63,24 @@ var inventoryComponent = new Vue({
 				response.data.forEach(inventory => { 
 					this.inventoryList.push(inventory);
 				});
+				
+				this.variants.forEach(variant => {
+					let foundInventory = this.inventoryList.find( inventoryItem => inventoryItem.shopifyVariantId == variant.id) 
+					if (foundInventory == null){
+						this.inventoryList.push({
+							id: null,
+							item : variant.title,
+							quantity : 0,
+							shopifyVariantId : variant.id,
+							shopifyQuantity : variant.inventory_quantity,
+							links: []
+						});
+					} else {
+						Vue.set(foundInventory, "shopifyQuantity", variant.inventory_quantity);
+					}
+				});
+				
+				
 			}).finally(() => {
 				this.endLoader();
 			});
@@ -43,6 +92,7 @@ var inventoryComponent = new Vue({
 				id : this.selectedInventoryItem.id,
 				item : this.selectedInventoryItem.item,
 				quantity : this.selectedInventoryItem.quantity,
+				shopifyVariantId : this.selectedInventoryItem.shopifyVariantId,
 				links : []
 			}
 			
@@ -65,6 +115,7 @@ var inventoryComponent = new Vue({
 			this.selectedInventoryItem.id = inventory.id;
 			this.selectedInventoryItem.item = inventory.item;
 			this.selectedInventoryItem.quantity = inventory.quantity;
+			this.selectedInventoryItem.shopifyVariantId = inventory.shopifyVariantId;
 			
 			
 			this.selectedInventoryItem.links.splice(0, this.selectedInventoryItem.links.length);
@@ -79,6 +130,7 @@ var inventoryComponent = new Vue({
 			this.selectedInventoryItem.id = null,
 			this.selectedInventoryItem.item = '';
 			this.selectedInventoryItem.quantity = 0;
+			this.selectedInventoryItem.shopifyVariantId = null;
 			this.selectedInventoryItem.links = [];
 		},
 		newLink : function() {
@@ -87,6 +139,78 @@ var inventoryComponent = new Vue({
 		removeLink : function(index) {
 			this.selectedInventoryItem.links.splice(index, 1);
 		},
+		
+		loadProducts : function() {
+			this.startLoader();
+			return axios.get('/manager/products/all')
+			.then(response => {
+				console.log("foundProducts");
+				this.processResponse(response);
+				
+				
+			}).finally(() => {
+				this.endLoader();
+			});
+		},
+		
+		processResponse : function(response) {
+			this.variants.splice(0,this.variants.length);
+			response.data.forEach(product => {
+				product.variants.forEach(variant => {
+					if (variant.title == 'Default Title') {
+						variant.title = product.title;
+					} else {
+						variant.title = product.title + " / " + variant.title;
+					}
+					if(variant.title.includes("POKLON")) {
+						return;
+					}
+					
+					this.variants.push(variant);
+				});
+			});
+		},
+		
+		
+		filterVariants : function() {
+			this.variantsFilter.filtered.splice(0,this.variantsFilter.filtered.length);
+			if (this.selectedInventoryItem.item == null || this.selectedInventoryItem.item.trim().length < 3 ) {
+				return;
+			}
+			
+			
+			
+			let filteredVariants = this.variants.filter(variant => {
+				return variant.title.toLowerCase().includes(this.selectedInventoryItem.item.toLowerCase());
+			});
+			
+			filteredVariants.forEach( fv => this.variantsFilter.filtered.push(fv));
+			this.variantsFilter.filtered.splice(10);
+			return;
+		},
+		
+		connection : function(variant) {
+			this.selectedInventoryItem.item = variant.title;
+			this.selectedInventoryItem.shopifyVariantId = variant.id;
+			this.variantsFilter.filtered.splice(0);
+		},
+		
+		disconnect : function() {
+			this.selectedInventoryItem.shopifyVariantId = null;
+			
+		},
+		
+		connectedClass:function(inventory) {
+			if (inventory.id == null) {
+				return 'btn btn-warning';
+			}
+			if (inventory.shopifyVariantId == null) {
+				return 'btn btn-danger'
+			}
+			return "btn btn-primary";
+		},
+		
+		
 		showError: function(errorMsg) {
 			if (errorMsg === undefined) {
 				errorMsg = "Unexpected error";
@@ -131,6 +255,8 @@ var inventoryComponent = new Vue({
 			this.role = response.data.role;
 			localStorage.setItem("token", this.authToken);
 			axios.defaults.headers.common['Authorization'] = this.authToken;
+		}).then(() => {
+			return this.loadProducts();
 		}).then(() => {
 			return this.loadInventory();
 		}).then(() => {
