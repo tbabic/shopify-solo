@@ -132,6 +132,8 @@ var inventoryComponent = new Vue({
 			this.selectedInventoryItem.quantity = 0;
 			this.selectedInventoryItem.shopifyVariantId = null;
 			this.selectedInventoryItem.links = [];
+			
+			this.clearFilterVariants();
 		},
 		newLink : function() {
 			this.selectedInventoryItem.links.push({ value : 'link ovdje' });
@@ -186,6 +188,11 @@ var inventoryComponent = new Vue({
 			
 			filteredVariants.forEach( fv => this.variantsFilter.filtered.push(fv));
 			this.variantsFilter.filtered.splice(10);
+			return;
+		},
+		
+		clearFilterVariants : function() {
+			this.variantsFilter.filtered.splice(0,this.variantsFilter.filtered.length);
 			return;
 		},
 		
