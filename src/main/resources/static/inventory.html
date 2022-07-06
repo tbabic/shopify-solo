@@ -98,17 +98,18 @@
 								</div>
 								<div class="col-5">
 									
-
-									<input type="text" class="form-control" 
-										v-bind:disabled="selectedInventoryItem.shopifyVariantId != null" 
-										v-model="selectedInventoryItem.item" 
-										v-on:keyup="filterVariants" 
-										v-on:focus="filterVariants"
-										v-on:focusout="clearFilterVariants">
-									<div v-bind:class="(variantsFilter.filtered.length > 0 ? 'show ' : '')+ 'dropdown-menu'">
-										 <button v-for="variant in variantsFilter.filtered" class="dropdown-item" type="button" v-on:click="connection(variant)">{{ variant.title }}</button>
-									</div>
 									
+									<div>
+										<input type="text" class="form-control" 
+											v-bind:disabled="selectedInventoryItem.shopifyVariantId != null" 
+											v-model="selectedInventoryItem.item" 
+											v-on:keyup="filterVariants" 
+											v-on:focus="filterVariants"
+											>
+										<div v-bind:class="(variantsFilter.filtered.length > 0 ? 'show ' : '')+ 'dropdown-menu'">
+											 <button v-for="variant in variantsFilter.filtered" class="dropdown-item" type="button" v-on:click="connection(variant)">{{ variant.title }}</button>
+										</div>
+									</div v-on:focusout="clearFilterVariants">
 									
 									
 								</div>
