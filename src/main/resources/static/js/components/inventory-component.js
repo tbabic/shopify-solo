@@ -109,6 +109,24 @@ var inventoryComponent = new Vue({
 				this.endLoader();
 			});
 		},
+		deleteInventory : function(inventory) {
+			if(inventory.id == null) {
+				return;
+			}
+			this.startLoader();
+
+			return axios.delete('/manager/inventory/' + inventory.id)
+			.then(response => {
+				console.log(response);
+			}).then(() => {
+				return this.loadInventory();
+			}).catch(error => {
+				this.showError(error.response.data.message);
+			}).finally(() => {
+				this.endLoader();
+			});
+		},
+		
 		select : function(inventory) {
 			this.selectedInventoryItem.id = inventory.id;
 			this.selectedInventoryItem.item = inventory.item;
