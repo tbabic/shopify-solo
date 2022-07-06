@@ -56,9 +56,7 @@ var inventoryComponent = new Vue({
 				search : this.searchFilter.value
 			};
 			
-			return axios.get('/manager/inventory',{
-				params: params
-			}).then(response => {
+			return axios.get('/manager/inventory').then(response => {
 				this.inventoryList.splice(0,this.inventoryList.length);
 				response.data.forEach(inventory => { 
 					this.inventoryList.push(inventory);
@@ -191,7 +189,12 @@ var inventoryComponent = new Vue({
 			return;
 		},
 		
-		clearFilterVariants : function() {
+		clearFilterVariants : function(event) {
+			if (event != null && event.relatedTarget != null) {
+				if($(event.relatedTarget).closest(event.currentTarget).length > 0) {
+					return;
+				}
+			}
 			this.variantsFilter.filtered.splice(0,this.variantsFilter.filtered.length);
 			return;
 		},
