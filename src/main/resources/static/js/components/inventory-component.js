@@ -20,6 +20,12 @@ var inventoryComponent = new Vue({
 			value: ''
 		},
 		
+		connectionFilters : {
+			connected : true,
+			webshopOnly : true,
+			materialsOnly : true
+		},
+		
 		variantsFilter : {
 			value : "",
 			filtered : []
@@ -31,17 +37,59 @@ var inventoryComponent = new Vue({
 	
 	computed : {
 		filteredInventory : function() {
-			if (this.searchFilter == null || this.searchFilter.value.trim().length =='') {
+			if ((this.searchFilter == null || this.searchFilter.value.trim().length =='')
+				&& this.connectionFilters.connected && this.connectionFilters.webshopOnly && this.connectionFilters.materialsOnly) {
 				return this.inventoryList;
 			}
+			
+			
 			let filtered = this.inventoryList.filter(inventory => {
 				
 				let b= inventory.item != null && inventory.item.toLowerCase().includes(this.searchFilter.value.toLowerCase().trim());
-				return b;
+				
+				let connected = inventory.id != null && inventory.shopifyVariantId != null;
+				let webshopOnly = inventory.id == null && inventory.shopifyVariantId != null;
+				let materialsOnly = inventory.id != null && inventory.shopifyVariantId == null;
+				
+				if (connected && this.connectionFilters.connected) {
+					return b;
+				}
+				
+				if (webshopOnly && this.connectionFilters.webshopOnly) {
+					return b;
+				}
+				
+				if (materialsOnly && this.connectionFilters.materialsOnly) {
+					return b;
+				}
+								
+				return false;
 				
 			});
 			return filtered;
-		}
+		},
+		
+		filterConnectedClass : function() {
+			let style = "btn btn-connected";
+			if (this.connectionFilters.connected == false) {
+				style += " strikethrough";
+			}
+			return style;
+		},
+		filterWebshopOnlyClass : function() {
+			let style = "btn btn-warning";
+			if (this.connectionFilters.webshopOnly == false) {
+				style += " strikethrough";
+			}
+			return style;
+		},
+		filterMaterialsOnlyClass : function() {
+			let style = "btn btn-danger";
+			if (this.connectionFilters.materialsOnly == false) {
+				style += " strikethrough";
+			}
+			return style;
+		},
 	},
 	
 	methods: {
@@ -353,7 +401,7 @@ var inventoryComponent = new Vue({
 			if (inventory.shopifyVariantId == null) {
 				return 'btn btn-danger'
 			}
-			return "btn btn-outline-secondary";
+			return "btn btn-connected";
 		},
 		
 		

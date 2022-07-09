@@ -67,6 +67,21 @@
 							</button>
 						</div>
 						
+						
+						<div class ="col-5">
+							<button tabindex="-1" v-bind:class="filterConnectedClass" v-on:click="connectionFilters.connected = !connectionFilters.connected;">
+								Povezani
+							</button>
+							<button tabindex="-1" v-bind:class="filterWebshopOnlyClass" v-on:click="connectionFilters.webshopOnly = !connectionFilters.webshopOnly;">
+								Webshop
+							</button>
+							<button tabindex="-1" v-bind:class="filterMaterialsOnlyClass" v-on:click="connectionFilters.materialsOnly = !connectionFilters.materialsOnly;">
+								Materijali
+							</button>
+						</div>
+						
+				
+						
 					</div>
 					
 					

@@ -22,9 +22,6 @@ textarea.selected-record-value {
 }
 
 .btn-inventory-item {
-    /*color: #fff;
-    background-color: #6c757d;
-    border-color: #6c757d;*/
     
     color: #6c757d;
     border-color: #6c757d;
@@ -35,10 +32,26 @@ textarea.selected-record-value {
     background-color: #6c757d8a;
     border-color: #6c757d8a;
     
-    
-    /*color: #6c757d;
-    border-color: #6c757d;*/
 }
 
+.strikethrough {
+	text-decoration: line-through;
+}
+
+.btn-connected {
+	color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-connected:hover {
+	
+    background-color: rgb(235, 236, 237);
+}
+
+.btn-inventory-item:hover {
+	
+    background-color: rgb(235, 236, 237);
+}
+    
 
 
