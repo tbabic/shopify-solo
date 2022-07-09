@@ -34,7 +34,7 @@ textarea.selected-record-value {
     
 }
 
-.strikethrough {
+.strikethrough, .strikethrough:hover {
 	text-decoration: line-through;
 }
 
