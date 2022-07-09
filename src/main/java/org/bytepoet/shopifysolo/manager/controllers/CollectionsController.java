@@ -202,7 +202,7 @@ public class CollectionsController {
 	}
 	
 	private int quantity(ShopifyProduct product) {
-		int quantity = product.variants.stream().mapToInt( variant -> Integer.parseInt(variant.quantity)).max().getAsInt();
+		int quantity = product.variants.stream().mapToInt( variant -> variant.quantity.intValue()).max().getAsInt();
 		return quantity;
 	}
 	

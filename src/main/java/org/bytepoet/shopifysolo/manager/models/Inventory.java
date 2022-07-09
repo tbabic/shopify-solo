@@ -129,6 +129,13 @@ public class Inventory {
 		this.id = id;
 	}
 	
+	public int changeQuantity(int addQuantity) {
+		this.quantity += addQuantity;
+		if (this.quantity < 0) {
+			this.quantity = 0;
+		}
+		return this.quantity;
+	}
 	
 	
 	

@@ -3,12 +3,11 @@
 
 <head>
 	<meta http-equiv="Content-type" content="text/html; charset=UTF-8">
-	<link rel="stylesheet" type="text/css" href="css/main.css"/>
-	<link rel="stylesheet" type="text/css" href="css/inventory.css"/>
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
-	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.6/dist/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
 	<script src="https://unpkg.com/vue@2.5.16/dist/vue.js"></script>
 	<script src="https://unpkg.com/vue-router@3.0.1/dist/vue-router.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
@@ -16,6 +15,8 @@
 	<script src="js/main.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/vue-clipboard2@0.3.1/dist/vue-clipboard.min.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/4.4.0/font/octicons.css"/>
+	<link rel="stylesheet" type="text/css" href="css/main.css"/>
+	<link rel="stylesheet" type="text/css" href="css/inventory.css"/>
 	
 	
 	
@@ -52,14 +53,16 @@
 						 
 						<div class ="col-1 text-right">Shopify</div>
 						
-						<div class ="col-1 text-right">Kol. </div>
+						<div class ="col-2 text-right"><#></div>
+						
+						<div class ="col-2 text-left">Kol. </div>
 				
 						
 					</div>
 					
 					<div class ="row">
 						<div class ="col-3">
-							<button class="btn btn-primary" data-toggle="modal" data-target="#editInventoryModal" v-on:click="cleanSelected">
+							<button tabindex="-1" class="btn btn-primary" data-toggle="modal" data-target="#editInventoryModal" v-on:click="cleanSelected">
 								Dodaj novi zapis
 							</button>
 						</div>
@@ -71,7 +74,7 @@
 			
 				<div class ="row" v-for="inventoryItem in filteredInventory">
 					<div class ="col-4">
-						<button v-bind:class="connectedClass(inventoryItem)" v-on:click="select(inventoryItem)" data-toggle="modal" data-target="#editInventoryModal">
+						<button tabindex="-1" v-bind:class="connectedClass(inventoryItem)" v-on:click="select(inventoryItem)" data-toggle="modal" data-target="#editInventoryModal">
 							{{ inventoryItem.item }}
 						</button>
 					</div>
@@ -80,10 +83,50 @@
 						{{ inventoryItem.shopifyQuantity }}
 					</div>
 					
-					<div class ="col-1 text-right">
-						<input v-model="inventoryItem.quantity" type="numeric" class="form-control"/>
-					</div>
+					<div class="col-2">
+						<div class="input-group mb-3">
+							<div class="input-group-prepend">
 
+								<button tabindex="-1" class="btn btn-inventory-item" type="button"
+									v-bind:disabled="inventoryItem.adjustment.shopifyInventoryItemId == null || isSpinning(inventoryItem)" 
+									v-on:click="adjustLeft(inventoryItem)">
+									<
+								</button>
+							</div>
+							<input type="numeric" class="form-control" placeholder="0"
+								v-model="inventoryItem.adjustment.quantity"
+								v-on:keyup.enter="adjustLeft(inventoryItem)"
+								v-bind:disabled="inventoryItem.adjustment.shopifyInventoryItemId == null || isSpinning(inventoryItem)" >
+							<div class="input-group-append">
+								<button tabindex="-1" class="btn btn-inventory-item" type="button"
+									v-bind:disabled="inventoryItem.adjustment.shopifyInventoryItemId == null || isSpinning(inventoryItem)" 
+									v-on:click="adjustRight(inventoryItem)">
+									>
+								</button>
+							</div>
+						</div>
+
+					</div>
+				
+					<div class ="col-2 text-left">
+						<div class="input-group mb-3">
+							<input type="numeric" class="form-control" placeholder="0"
+								v-model="inventoryItem.quantity"
+								v-on:keyup.enter="quickSave(inventoryItem)"
+								v-bind:disabled="inventoryItem.adjustment.inventoryId == null || isSpinning(inventoryItem)">
+							<div class="input-group-append">
+								<button tabindex="-1" class="btn btn-inventory-item" type="button"
+									v-bind:disabled="inventoryItem.adjustment.inventoryId == null || isSpinning(inventoryItem)" 
+									v-on:click="quickSave(inventoryItem)">
+									<img src="/icons/box-arrow-down.svg" alt="Spremi" title="left">
+								</button>
+							</div>
+						</div>
+					</div>
+					
+					<div class="col-1 pt-2">
+						<span v-if="isSpinning(inventoryItem)"  class="spinner-border spinner-border-sm"> </span>
+					</div>
 					
 				</div>
 			</div>

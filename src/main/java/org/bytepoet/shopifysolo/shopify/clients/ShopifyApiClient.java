@@ -25,6 +25,8 @@ import org.bytepoet.shopifysolo.shopify.models.ShopifyCreatePriceRule;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCreateTransaction;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyDiscountCode;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyFulfillment;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyInventoryAdjustment;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyLocation;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyPriceRule;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyProduct;
@@ -107,6 +109,10 @@ public class ShopifyApiClient {
 	
 	private static final String SHOPIFY_PRODUCT = "https://{0}/admin/api/2021-10/products/{1}.json";
 	
+	private static final String SHOPIFY_ADJUST_INVENTORY = "https://{0}/admin/api/2022-07/inventory_levels/adjust.json";
+	
+	private static final String LOCATIONS_FORMAT = "https://{0}/admin/api/2021-10/locations.json";
+	
 	@Value("${fulfillment.tracking-url}")
 	private String trackingUrl;
 	
@@ -124,6 +130,8 @@ public class ShopifyApiClient {
 	
 	@Value("${shopify.api.password}")
 	private String clientPassword;
+	
+	
 	
 	@Autowired
 	private OkHttpClient client;
@@ -887,6 +895,42 @@ public class ShopifyApiClient {
 				h -> h.split(";")[0].replace('<',' ').replace('>', ' ').trim()));
 		String nextUrl = links.get("rel=\"next\"");
 		return nextUrl;
+	}
+	
+	public void adjustInventory(ShopifyInventoryAdjustment inventoryAdjustment) throws IOException {
+		String url = MessageFormat.format(SHOPIFY_ADJUST_INVENTORY, clientHost);
+		ObjectMapper mapper = new ObjectMapper();
+		String requestBody = mapper.writeValueAsString(inventoryAdjustment);
+		Request request = new Request.Builder()
+				.url(url)
+				.header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+				.post(RequestBody.create(MediaType.get("application/json"), requestBody))
+				.build();
+		Response response = client.newCall(request).execute();
+		String responseBody = response.body().string();
+		if (!response.isSuccessful()) {
+			throw new RuntimeException("Could not update inventory adjustment: " + responseBody);
+		}
+		return;
+		
+	}
+	
+	public static class LocationsWrapper {
+		public List<ShopifyLocation> locations;
+	}
+	
+	public List<ShopifyLocation> getLocations() throws Exception {
+		String url = MessageFormat.format(LOCATIONS_FORMAT, clientHost);
+		Request request = new Request.Builder()
+			      .url(url)
+			      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+			      .build();
+		Response response = client.newCall(request).execute();
+		String responseBodyString = response.body().string();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		LocationsWrapper wrapper = mapper.readValue(responseBodyString, LocationsWrapper.class);
+		return wrapper.locations;
 	}
 	
 }

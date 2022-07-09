@@ -21,8 +21,11 @@ public class ShopifyProductVariant {
 	public String compareAtPrice;
 	
 	@JsonProperty("inventory_quantity")
-	public String quantity;
+	public Long quantity;
 	
 	@JsonProperty("grams")
 	public String grams;
+	
+	@JsonProperty("inventory_item_id")
+	public String inventoryItemId;
 }

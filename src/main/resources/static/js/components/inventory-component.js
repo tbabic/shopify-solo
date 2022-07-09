@@ -14,7 +14,7 @@ var inventoryComponent = new Vue({
 			links: []
 		},
 		
-		
+		spinning : [],
 		
 		searchFilter : {
 			value: ''
@@ -62,6 +62,14 @@ var inventoryComponent = new Vue({
 					this.inventoryList.push(inventory);
 				});
 				
+				this.inventoryList.forEach(inventory => {
+					Vue.set(inventory, "adjustment", {
+						inventoryId : inventory.id,
+						shopifyInventoryItemId : null,
+						quantity : 0
+					});
+				})
+				
 				this.variants.forEach(variant => {
 					let foundInventory = this.inventoryList.find( inventoryItem => inventoryItem.shopifyVariantId == variant.id) 
 					if (foundInventory == null){
@@ -70,19 +78,121 @@ var inventoryComponent = new Vue({
 							item : variant.title,
 							quantity : 0,
 							shopifyVariantId : variant.id,
-							shopifyQuantity : variant.inventory_quantity,
-							links: []
+							shopifyQuantity : +variant.inventory_quantity,
+							links: [],
+							adjustment : {
+								inventoryId : null,
+								shopifyInventoryItemId : variant.inventory_item_id,
+								quantity : 0
+							}
 						});
 					} else {
-						Vue.set(foundInventory, "shopifyQuantity", variant.inventory_quantity);
+						Vue.set(foundInventory, "shopifyQuantity", +variant.inventory_quantity);
+						Vue.set(foundInventory.adjustment, "shopifyInventoryItemId", variant.inventory_item_id);
 					}
+					
+					
+					
 				});
+				
+				
 				
 				
 			}).finally(() => {
 				this.endLoader();
 			});
 		},
+		
+		
+		adjustLeft : function(inventoryItem) {			
+			let adjustment = {
+				inventoryId : inventoryItem.adjustment.inventoryId,
+				shopifyInventoryItemId : inventoryItem.adjustment.shopifyInventoryItemId,
+				quantity : inventoryItem.adjustment.quantity
+			}
+			
+			this.adjust(inventoryItem, adjustment);
+
+			
+		},
+		
+		adjustRight : function(inventoryItem) {
+			let adjustment = {
+				inventoryId : inventoryItem.adjustment.inventoryId,
+				shopifyInventoryItemId : inventoryItem.adjustment.shopifyInventoryItemId,
+				quantity : -inventoryItem.adjustment.quantity
+			}
+			
+			this.adjust(inventoryItem, adjustment);
+			
+		},
+		
+		adjust : function(inventoryItem, adjustment) {
+			this.startSpinning(inventoryItem);
+			
+			return axios.post('/manager/inventory/move-quantity', adjustment).then(response => {
+				inventoryItem.quantity -= adjustment.quantity;
+				inventoryItem.shopifyQuantity +=+adjustment.quantity;
+				if (inventoryItem.quantity < 0) {
+					inventoryItem.quantity = 0;
+				}
+				console.log(response);
+			}).catch(error => {
+				this.showError(error.response.data.message);
+			}).finally(() => {
+				this.stopSpinning(inventoryItem)
+			});
+		},
+		
+		quickSave : function(inventoryItem) {
+			this.startSpinning(inventoryItem);
+			
+			
+			let inventoryToSave = {
+				id : inventoryItem.id,
+				item : inventoryItem.item,
+				quantity : inventoryItem.quantity,
+				shopifyVariantId : inventoryItem.shopifyVariantId,
+				links : []
+			}
+			
+			inventoryItem.links.forEach(link => {
+				inventoryToSave.links.push(link);
+			});
+			
+			
+			return axios.post('/manager/inventory', inventoryToSave).then(response => {
+				console.log(response);
+			}).catch(error => {
+				this.showError(error.response.data.message);
+			})
+			.finally(() => {
+				this.stopSpinning(inventoryItem);
+			});
+		},
+		
+		startSpinning(inventoryItem) {
+			if (this.isSpinning(inventoryItem)) {
+				return;
+			}
+			this.spinning.push(inventoryItem);
+		},
+		
+		stopSpinning(inventoryItem) {
+			index = this.spinning.findIndex(el => el == inventoryItem);
+			if (index >= 0) {
+				this.spinning.splice(index,1);
+			}
+		},
+		
+		isSpinning(inventoryItem) {
+			index = this.spinning.findIndex(el => el == inventoryItem);
+			return index >= 0;
+				
+		},
+		
+		
+		
 		saveInventory : function() {
 			this.startLoader();
 			
@@ -235,7 +345,7 @@ var inventoryComponent = new Vue({
 			if (inventory.shopifyVariantId == null) {
 				return 'btn btn-danger'
 			}
-			return "btn btn-primary";
+			return "btn btn-outline-secondary";
 		},
 		
 		

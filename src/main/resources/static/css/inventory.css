@@ -21,5 +21,24 @@ textarea.selected-record-value {
 	resize: both !important;
 }
 
+.btn-inventory-item {
+    /*color: #fff;
+    background-color: #6c757d;
+    border-color: #6c757d;*/
+    
+    color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-inventory-item.disabled, .btn-inventory-item:disabled {
+    color: #fff;
+    background-color: #6c757d8a;
+    border-color: #6c757d8a;
+    
+    
+    /*color: #6c757d;
+    border-color: #6c757d;*/
+}
+
 
 
