@@ -110,7 +110,8 @@
 				
 					<div class ="col-2 text-left">
 						<div class="input-group mb-3">
-							<input type="numeric" class="form-control" placeholder="0"
+							<input type="numeric" placeholder="0"
+								v-bind:class="(quantityChanged(inventoryItem) ? 'text-success ' : '') + 'form-control'"
 								v-model="inventoryItem.quantity"
 								v-on:keyup.enter="quickSave(inventoryItem)"
 								v-bind:disabled="inventoryItem.adjustment.inventoryId == null || isSpinning(inventoryItem)">

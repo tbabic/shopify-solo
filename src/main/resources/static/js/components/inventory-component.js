@@ -68,6 +68,7 @@ var inventoryComponent = new Vue({
 						shopifyInventoryItemId : null,
 						quantity : 0
 					});
+					Vue.set(inventory, "oldQuantity", inventory.quantity);
 				})
 				
 				this.variants.forEach(variant => {
@@ -77,6 +78,7 @@ var inventoryComponent = new Vue({
 							id: null,
 							item : variant.title,
 							quantity : 0,
+							oldQuantity : 0,
 							shopifyVariantId : variant.id,
 							shopifyQuantity : +variant.inventory_quantity,
 							links: [],
@@ -132,6 +134,7 @@ var inventoryComponent = new Vue({
 			
 			return axios.post('/manager/inventory/move-quantity', adjustment).then(response => {
 				inventoryItem.quantity -= adjustment.quantity;
+				inventoryItem.oldQuantity -= adjustment.quantity;
 				inventoryItem.shopifyQuantity +=+adjustment.quantity;
 				if (inventoryItem.quantity < 0) {
 					inventoryItem.quantity = 0;
@@ -163,12 +166,17 @@ var inventoryComponent = new Vue({
 			
 			return axios.post('/manager/inventory', inventoryToSave).then(response => {
 				console.log(response);
+				inventoryItem.oldQuantity = inventoryItem.quantity;
 			}).catch(error => {
 				this.showError(error.response.data.message);
 			})
 			.finally(() => {
 				this.stopSpinning(inventoryItem);
 			});
+		},
+		
+		quantityChanged(inventory) {
+			return inventory.oldQuantity != inventory.quantity;
 		},
 		
 		startSpinning(inventoryItem) {
