@@ -247,7 +247,10 @@ var inventoryComponent = new Vue({
 				
 		},
 		
-		
+		copyInventory : function() {
+			this.selectedInventoryItem.id = null;
+			this.selectedInventoryItem.shopifyVariantId = null;
+		},
 		
 		saveInventory : function() {
 			this.startLoader();

@@ -89,7 +89,10 @@
 			
 				<div class ="row" v-for="inventoryItem in filteredInventory">
 					<div class ="col-4">
-						<button tabindex="-1" v-bind:class="connectedClass(inventoryItem)" v-on:click="select(inventoryItem)" data-toggle="modal" data-target="#editInventoryModal">
+						<button tabindex="-1" data-toggle="modal" data-target="#editInventoryModal"
+							v-bind:class="connectedClass(inventoryItem)"
+							v-bind:disabled="isSpinning(inventoryItem)" 
+							v-on:click="select(inventoryItem)">
 							{{ inventoryItem.item }}
 						</button>
 					</div>
@@ -218,6 +221,7 @@
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-secondary" data-dismiss="modal" v-on:click="saveInventory">Spremi</button>
+							<button type="button" class="btn btn-secondary" v-on:click="copyInventory">Kopija</button>
 							<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
 							<button type="button" class="btn btn-danger" data-dismiss="modal" v-on:click="deleteInventory(selectedInventoryItem)">Obriši</button>
 						</div>
