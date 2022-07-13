@@ -759,7 +759,7 @@ var orderTableComponent = new Vue({
 		},
 		linkifyItem: function(item) {
 			let link = item.toLowerCase();
-			link = link.replaceAll("š", "s").trim().replaceAll("&", "").replaceAll("  ", " ").replaceAll(" ", "-");
+			link = link.replaceAll("š", "s").trim().replaceAll("&", "").replaceAll("  ", " ").replaceAll(" ", "-").replaceAll(")", "").replaceAll("(", "");
 			if (link.search("nausnice") == -1 && link.search("prsten") == -1 && link.search("ogrlica") == -1 && link.search("narukvica") == -1) {
 				link = "https://www.kragrlica.com/search?q=" + item.replace(" ", "+");
 			} else {
