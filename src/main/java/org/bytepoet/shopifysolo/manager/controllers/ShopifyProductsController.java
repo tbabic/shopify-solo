@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@RequestMapping("manager/products")
+@RequestMapping("manager/shopify-products")
 @RestController
-public class ProductsController {
+public class ShopifyProductsController {
 
 	@Autowired
 	private ShopifyApiClient apiClient;

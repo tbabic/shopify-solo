@@ -40,8 +40,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
+
 
 @SpringBootTest
+@AutoConfigureEmbeddedDatabase
 @RunWith(SpringJUnit4ClassRunner.class)
 @ActiveProfiles("test")
 public class OrderManagerControllerTests {

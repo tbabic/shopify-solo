@@ -60,8 +60,15 @@ dependencies {
 	// https://mvnrepository.com/artifact/io.rest-assured/rest-assured
 
 	
-	testCompile group: 'com.h2database', name: 'h2', version: '1.4.200'
+	//testCompile group: 'com.h2database', name: 'h2', version: '1.4.200'
+	// https://mvnrepository.com/artifact/io.zonky.test/embedded-database-spring-test
+	testImplementation group: 'io.zonky.test', name: 'embedded-database-spring-test', version: '2.1.1'
+	testImplementation group: 'io.zonky.test', name: 'embedded-postgres', version: '2.0.0'
+	
 
+
+	
+	
 }
 
 test {
