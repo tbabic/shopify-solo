@@ -33,10 +33,13 @@ var inventoryComponent = new Vue({
 		
 		sorting : [{
 			value: "normal",
-			text: "NORMALNO",
+			text: "Normalno",
 		}, {
-			value: "quantity",
-			text: "KOLIČINA"
+			value: "quantity.webshop",
+			text: "Webshop količina"
+		},{
+			value: "quantity.inventory",
+			text: "Zalihe količina"
 		}],
 		
 		selectedSorting : "normal",
@@ -85,15 +88,28 @@ var inventoryComponent = new Vue({
 			
 			if(this.selectedSorting == "normal") {
 				return filtered;
-			} else if (this.selectedSorting == "quantity") {
+			}
+			else if (this.selectedSorting == "quantity.webshop") {
 				filtered.sort((a, b) => { 
 					if (a.shopifyQuantity != b.shopifyQuantity) {
-						return a.shopifyQuantity - b.shopifyQuantity;
+						return a.shopifyQuantity - +b.shopifyQuantity;
 					}
 					else {
-						return a.quantity - b.quantity;
+						return a.quantity - +b.quantity;
 					}
 				 } )
+			}
+			else if (this.selectedSorting == "quantity.inventory") {
+				filtered.sort((a, b) => {
+					value = +a.shopifyQuantity + +a.quantity - +b.shopifyQuantity - +b.quantity;
+					if (value == 0) {
+						value = +a.shopifyQuantity - +b.shopifyQuantity
+					}
+					if (value == 0) {
+						value = +a.quantity - +b.quantity;
+					}
+					return value;
+				 })
 			}
 			
 			return filtered;
