@@ -31,41 +31,71 @@ var inventoryComponent = new Vue({
 			filtered : []
 		},
 		
+		sorting : [{
+			value: "normal",
+			text: "NORMALNO",
+		}, {
+			value: "quantity",
+			text: "KOLIČINA"
+		}],
+		
+		selectedSorting : "normal",
+		
 		loadingCount: 0,
 		debounceCounter: 0
 	},
 	
 	computed : {
 		filteredInventory : function() {
+			
+			let filtered;
+			
+			console.log("sorting " + this.selectedSorting);
 			if ((this.searchFilter == null || this.searchFilter.value.trim().length =='')
 				&& this.connectionFilters.connected && this.connectionFilters.webshopOnly && this.connectionFilters.materialsOnly) {
-				return this.inventoryList;
+				filtered = this.inventoryList.filter(() => true);
+			} else {
+				filtered = this.inventoryList.filter(inventory => {
+					
+					let b= inventory.item != null && inventory.item.toLowerCase().includes(this.searchFilter.value.toLowerCase().trim());
+					
+					let connected = inventory.id != null && inventory.shopifyVariantId != null;
+					let webshopOnly = inventory.id == null && inventory.shopifyVariantId != null;
+					let materialsOnly = inventory.id != null && inventory.shopifyVariantId == null;
+					
+					if (connected && this.connectionFilters.connected) {
+						return b;
+					}
+					
+					if (webshopOnly && this.connectionFilters.webshopOnly) {
+						return b;
+					}
+					
+					if (materialsOnly && this.connectionFilters.materialsOnly) {
+						return b;
+					}
+									
+					return false;
+					
+				});
 			}
 			
 			
-			let filtered = this.inventoryList.filter(inventory => {
 				
-				let b= inventory.item != null && inventory.item.toLowerCase().includes(this.searchFilter.value.toLowerCase().trim());
-				
-				let connected = inventory.id != null && inventory.shopifyVariantId != null;
-				let webshopOnly = inventory.id == null && inventory.shopifyVariantId != null;
-				let materialsOnly = inventory.id != null && inventory.shopifyVariantId == null;
-				
-				if (connected && this.connectionFilters.connected) {
-					return b;
-				}
-				
-				if (webshopOnly && this.connectionFilters.webshopOnly) {
-					return b;
-				}
-				
-				if (materialsOnly && this.connectionFilters.materialsOnly) {
-					return b;
-				}
-								
-				return false;
-				
-			});
+			
+			if(this.selectedSorting == "normal") {
+				return filtered;
+			} else if (this.selectedSorting == "quantity") {
+				filtered.sort((a, b) => { 
+					if (a.shopifyQuantity != b.shopifyQuantity) {
+						return a.shopifyQuantity - b.shopifyQuantity;
+					}
+					else {
+						return a.quantity - b.quantity;
+					}
+				 } )
+			}
+			
 			return filtered;
 		},
 		
