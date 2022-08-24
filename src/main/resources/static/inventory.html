@@ -80,6 +80,11 @@
 							</button>
 						</div>
 						
+						<div class="col-2">
+							<select class="custom-select" v-model="selectedSorting">
+								<option v-for="sortOption in sorting" :value="sortOption.value">{{sortOption.text}}</option> 
+							</select>
+						</div>
 				
 						
 					</div>
