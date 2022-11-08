@@ -46,6 +46,8 @@ import com.itextpdf.layout.renderer.DrawContext;
 @Component
 public class PdfInvoiceService {
 	
+	public static final String CONVERSION_RATE_STRING = "7,534550";
+	
 	private static final float TOP_MARGIN = 45f;
 	private static final float LEFT_MARGIN = 20f;
 	@Value("${soloapi.note}")
@@ -179,7 +181,7 @@ public class PdfInvoiceService {
 	}
 	
 	private IBlockElement invoiceItems(PaymentOrder order) {
-		Table table = new Table(UnitValue.createPercentArray(new float[] {1, 17, 3, 3, 5, 5, 7, 5}));
+		Table table = new Table(UnitValue.createPercentArray(new float[] {1, 15, 3, 3, 5, 5, 5, 5, 5}));
 		
 		String[] headerElements = {
 				"R.br.",
@@ -189,7 +191,8 @@ public class PdfInvoiceService {
 				"Cijena",
 				"PDV",
 				"Popust",
-				"Iznos stavke"
+				"Iznos stavke",
+				""
 		};
 		
 		for (int i = 0; i< headerElements.length; i++) {
@@ -212,7 +215,9 @@ public class PdfInvoiceService {
 					price(item),
 					item.getTaxRate() + "%",
 					discount(item),
-					discountAllItemsPrice(item)
+					discountAllItemsPrice(item) + " kn",
+					convertPriceString(item.getTotalPrice())
+					
 			};
 			
 			for (int i = 0; i < rowElements.length; i++) {
@@ -233,21 +238,43 @@ public class PdfInvoiceService {
 	}
 	
 	private IBlockElement invoiceSum(PaymentOrder order) {
-		Table table = new Table(UnitValue.createPercentArray(new float[] {80f, 20f}));
+		Table table = new Table(UnitValue.createPercentArray(new float[] {70f, 20f, 10f}));
+		
+		String sumAllItemsPrice = sumAllItemsPrice(order);
 		table.addCell(new Cell().add(new Paragraph("Ukupno:").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(sumAllItemsPrice(order) + "  kn").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
+		table.addCell(new Cell().add(new Paragraph(sumAllItemsPrice + "  kn").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
+				.setBorder(Border.NO_BORDER));
+		table.addCell(new Cell().add(new Paragraph(convertPriceString(sumAllItemsPrice)).setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.LEFT))
 				.setBorder(Border.NO_BORDER));
 		
+		
+		String sumAllItemsVat = sumAllItemsVat(order); 
 		table.addCell(new Cell().add(new Paragraph("Porez (25%):").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(sumAllItemsVat(order) + "  kn").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
+		table.addCell(new Cell().add(new Paragraph(sumAllItemsVat + "  kn").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
+				.setBorder(Border.NO_BORDER));
+		table.addCell(new Cell().add(new Paragraph(convertPriceString(sumAllItemsVat)).setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.LEFT))
 				.setBorder(Border.NO_BORDER));
 		
+		
+		String totalPrice = totalPrice(order);
 		table.addCell(new Cell().add(new Paragraph("Ukupan iznos naplate:").setFont(boldFont()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(totalPrice(order) + "  kn").setFont(boldFont()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
+		table.addCell(new Cell().add(new Paragraph(totalPrice + "  kn").setFont(boldFont()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
+		table.addCell(new Cell().add(new Paragraph(convertPriceString(totalPrice)).setFont(boldFont()).setFontSize(12).setTextAlignment(TextAlignment.LEFT))
+				.setBorder(Border.NO_BORDER));
+		
+		
+		//exchange rate
+		table.addCell(new Cell().add(new Paragraph("Tečaj:").setFont(font()).setFontSize(10).setTextAlignment(TextAlignment.RIGHT))
+				.setBorder(Border.NO_BORDER));
+		table.addCell(new Cell().add(new Paragraph("1€ = " + CONVERSION_RATE_STRING + " kn").setFont(font()).setFontSize(10).setTextAlignment(TextAlignment.RIGHT))
+				.setBorder(Border.NO_BORDER));
+		table.addCell(new Cell().add(new Paragraph("").setFont(font()).setFontSize(10).setTextAlignment(TextAlignment.RIGHT))
+				.setBorder(Border.NO_BORDER));
+		
 		
 		return table.setWidth(550);
 	}
@@ -470,6 +497,29 @@ public class PdfInvoiceService {
 		try {
 			return PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD, "Cp1250", true);
 		} catch(Exception e) {
+			throw new RuntimeException(e);
+		}
+		
+	}
+	
+	private double convertPrice(double value) {
+		try {
+			double conversionRate =  getDecimalFormat().parse(CONVERSION_RATE_STRING).doubleValue();
+			return value / conversionRate;
+		} catch( Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	private String convertPriceString(double value) {
+		return "(€ " + getDecimalFormat().format(convertPrice(value)) + ")";
+	}
+	
+	private String convertPriceString(String value) {
+		try {
+			double val = getDecimalFormat().parse(value).doubleValue();
+			return "(€ " + getDecimalFormat().format(convertPrice(val)) + ")";
+		} catch( Exception e) {
 			throw new RuntimeException(e);
 		}
 		
