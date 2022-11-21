@@ -46,7 +46,7 @@ public class ProductControllerTests {
 		productRepository.deleteAll();
 		
 		Product product;
-		productController.saveProduct(product);
+		//productController.saveProduct(product);
 		
 	}
 	

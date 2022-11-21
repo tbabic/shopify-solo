@@ -12,6 +12,7 @@ public class ProductWebshopInfo {
 	protected String id;
 	
 	@Transient
+	@JsonProperty
 	protected Integer quantity;
 	
 	

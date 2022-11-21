@@ -1,0 +1,278 @@
+<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+	
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.6/dist/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+	<script src="https://unpkg.com/vue@2.5.16/dist/vue.js"></script>
+	<script src="https://unpkg.com/vue-router@3.0.1/dist/vue-router.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
+	<script src="js/http-vue.js"></script>
+	<script src="js/main.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue-clipboard2@0.3.1/dist/vue-clipboard.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/4.4.0/font/octicons.css"/>
+	<link rel="stylesheet" type="text/css" href="css/main.css"/>
+	<link rel="stylesheet" type="text/css" href="css/inventory.css"/>
+	
+	
+	
+</head>
+
+<body>
+	<div class="container-fluid">
+		
+		<div id="new-inventory" class="row">
+			<div class="col-9">
+		
+				<div class="pb-2 mt-4 mb-2 border-bottom">
+					<div class ="row">
+						<div class ="col-4">
+							PROIZVODI
+						</div>
+	
+					</div>
+				</div>
+				<div class="pb-2 mt-4 mb-2 border-bottom">
+					<div class ="row">
+						<div class ="col-4">
+							<div class="row">
+								<div class="col-12">
+									<div class="form-group form-inline">
+										<label>Naziv</label>
+										<input v-model="searchFilter.value" type="text" class="form-control" placeholder="search"/>
+									</div>
+								</div>
+							</div>
+						</div>
+						
+						
+						 
+						<div class ="col-1 text-right">Shopify</div>
+						
+						<div class ="col-2 text-right"><#></div>
+						
+						<div class ="col-2 text-left">Kol. </div>
+				
+						
+					</div>
+					
+					<div class ="row">
+						<div class ="col-3">
+							<button tabindex="-1" class="btn btn-primary" data-toggle="modal" data-target="#editInventoryModal" v-on:click="cleanSelected">
+								Dodaj novi zapis
+							</button>
+						</div>
+						
+						
+						<div class ="col-5">
+							<button tabindex="-1" v-bind:class="filterConnectedClass" v-on:click="connectionFilters.connected = !connectionFilters.connected;">
+								Povezani
+							</button>
+							<button tabindex="-1" v-bind:class="filterWebshopOnlyClass" v-on:click="connectionFilters.webshopOnly = !connectionFilters.webshopOnly;">
+								Nema linkova
+							</button>
+							<button tabindex="-1" v-bind:class="filterMaterialsOnlyClass" v-on:click="connectionFilters.materialsOnly = !connectionFilters.materialsOnly;">
+								Samo linkovi
+							</button>
+						</div>
+						
+						<div class="col-2">
+							<select class="custom-select" v-model="selectedSorting">
+								<option v-for="sortOption in sorting" :value="sortOption.value">{{sortOption.text}}</option> 
+							</select>
+						</div>
+				
+						
+					</div>
+					
+					
+				</div>
+			
+				<div class ="row" v-for="product in filteredProducts">
+					<div class ="col-4">
+						<button tabindex="-1" data-toggle="modal" data-target="#editInventoryModal"
+							v-bind:class="connectedClass(product)"
+							v-bind:disabled="isSpinning(product)" 
+							v-on:click="select(product)">
+							{{ product.name }}
+						</button>
+					</div>
+					
+					<div class ="col-1 text-right">
+						{{ product.webshopInfo.quantity }}
+					</div>
+					
+					<div class="col-2">
+						<div class="input-group mb-3">
+							<div class="input-group-prepend">
+
+								<button tabindex="-1" class="btn btn-inventory-item" type="button"
+									v-bind:disabled="product.webshopInfo.id == null || isSpinning(product)" 
+									v-on:click="adjustLeft(product)">
+									<
+								</button>
+							</div>
+							<input type="numeric" class="form-control" placeholder="0"
+								v-model="product.webshopInfo.quantity"
+								v-on:keyup.enter="adjustLeft(product)"
+								v-bind:disabled="product.webshopInfo.id == null || isSpinning(product)" >
+							<div class="input-group-append">
+								<button tabindex="-1" class="btn btn-inventory-item" type="button"
+									v-bind:disabled="product.webshopInfo.id == null || isSpinning(product)" 
+									v-on:click="adjustRight(product)">
+									>
+								</button>
+							</div>
+						</div>
+
+					</div>
+				
+					<div class ="col-2 text-left">
+						<div class="input-group mb-3">
+							<input type="numeric" placeholder="0"
+								v-bind:class="(quantityChanged(product) ? 'text-success ' : '') + 'form-control'"
+								v-model="product.quantity"
+								v-on:keyup.enter="quickSave(product)"
+								v-bind:disabled="product.id == null || isSpinning(product)">
+							<div class="input-group-append">
+								<button tabindex="-1" class="btn btn-inventory-item" type="button"
+									v-bind:disabled="product.id == null || isSpinning(product)" 
+									v-on:click="quickSave(product)">
+									<img src="/icons/box-arrow-down.svg" alt="Spremi" title="left">
+								</button>
+							</div>
+						</div>
+					</div>
+					
+					<div class="col-1 pt-2">
+						<span v-if="isSpinning(product)"  class="spinner-border spinner-border-sm"> </span>
+					</div>
+					
+				</div>
+			</div>
+	
+			<div class="modal fade" id="editInventoryModal" role="dialog">
+				<div class="modal-dialog modal-lg" role="document">
+					<div class="modal-content">
+						<div class="modal-body">
+							<div class="row">
+								<div class = "col-3">
+									Ime proizvoda:
+								</div>
+								<div class="col-5">
+									
+									
+									<div v-on:focusout="clearFilterProducts">
+										<input type="text" class="form-control" 
+											v-bind:disabled="selectedProduct.shopifyProductId != null" 
+											v-model="selectedProduct.item" 
+											v-on:keyup="filterProducts" 
+											v-on:focus="filterProducts"
+											/>
+										<div v-bind:class="(productsFilter.filtered.length > 0 ? 'show ' : '')+ 'dropdown-menu'" >
+											 <button v-for="product in productsFilter.filtered" class="dropdown-item" type="button" v-on:click="connection(product)">{{ product.title }}</button>
+										</div>
+									</div>
+									
+									
+								</div>
+								
+								<div class="col-4">
+									<button v-if="selectedProduct.shopifyProductId != null" type="button" class="btn btn-danger" v-on:click="disconnect">ODSPOJI</button>
+								</div>
+							</div>
+							
+	
+							
+							<div class="row">
+								<div class="col">
+									Dijelovi:
+								</div>
+							</div>
+							
+							<div v-for="(partDistribution, index) in selectedProduct.partDistributions" class="row" >
+								<div class = "col-2">
+									<a v-bind:href="partDistribution.productPart.link" target="_blank">LINK</a>
+								</div>
+								
+								<div class = "col-4">
+									<input type="text" v-model="partDistribution.productPart.description"/>
+								</div>
+								
+								<div class = "col-4">
+									<input type="text" v-model="partDistribution.productPart.link"/>
+								</div>
+								
+								<div class="col-2">
+									<button type="button" v-on:click="removePart(index)" class="btn btn-primary">
+										-
+									</button>
+								</div>
+								
+								<div class="col-2">
+									<button type="button" v-on:click="removePart(index)" class="btn btn-primary">
+										-
+									</button>
+								</div>
+							</div>
+							
+	
+							
+							<div class="row">
+								<div class="col">
+									<button type="button" v-on:click="newPart" class="btn btn-primary">
+										Novi dio
+									</button>
+								</div>
+							</div>
+							
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal" v-on:click="saveProduct">Spremi</button>
+							<button type="button" class="btn btn-secondary" v-on:click="copyProduct">Kopija</button>
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
+							<button type="button" class="btn btn-danger" data-dismiss="modal" v-on:click="deleteInventory(selectedProduct)">Obriši</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			
+			<div class="modal fade" id=errorModal role="dialog">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="exampleModalLabel">Greška</h5>
+							<button type="button" class="close" data-dismiss="modal">
+								<span>&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<div  class="row">
+								<div id="errorContent" class="col">
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">Zatvori</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div id= "overlay">
+				<div class="w-100 d-flex justify-content-center align-items-center">
+					<div class="spinner"></div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+	
+<script src="js/components/new-inventory-component.js"></script>
+</body>
+</html>

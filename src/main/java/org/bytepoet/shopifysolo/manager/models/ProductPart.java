@@ -50,6 +50,19 @@ public class ProductPart {
 		return quantity;
 	}
 	
+	@JsonProperty
+	public int getAssignedQuantity() {
+		if (distributions == null) {
+			return 0;
+		}
+		return distributions.stream().mapToInt(d -> d.getAssignedQuantity()).sum();
+	}
+	
+	@JsonProperty
+	public int getSpareQuantity() {
+		return quantity - getAssignedQuantity();
+	}
+	
 	
 	
 	

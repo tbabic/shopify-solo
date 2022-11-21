@@ -12,6 +12,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 
+import org.bytepoet.shopifysolo.shopify.models.ShopifyProductVariant;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
@@ -38,6 +40,9 @@ public class Product {
 	
 	@JsonProperty(access = Access.READ_ONLY)
 	public int getQuantity() {
+		if (partDistributions == null) {
+			return 0;
+		}
 		return partDistributions.stream().mapToInt(part -> part.getAssignedQuantity())
 				.min()
 				.orElse(0);
@@ -63,6 +68,15 @@ public class Product {
 		return id;
 	}
 	
+	public static Product createFromWebshop(ShopifyProductVariant variant) {
+		Product product = new Product();
+		product.id = null;
+		product.webshopInfo = new ProductWebshopInfo();
+		product.webshopInfo.id = variant.id;
+		product.webshopInfo.quantity = variant.quantity.intValue();
+		product.name = variant.title;
+		return product;
+	}
 	
 	
 	
