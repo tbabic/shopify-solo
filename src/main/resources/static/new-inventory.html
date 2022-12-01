@@ -30,135 +30,197 @@
 		
 				<div class="pb-2 mt-4 mb-2 border-bottom">
 					<div class ="row">
-						<div class ="col-4">
-							PROIZVODI
+						<div  class ="col-4 col-md-2">
+							<button v-on:click="changeView" v-bind:disabled="globalViewProducts == true" class="btn btn-outline-dark">
+								PROIZVODI
+							</button>
+							
+						</div>
+						
+						<div v-bind:disabled="globalViewProducts != true" class ="col-4 col-md-2">
+							<button v-on:click="changeView" v-bind:disabled="globalViewProducts != true" class="btn btn-outline-dark">
+								DIJELOVI
+							</button>
 						</div>
 	
 					</div>
 				</div>
-				<div class="pb-2 mt-4 mb-2 border-bottom">
-					<div class ="row">
-						<div class ="col-4">
-							<div class="row">
-								<div class="col-12">
-									<div class="form-group form-inline">
-										<label>Naziv</label>
-										<input v-model="searchFilter.value" type="text" class="form-control" placeholder="search"/>
+				<div v-if="globalViewProducts == true"> 
+					<div class="pb-2 mt-4 mb-2 border-bottom">
+						<div class ="row">
+							<div class ="col-4">
+								<div class="row">
+									<div class="col-12">
+										<div class="form-group form-inline">
+											<label>Naziv</label>
+											<input v-model="searchFilter.value" type="text" class="form-control" placeholder="search"/>
+										</div>
 									</div>
+								</div>
+							</div>
+							
+							
+							 
+							<div class ="col-1 text-right">Shopify</div>
+							
+							<div class ="col-2 text-right"><#></div>
+							
+							<div class ="col-2 text-left">Kol. </div>
+					
+							
+						</div>
+						
+						<div class ="row">
+							<div class ="col-3">
+								<button tabindex="-1" class="btn btn-primary" data-toggle="modal" data-target="#editInventoryModal" v-on:click="cleanSelected">
+									Dodaj novi zapis
+								</button>
+							</div>
+							
+							
+							<div class ="col-5">
+								<button tabindex="-1" v-bind:class="filterConnectedClass" v-on:click="connectionFilters.connected = !connectionFilters.connected;">
+									Povezani
+								</button>
+								<button tabindex="-1" v-bind:class="filterWebshopOnlyClass" v-on:click="connectionFilters.webshopOnly = !connectionFilters.webshopOnly;">
+									Nema linkova
+								</button>
+								<button tabindex="-1" v-bind:class="filterMaterialsOnlyClass" v-on:click="connectionFilters.materialsOnly = !connectionFilters.materialsOnly;">
+									Samo linkovi
+								</button>
+							</div>
+							
+							<div class="col-2">
+								<select class="custom-select" v-model="selectedSorting">
+									<option v-for="sortOption in sorting" :value="sortOption.value">{{sortOption.text}}</option> 
+								</select>
+							</div>
+					
+							
+						</div>
+						
+						
+					</div>
+				
+					<div class ="row" v-for="product in filteredProducts">
+						<div class ="col-4">
+							<button tabindex="-1" data-toggle="modal" data-target="#editInventoryModal"
+								v-bind:class="connectedClass(product)"
+								v-bind:disabled="isSpinning(product)" 
+								v-on:click="select(product)">
+								{{ product.name }}
+							</button>
+						</div>
+						
+						<div class ="col-1 text-right">
+							{{ product.webshopInfo != null ? product.webshopInfo.quantity : 0}}
+						</div>
+						
+						<div class="col-2">
+							<div class="input-group mb-3">
+								<div class="input-group-prepend">
+	
+									<button tabindex="-1" class="btn btn-inventory-item" type="button"
+										v-bind:disabled="product.webshopInfo == null || product.webshopInfo.id == null || isSpinning(product)" 
+										v-on:click="adjustLeft(product)">
+										<
+									</button>
+								</div>
+								<input type="numeric" class="form-control" placeholder="0"
+									v-model="product.webshopInfo.quantity"
+									v-on:keyup.enter="adjustLeft(product)"
+									v-bind:disabled="product.webshopInfo.id == null || isSpinning(product)" >
+								<div class="input-group-append">
+									<button tabindex="-1" class="btn btn-inventory-item" type="button"
+										v-bind:disabled="product.webshopInfo.id == null || isSpinning(product)" 
+										v-on:click="adjustRight(product)">
+										>
+									</button>
+								</div>
+							</div>
+	
+						</div>
+					
+						<div class ="col-2 text-left">
+							<div class="input-group mb-3">
+								<input type="numeric" placeholder="0"
+									v-bind:class="(quantityChanged(product) ? 'text-success ' : '') + 'form-control'"
+									v-model="product.quantity"
+									v-on:keyup.enter="quickSave(product)"
+									v-bind:disabled="product.id == null || isSpinning(product)">
+								<div class="input-group-append">
+									<button tabindex="-1" class="btn btn-inventory-item" type="button"
+										v-bind:disabled="product.id == null || isSpinning(product)" 
+										v-on:click="quickSave(product)">
+										<img src="/icons/box-arrow-down.svg" alt="Spremi" title="left">
+									</button>
 								</div>
 							</div>
 						</div>
 						
-						
-						 
-						<div class ="col-1 text-right">Shopify</div>
-						
-						<div class ="col-2 text-right"><#></div>
-						
-						<div class ="col-2 text-left">Kol. </div>
-				
+						<div class="col-1 pt-2">
+							<span v-if="isSpinning(product)"  class="spinner-border spinner-border-sm"> </span>
+						</div>
 						
 					</div>
-					
-					<div class ="row">
-						<div class ="col-3">
-							<button tabindex="-1" class="btn btn-primary" data-toggle="modal" data-target="#editInventoryModal" v-on:click="cleanSelected">
-								Dodaj novi zapis
-							</button>
-						</div>
-						
-						
-						<div class ="col-5">
-							<button tabindex="-1" v-bind:class="filterConnectedClass" v-on:click="connectionFilters.connected = !connectionFilters.connected;">
-								Povezani
-							</button>
-							<button tabindex="-1" v-bind:class="filterWebshopOnlyClass" v-on:click="connectionFilters.webshopOnly = !connectionFilters.webshopOnly;">
-								Nema linkova
-							</button>
-							<button tabindex="-1" v-bind:class="filterMaterialsOnlyClass" v-on:click="connectionFilters.materialsOnly = !connectionFilters.materialsOnly;">
-								Samo linkovi
-							</button>
-						</div>
-						
-						<div class="col-2">
-							<select class="custom-select" v-model="selectedSorting">
-								<option v-for="sortOption in sorting" :value="sortOption.value">{{sortOption.text}}</option> 
-							</select>
-						</div>
-				
-						
-					</div>
-					
-					
 				</div>
-			
-				<div class ="row" v-for="product in filteredProducts">
-					<div class ="col-4">
-						<button tabindex="-1" data-toggle="modal" data-target="#editInventoryModal"
-							v-bind:class="connectedClass(product)"
-							v-bind:disabled="isSpinning(product)" 
-							v-on:click="select(product)">
-							{{ product.name }}
-						</button>
-					</div>
-					
-					<div class ="col-1 text-right">
-						{{ product.webshopInfo.quantity }}
-					</div>
-					
-					<div class="col-2">
-						<div class="input-group mb-3">
-							<div class="input-group-prepend">
-
-								<button tabindex="-1" class="btn btn-inventory-item" type="button"
-									v-bind:disabled="product.webshopInfo.id == null || isSpinning(product)" 
-									v-on:click="adjustLeft(product)">
-									<
-								</button>
+				<div v-if="globalViewProducts != true">
+					<div class="pb-2 mt-4 mb-2 border-bottom">
+						<div class ="row mb-1">
+							<div class ="col-4 input-group">
+								<div class="input-group-prepend">
+									<span class="input-group-text" >
+										<img src="/icons/search.svg" alt="" width="20" height="20" title="pronađi postojeći dio">
+									</span>
+								</div>
+								<input v-model="partsFilterView" type="text" class="form-control" placeholder="search"/>
 							</div>
-							<input type="numeric" class="form-control" placeholder="0"
-								v-model="product.webshopInfo.quantity"
-								v-on:keyup.enter="adjustLeft(product)"
-								v-bind:disabled="product.webshopInfo.id == null || isSpinning(product)" >
-							<div class="input-group-append">
-								<button tabindex="-1" class="btn btn-inventory-item" type="button"
-									v-bind:disabled="product.webshopInfo.id == null || isSpinning(product)" 
-									v-on:click="adjustRight(product)">
-									>
+
+						</div>
+						
+						<div class ="row">
+							<div class ="col-3">
+								<button tabindex="-1" class="btn btn-primary" data-toggle="modal" data-target="#editInventoryModal" v-on:click="addNewPart">
+									Dodaj novi dio
 								</button>
 							</div>
 						</div>
-
+						
+						
 					</div>
 				
-					<div class ="col-2 text-left">
-						<div class="input-group mb-3">
-							<input type="numeric" placeholder="0"
-								v-bind:class="(quantityChanged(product) ? 'text-success ' : '') + 'form-control'"
-								v-model="product.quantity"
-								v-on:keyup.enter="quickSave(product)"
-								v-bind:disabled="product.id == null || isSpinning(product)">
-							<div class="input-group-append">
-								<button tabindex="-1" class="btn btn-inventory-item" type="button"
-									v-bind:disabled="product.id == null || isSpinning(product)" 
-									v-on:click="quickSave(product)">
-									<img src="/icons/box-arrow-down.svg" alt="Spremi" title="left">
-								</button>
-							</div>
+				
+					<div class="row border-bottom mb-1">
+						<div class="col-4">
+							 Naziv
+						</div>
+						<div class="col-4">
+							Dostupna količina
 						</div>
 					</div>
 					
-					<div class="col-1 pt-2">
-						<span v-if="isSpinning(product)"  class="spinner-border spinner-border-sm"> </span>
+					<div v-for="(part, index) in filteredPartsView" class="row mb-3">
+						<div class="col-4">
+							<button v-on:click="selectPart(part)" 
+								data-toggle="modal" data-target="#editInventoryModal" 
+								class="btn btn-outline-dark">
+								{{ part.title }}
+							</button>
+							
+						</div>
+						<div class="col-4">
+							{{ part.quantity }}
+						</div>
 					</div>
-					
 				</div>
+				
+				
 			</div>
 	
-			<div class="modal fade" id="editInventoryModal" role="dialog">
-				<div class="modal-dialog modal-lg" role="document">
+			<div class="modal fade" id="editInventoryModal" role="dialog" data-backdrop="static" data-keyboard="false">
+				<div class="modal-dialog modal-xl" role="document">
 					<div class="modal-content">
-						<div class="modal-body">
+						<div v-if="modalViewProducts == true" class="modal-body">
 							<div class="row">
 								<div class = "col-3">
 									Ime proizvoda:
@@ -168,13 +230,13 @@
 									
 									<div v-on:focusout="clearFilterProducts">
 										<input type="text" class="form-control" 
-											v-bind:disabled="selectedProduct.shopifyProductId != null" 
-											v-model="selectedProduct.item" 
+											v-bind:disabled="selectedProduct.webshopInfo != null && selectedProduct.webshopInfo.id != null" 
+											v-model="selectedProduct.name" 
 											v-on:keyup="filterProducts" 
 											v-on:focus="filterProducts"
 											/>
 										<div v-bind:class="(productsFilter.filtered.length > 0 ? 'show ' : '')+ 'dropdown-menu'" >
-											 <button v-for="product in productsFilter.filtered" class="dropdown-item" type="button" v-on:click="connection(product)">{{ product.title }}</button>
+											 <button v-for="product in productsFilter.filtered" class="dropdown-item" type="button" v-on:click="connection(product)">{{ product.name }}</button>
 										</div>
 									</div>
 									
@@ -182,60 +244,417 @@
 								</div>
 								
 								<div class="col-4">
-									<button v-if="selectedProduct.shopifyProductId != null" type="button" class="btn btn-danger" v-on:click="disconnect">ODSPOJI</button>
+									<button v-if="selectedProduct.webshopInfo.id != null" type="button" class="btn btn-danger" v-on:click="disconnect">ODSPOJI</button>
 								</div>
 							</div>
-							
-	
 							
 							<div class="row">
 								<div class="col">
 									Dijelovi:
 								</div>
 							</div>
+							<div class="border rounded mb-3">
+								<div v-if="selectedProduct.partDistributions.length == 0" class="mb-3 mt-3 text-danger">
+									Nema dijelova dodanih za ovaj artikal
+								</div>
 							
-							<div v-for="(partDistribution, index) in selectedProduct.partDistributions" class="row" >
-								<div class = "col-2">
-									<a v-bind:href="partDistribution.productPart.link" target="_blank">LINK</a>
-								</div>
-								
-								<div class = "col-4">
-									<input type="text" v-model="partDistribution.productPart.description"/>
-								</div>
-								
-								<div class = "col-4">
-									<input type="text" v-model="partDistribution.productPart.link"/>
-								</div>
-								
-								<div class="col-2">
-									<button type="button" v-on:click="removePart(index)" class="btn btn-primary">
-										-
-									</button>
-								</div>
-								
-								<div class="col-2">
-									<button type="button" v-on:click="removePart(index)" class="btn btn-primary">
-										-
-									</button>
+								<div v-for="(partDistribution, index) in selectedProduct.partDistributions" class="row" >
+									<div class = "col-3">
+										<button v-on:click="changeCheck(() => selectPart(partDistribution.productPart))" class ="btn btn-link">
+											{{ partDistribution.productPart.title }}
+										</button>
+									</div>
+									
+									<div class = "col-5 input-group">
+										<div class="input-group-prepend">
+											<span class="input-group-text" >
+												Proizvoda
+											</span>
+										</div>
+										<input  v-model="partDistribution.assignedToProducts" v-on:change="refreshDistribution(partDistribution)" 
+												class="form-control new-part-input" type="number"/>
+										<div class="input-group-prepend">
+											<span class="input-group-text" >
+												x
+											</span>
+										</div>
+										<input  v-model="partDistribution.partsUsed" v-on:change="refreshDistribution(partDistribution)" 
+												class="form-control new-part-input" type="number" />
+									</div>
+									
+									<div class = "col-3 input-group">
+										<div class="input-group-prepend">
+											<span class="input-group-text" >
+												Slobodno 
+											</span>
+										</div>
+										<input class="form-control new-part-input" disabled type="number" v-model="partDistribution.freeForProducts"/>
+									</div>
+									
+									
+									
+									<div class="col-1">
+										<button type="button" v-on:click="removePart(index)" class="btn btn-danger">
+											<img src="/icons/dash.svg" alt="" width="20" height="20" title="left">
+										</button>
+									</div>
 								</div>
 							</div>
 							
-	
+							
+							
+							<div class="row mb-3">
+								<div class="col-6 input-group" v-on:focusout="partsDropdownFocusOut">
+								
+									<div class="input-group-prepend">
+										<span class="input-group-text" >
+											<img src="/icons/search.svg" alt="" width="20" height="20" title="pronađi postojeći dio">
+										</span>
+									</div>
+									<input type="text" v-model="partsFilterModal" class="form-control"
+										v-on:focus="partsDropdownFocus">
+									
+									<div id="dropdown-id" v-bind:class="( isPartsDropdownFocused && !filteredPartsModalEmpty ? 'show ' : '')+ 'dropdown-menu'" >
+										<button v-for="part in filteredPartsModal" class="dropdown-item" type="button" v-on:click="connectProductAndPart(part)">{{ part.title }}</button>
+									</div>
+									
+									
+								</div>
+								
+							</div>
+							
+							
+							
 							
 							<div class="row">
-								<div class="col">
-									<button type="button" v-on:click="newPart" class="btn btn-primary">
-										Novi dio
-									</button>
+								<div class="col-3">
+									<div class="row mb-3">
+										<div class="col-12 input-group">
+											<div class="input-group-prepend">
+												<span class="input-group-text" >
+													Naziv
+												</span>
+											</div>
+											<input v-model="addingPart.title" v-bind:disabled="addingPart.disabled" type="text" class="form-control">
+										
+										</div>
+									</div>
+									<div class="row">
+										<div class="col-6">
+											<button type="button" v-on:click="clearAddingPart" class="btn btn-danger">
+												Očisti
+											</button>
+										</div>
+										<div class="col-6">
+											<button type="button" v-on:click="addNewPartToProduct" class="btn btn-primary">
+												Dodaj
+											</button>
+										</div>
+									</div>
+								
+								</div>
+								<div class="col-9">
+								
+									<div class="row">
+										
+									
+										<div class="col-7 input-group">
+											<div class="input-group-prepend">
+												<span class="input-group-text" >
+													Opis1
+												</span>
+											</div>
+											<input v-model="addingPart.description" v-bind:disabled="addingPart.disabled" type="text" class="form-control">
+										
+										</div>
+										<div class="col-5 input-group">
+											<div class="input-group-prepend">
+												<span class="input-group-text" >
+													Link1
+												</span>
+											</div>
+											<input v-model="addingPart.link" v-bind:disabled="addingPart.disabled" type="text" class="form-control">
+										
+										</div>
+									</div>
+									
+									<div class="row">
+										<div class="col-7 input-group">
+											<div class="input-group-prepend">
+												<span class="input-group-text" >
+													Opis2
+												</span>
+											</div>
+											<input v-model="addingPart.alternativeDescription" v-bind:disabled="addingPart.disabled" type="text" class="form-control">
+										
+										</div>
+										<div class="col-5 input-group">
+											<div class="input-group-prepend">
+												<span class="input-group-text" >
+													Link2
+												</span>
+											</div>
+											<input v-model="addingPart.alternativeLink" v-bind:disabled="addingPart.disabled" type="text" class="form-control">
+										
+										</div>
+									</div>
+									
+									<div class="row">
+										<div class="col-7 input-group">
+											<div class="input-group-prepend">
+												<span class="input-group-text" >
+													Opis3
+												</span>
+											</div>
+											<input v-model="addingPart.alternativeDescription2" v-bind:disabled="addingPart.disabled" type="text" class="form-control">
+										
+										</div>
+										<div class="col-5 input-group">
+											<div class="input-group-prepend">
+												<span class="input-group-text" >
+													Link3
+												</span>
+											</div>
+											<input v-model="addingPart.alternativeLink2" v-bind:disabled="addingPart.disabled" type="number" class="form-control">
+										
+										</div>
+									</div>
+									
+									<div class="row">
+										<div class="col-7 input-group">
+											<div class="input-group-prepend">
+												<span class="input-group-text" >
+													Proizvoda
+												</span>
+											</div>
+											<input v-model="addingPart.assignedToProducts" v-bind:disabled="addingPart.disabled" type="number" class="form-control">
+											<div class="input-group-prepend">
+												<span class="input-group-text" >
+													x
+												</span>
+											</div>
+											<input v-model="addingPart.partsUsed" v-bind:disabled="addingPart.disabled" type="number" class="form-control">
+										
+										</div>
+										<div class="col-5 input-group">
+											<div class="input-group-prepend">
+												<span class="input-group-text" >
+													Slobodno
+												</span>
+											</div>
+											<input v-model="addingPart.freeForProducts" v-bind:disabled="addingPart.disabled" type="number" class="form-control">
+											
+										
+										</div>
+										
+									</div>
+								</div>
+							
+							
+							
+							
+							
+						</div>
+						
+					</div>
+						<div v-if="modalViewProducts != true" class="modal-body">
+							<div class="row mb-1">
+								<div class="col-3">	
+								Naziv za dio:
+								</div>
+								<div class="col-9 input-group">	
+									<input v-model="selectedPart.title" type="text" class="form-control">
 								</div>
 							</div>
 							
+							
+							
+							<div class="row">
+								<div class="col-12">
+									Proizvodi:
+								</div>
+							</div>
+							
+							<div class="border rounded mb-3">
+								<div v-if="selectedPart.partDistributions.length == 0" class="mb-3 mt-3 text-danger">
+									Ovaj dio nije dodan ni za jedan proizvod
+								</div>
+								<div v-for="(partDistribution, index) in selectedPart.partDistributions" class="row" >
+									<div class="col-3">
+										<button v-on:click="changeCheck(() => selectProductById(partDistribution.productId))" class="btn btn-link">
+											{{ partDistribution.productName }}
+										</button>
+									</div>
+									
+									
+									
+									<div class = "col-5 input-group">
+										<div class="input-group-prepend">
+											<span class="input-group-text" >
+												Proizvoda
+											</span>
+										</div>
+										<input  v-model="partDistribution.assignedToProducts" v-on:change="refreshDistribution(partDistribution)" 
+												class="form-control new-part-input" type="number"/>
+										<div class="input-group-prepend">
+											<span class="input-group-text" >
+												x
+											</span>
+										</div>
+										<input  v-model="partDistribution.partsUsed" v-on:change="refreshDistribution(partDistribution)" 
+												class="form-control new-part-input" type="number" />
+									</div>
+									
+									<div class = "col-3 input-group">
+										<div class="input-group-prepend">
+											<span class="input-group-text" >
+												Slobodno 
+											</span>
+										</div>
+										<input class="form-control new-part-input" disabled type="number" v-model="partDistribution.freeForProducts"/>
+									</div>
+									
+									
+									
+									<div class="col-1">
+										<button type="button" v-on:click="" class="btn btn-danger">
+											<img src="/icons/dash.svg" alt="" width="20" height="20" title="left">
+										</button>
+									</div>
+									
+									
+								</div>
+							</div>
+							
+							<div class="row">
+							
+							
+							</div>
+							
+							<div class="row mt-3 mb-3">
+								<div class="col-6 input-group">
+									<div class="input-group-prepend">
+										<span class="input-group-text" >
+											Ukupne zalihe (svaki dio pojedinačno)
+										</span>
+									</div>
+									<input v-model="selectedPart.quantity" v-on:change="partQuantityChanged" type="number" class="form-control">
+								</div>
+								<div class="col-6 input-group">
+									<div class="input-group-prepend">
+										<span class="input-group-text" >
+											Preostalo (pojedinačno)
+										</span>
+									</div>
+									<input v-model="selectedPart.spareQuantity" disabled type="number" class="form-control">
+								</div>
+							</div>
+							
+							<div class="row">
+								<div class="col-6 input-group">
+									<div class="input-group-prepend">
+										<span class="input-group-text" >
+											Opis 1
+										</span>
+									</div>
+									<input v-model="selectedPart.description" v-on:change="changeDetectionYes" type="text" class="form-control">
+								</div>
+								
+								<div class="col-6 input-group">
+									<div class="input-group-prepend">
+										<a v-bind:href="selectedPart.link" class="input-group-text" target="_blank" >
+											LINK
+										</a>
+									</div>
+									<input v-model="selectedPart.link" v-on:change="changeDetectionYes" type="text" class="form-control">
+								</div>
+								
+							</div>
+							
+							<div class="row">
+								<div class="col-6 input-group">
+									<div class="input-group-prepend">
+										<span class="input-group-text" >
+											Opis 2
+										</span>
+									</div>
+									<input v-model="selectedPart.alternativeDescription" v-on:change="changeDetectionYes" type="text" class="form-control">
+								</div>
+								
+								<div class="col-6 input-group">
+									<div class="input-group-prepend">
+										<a v-bind:href="selectedPart.alternativeLink" class="input-group-text" target="_blank" >
+											LINK
+										</a>
+									</div>
+									<input v-model="selectedPart.alternativeLink" v-on:change="changeDetectionYes" type="text" class="form-control">
+								</div>
+								
+							</div>
+							
+							<div class="row">
+								<div class="col-6 input-group">
+									<div class="input-group-prepend">
+										<span class="input-group-text" >
+											Opis 3
+										</span>
+									</div>
+									<input v-model="selectedPart.alternativeDescription2" v-on:change="changeDetectionYes" type="text" class="form-control">
+								</div>
+								
+								<div class="col-6 input-group">
+									<div class="input-group-prepend">
+										<a v-bind:href="selectedPart.alternativeLink2" class="input-group-text" target="_blank" >
+											LINK
+										</a>
+									</div>
+									<input v-model="selectedPart.alternativeLink2" v-on:change="changeDetectionYes" type="text" class="form-control">
+								</div>
+								
+							</div>
+							
+							
+							
+							
+														
 						</div>
 						<div class="modal-footer">
-							<button type="button" class="btn btn-secondary" data-dismiss="modal" v-on:click="saveProduct">Spremi</button>
-							<button type="button" class="btn btn-secondary" v-on:click="copyProduct">Kopija</button>
-							<button type="button" class="btn btn-secondary" data-dismiss="modal">Otkaži</button>
-							<button type="button" class="btn btn-danger" data-dismiss="modal" v-on:click="deleteInventory(selectedProduct)">Obriši</button>
+							<button v-if="modalViewProducts == true" type="button" class="btn btn-secondary" v-on:click="saveCheck(() => saveProduct())">
+								Spremi
+							</button>
+								
+							<button v-if="modalViewProducts != true" type="button" class="btn btn-secondary" v-on:click="saveCheck(() => savePart())">
+								Spremi
+							</button>
+
+							<button type="button" class="btn btn-secondary" v-on:click="cancelCheck(() => dismissModal())">
+								Otkaži
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class="modal fade" id=confirmModal role="dialog">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+						</div>
+						<div class="modal-body">
+							<div  class="row">
+								<div id="changeContent" class="col">
+									{{ confirmationModal.content }}
+								</div>
+								
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" v-bind:class="confirmationModal.confirmButton.style" data-dismiss="modal" v-on:click="confirm">
+								{{ confirmationModal.confirmButton.content }}
+							</button>
+							<button type="button" v-bind:class="confirmationModal.cancelButton.style" data-dismiss="modal" v-on:click="cancelConfirm">
+								{{ confirmationModal.cancelButton.content }}
+							</button>
 						</div>
 					</div>
 				</div>

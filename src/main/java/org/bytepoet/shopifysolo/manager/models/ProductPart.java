@@ -1,6 +1,7 @@
 package org.bytepoet.shopifysolo.manager.models;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -8,10 +9,15 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 @Entity
@@ -19,14 +25,18 @@ public class ProductPart {
 
 	@Id
 	@JsonProperty
+	@JsonSetter(nulls = Nulls.SKIP)
 	private UUID id = UUID.randomUUID();
 	
 	@JsonIgnore
-	@OneToMany(mappedBy="productPart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-	private List<ProductPartDistribution> distributions;
+	@OneToMany(mappedBy="productPart", orphanRemoval = false, fetch=FetchType.LAZY)
+	private Set<ProductPartDistribution> distributions;
 	
 	@JsonProperty
 	private int quantity;
+	
+	@JsonProperty
+	private String title;
 	
 	@JsonProperty
 	private String description;
@@ -45,17 +55,27 @@ public class ProductPart {
 	
 	@JsonProperty
 	private String alternativeDescription2;
+	
+	@Transient
+	@JsonIgnore
+	private Integer assignedQuantityTransient;
 
 	public int getQuantity() {
 		return quantity;
 	}
 	
+	
+	
 	@JsonProperty
 	public int getAssignedQuantity() {
+		if (assignedQuantityTransient != null) {
+			return assignedQuantityTransient;
+		}
 		if (distributions == null) {
 			return 0;
 		}
-		return distributions.stream().mapToInt(d -> d.getAssignedQuantity()).sum();
+		assignedQuantityTransient = distributions.stream().mapToInt(d -> d.getAssignedQuantity()).sum();
+		return assignedQuantityTransient;
 	}
 	
 	@JsonProperty
@@ -63,8 +83,44 @@ public class ProductPart {
 		return quantity - getAssignedQuantity();
 	}
 	
+	@JsonProperty(access=Access.READ_ONLY)
+	public List<ProductPartDistributionInternal> getPartDistributions() {
+		return distributions.stream().map(d -> ProductPartDistributionInternal.from(d)).collect(Collectors.toList());
+	}
 	
-	
-	
-	
+	private static class ProductPartDistributionInternal {
+		
+		public static ProductPartDistributionInternal from (ProductPartDistribution distribution) {
+			ProductPartDistributionInternal distro = new ProductPartDistributionInternal();
+			distro.id = distribution.getId();
+			distro.productId = distribution.productId();
+			distro.productName = distribution.productName();
+			distro.partsUsed = distribution.getPartsUsed();
+			distro.assignedQuantity = distribution.getAssignedQuantity();
+			distro.assignedToProducts = distribution.getAssignedToProducts();
+			distro.freeForProducts = distribution.getFreeForProducts();
+			return distro;
+		}
+
+		@JsonProperty
+		private UUID id = UUID.randomUUID();
+		
+		@JsonProperty
+		private UUID productId;
+		
+		@JsonProperty
+		private String productName;
+				
+		@JsonProperty
+		private int partsUsed;
+		
+		@JsonProperty
+		private int assignedQuantity;
+		
+		@JsonProperty
+		private int assignedToProducts;
+		
+		@JsonProperty
+		private int freeForProducts;
+	}
 }

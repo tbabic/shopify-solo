@@ -375,7 +375,7 @@ var inventoryComponent = new Vue({
 		
 		loadProducts : function() {
 			this.startLoader();
-			return axios.get('/manager/products/all')
+			return axios.get('/manager/shopify-products/all')
 			.then(response => {
 				console.log("foundProducts");
 				this.processResponse(response);
