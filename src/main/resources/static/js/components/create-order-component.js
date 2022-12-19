@@ -76,7 +76,7 @@ var createOrderComponent = new Vue({
 				
 				
 				console.log("searchingProducts");
-				axios.get('/manager/products', {
+				axios.get('/manager/shopify-products', {
 					params: queryParams
 				}).then(response => {
 					console.log("foundProducts");
