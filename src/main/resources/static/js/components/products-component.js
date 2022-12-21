@@ -62,7 +62,7 @@ var createOrderComponent = new Vue({
 		
 		loadProducts : function() {
 			this.startLoader();
-			return axios.get('/manager/products/all')
+			return axios.get('/manager/shopify-products/all')
 			.then(response => {
 				console.log("foundProducts");
 				this.processResponse(response);
@@ -200,7 +200,7 @@ var createOrderComponent = new Vue({
 				return;
 			}
 			this.startLoader();
-			return axios.post('/manager/products/variants/'+variant.id, variant).then(response => {
+			return axios.post('/manager/shopify-products/variants/'+variant.id, variant).then(response => {
 				console.log(response);
 				variant.loadedPrice = variant.price;
 				variant.change = false;
