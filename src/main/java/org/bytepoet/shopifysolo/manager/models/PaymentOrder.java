@@ -45,9 +45,9 @@ public class PaymentOrder extends Order {
 	@Enumerated(EnumType.STRING)
 	private PaymentType paymentType;
 	
-	//TODO: currency
 	@JsonProperty
-	private String currency = "HRK";
+	@Enumerated(EnumType.STRING)
+	private Currency currency = Currency.EUR;
 	
 	@JsonProperty
 	private boolean isPaid;
@@ -179,7 +179,7 @@ public class PaymentOrder extends Order {
 		}
 	}
 	
-	public String getCurrency() {
+	public Currency getCurrency() {
 		return currency;
 	}
 

@@ -207,6 +207,7 @@ public abstract class Order {
 		return shopifyOrderNumber;
 	}
 	
+
 	@Transient
 	@JsonProperty(access = Access.READ_ONLY)
 	public abstract String getShippingSnapshot();

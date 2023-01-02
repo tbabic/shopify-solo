@@ -8,6 +8,7 @@ import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 import org.apache.commons.lang3.StringUtils;
+import org.bytepoet.shopifysolo.manager.models.Currency;
 import org.bytepoet.shopifysolo.manager.models.Item;
 import org.bytepoet.shopifysolo.manager.models.PaymentType;
 import org.bytepoet.shopifysolo.manager.models.Refund;
@@ -174,7 +175,6 @@ public class PdfRefundService {
 				"PDV",
 				"Popust",
 				"Iznos stavke",
-				""
 		};
 		
 		for (int i = 0; i< headerElements.length; i++) {
@@ -194,11 +194,10 @@ public class PdfRefundService {
 					item.getName(),
 					"kom",
 					String.valueOf(item.getQuantity()),
-					price(item),
+					price(item, refund.getOrder().getCurrency()),
 					item.getTaxRate() + "%",
-					discount(item),
-					discountAllItemsPrice(item) + " kn",
-					convertPriceString(item.getTotalPrice())
+					discount(item, refund.getOrder().getCurrency()),
+					discountAllItemsPrice(item, refund.getOrder().getCurrency()) + " €",
 			};
 			
 			for (int i = 0; i < rowElements.length; i++) {
@@ -225,27 +224,26 @@ public class PdfRefundService {
 		String sumAllItemsPrice = sumAllItemsPrice(refund);
 		table.addCell(new Cell().add(new Paragraph("Ukupno:").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(sumAllItemsPrice + "  kn").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
-				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(convertPriceString(sumAllItemsPrice)).setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.LEFT))
+		table.addCell(new Cell().add(new Paragraph(sumAllItemsPrice + "  €").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
 		
 		
 		String sumAllItemsVat = sumAllItemsVat(refund); 
 		table.addCell(new Cell().add(new Paragraph("Porez (25%):").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(sumAllItemsVat + "  kn").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
-				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(convertPriceString(sumAllItemsVat)).setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.LEFT))
+		table.addCell(new Cell().add(new Paragraph(sumAllItemsVat + "  €").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
 		
 		
 		String totalPrice = totalPrice(refund);
 		table.addCell(new Cell().add(new Paragraph("Ukupan iznos naplate:").setFont(boldFont()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(totalPrice + "  kn").setFont(boldFont()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
+		table.addCell(new Cell().add(new Paragraph(totalPrice + "  €").setFont(boldFont()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(convertPriceString(totalPrice)).setFont(boldFont()).setFontSize(12).setTextAlignment(TextAlignment.LEFT))
+		
+		String totalPriceInKuna = totalPrice(refund, Currency.HRK);
+		table.addCell(new Cell().setBorder(Border.NO_BORDER));
+		table.addCell(new Cell().add(new Paragraph("(" + totalPriceInKuna + "  kn)").setFont(font()).setFontSize(10).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
 		
 		
@@ -261,11 +259,11 @@ public class PdfRefundService {
 	}
 	
 	
-	private String price(Item item) {
-		return getDecimalFormat().format(-item.getPriceWithTaxRate());
+	private String price(Item item, Currency itemCurrency) {
+		return convertAndFormat(-item.getPriceWithTaxRate(), itemCurrency);
 	}
 	
-	private String discount(Item item) {
+	private String discount(Item item, Currency itemCurrency) {
 		if (StringUtils.isEmpty(item.getDiscount())) {
 			return "0";
 		}
@@ -273,7 +271,7 @@ public class PdfRefundService {
 		if (discountDouble == 0.0) {
 			return "0";
 		}
-		return getDecimalFormat().format(-item.getDiscountAmount());
+		return convertAndFormat(-item.getDiscountAmount(), itemCurrency);
 	}
 
 	private double priceWithDiscount(Item item) {
@@ -288,8 +286,8 @@ public class PdfRefundService {
 		return price;
 	}
 	
-	private String discountAllItemsPrice(Item item) {
-		return getDecimalFormat().format(-item.getTotalPrice());
+	private String discountAllItemsPrice(Item item, Currency itemCurrency) {
+		return convertAndFormat(-item.getTotalPrice(), itemCurrency);
 	}
 	
 	private String sumAllItemsPrice(Refund refund) {
@@ -297,7 +295,7 @@ public class PdfRefundService {
 		for (Item item : refund.getItems()) {
 			sum += priceWithDiscount(item)*item.getQuantity();
 		}
-		return getDecimalFormat().format(-sum);
+		return convertAndFormat(-sum, refund.getOrder().getCurrency());
 	}
 	
 	private String sumAllItemsVat(Refund refund) {
@@ -306,11 +304,15 @@ public class PdfRefundService {
 			double taxRate = Double.parseDouble(item.getTaxRate()) / 100;
 			sum += taxRate * priceWithDiscount(item)*item.getQuantity();
 		}
-		return getDecimalFormat().format(-sum);
+		return convertAndFormat(-sum, refund.getOrder().getCurrency());
 	}
 	
 	private String totalPrice(Refund refund) {
-		return getDecimalFormat().format(-refund.getTotalPrice());
+		return totalPrice(refund, PdfInvoiceService.DEFAULT_CURRENCY);
+	}
+	
+	private String totalPrice(Refund refund, Currency currency) {
+		return convertAndFormat(-refund.getTotalPrice(), refund.getOrder().getCurrency(), currency);
 	}
 	
 	private class RoundedBorderCellRenderer extends CellRenderer {
@@ -455,26 +457,14 @@ public class PdfRefundService {
 		
 	}
 	
-	private double convertPrice(double value) {
-		try {
-			double conversionRate =  getDecimalFormat().parse(PdfInvoiceService.CONVERSION_RATE_STRING).doubleValue();
-			return value / conversionRate;
-		} catch( Exception e) {
-			throw new RuntimeException(e);
-		}
+	private String convertAndFormat(double value, Currency valueCurrency) {
+		return convertAndFormat(value, valueCurrency, PdfInvoiceService.DEFAULT_CURRENCY);
 	}
 	
-	private String convertPriceString(double value) {
-		return "(€ " + getDecimalFormat().format(convertPrice(value)) + ")";
-	}
-	
-	private String convertPriceString(String value) {
-		try {
-			double val = getDecimalFormat().parse(value).doubleValue();
-			return "(€ " + getDecimalFormat().format(convertPrice(val)) + ")";
-		} catch( Exception e) {
-			throw new RuntimeException(e);
+	private String convertAndFormat(double value, Currency valueCurrency, Currency newCurrency) {
+		if (newCurrency != valueCurrency) {
+			return getDecimalFormat().format(newCurrency.convertFrom(valueCurrency, value));
 		}
-		
+		return getDecimalFormat().format(value);
 	}
 }

@@ -1,6 +1,7 @@
 package org.bytepoet.shopifysolo.services;
 
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -10,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Base64;
+import org.bytepoet.shopifysolo.manager.models.Currency;
 import org.bytepoet.shopifysolo.manager.models.Item;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.models.PaymentType;
@@ -46,7 +48,9 @@ import com.itextpdf.layout.renderer.DrawContext;
 @Component
 public class PdfInvoiceService {
 	
-	public static final String CONVERSION_RATE_STRING = "7,534550";
+	public static final String CONVERSION_RATE_STRING = InvoiceService.CONVERSION_RATE_STRING;
+	
+	public static final Currency DEFAULT_CURRENCY = Currency.EUR;
 	
 	private static final float TOP_MARGIN = 45f;
 	private static final float LEFT_MARGIN = 20f;
@@ -181,7 +185,7 @@ public class PdfInvoiceService {
 	}
 	
 	private IBlockElement invoiceItems(PaymentOrder order) {
-		Table table = new Table(UnitValue.createPercentArray(new float[] {1, 15, 3, 3, 5, 5, 5, 5, 5}));
+		Table table = new Table(UnitValue.createPercentArray(new float[] {1, 17, 3, 3, 5, 5, 7, 5}));
 		
 		String[] headerElements = {
 				"R.br.",
@@ -192,7 +196,6 @@ public class PdfInvoiceService {
 				"PDV",
 				"Popust",
 				"Iznos stavke",
-				""
 		};
 		
 		for (int i = 0; i< headerElements.length; i++) {
@@ -212,11 +215,11 @@ public class PdfInvoiceService {
 					item.getName(),
 					"kom",
 					String.valueOf(item.getQuantity()),
-					price(item),
+					price(item, order.getCurrency()),
 					item.getTaxRate() + "%",
-					discount(item),
-					discountAllItemsPrice(item) + " kn",
-					convertPriceString(item.getTotalPrice())
+					discount(item, order.getCurrency()),
+					discountAllItemsPrice(item, order.getCurrency()) + " €",
+					//convertPriceString(item.getTotalPrice())
 					
 			};
 			
@@ -238,54 +241,55 @@ public class PdfInvoiceService {
 	}
 	
 	private IBlockElement invoiceSum(PaymentOrder order) {
-		Table table = new Table(UnitValue.createPercentArray(new float[] {70f, 20f, 10f}));
+		Table table = new Table(UnitValue.createPercentArray(new float[] {70f, 30f}));
 		
 		String sumAllItemsPrice = sumAllItemsPrice(order);
 		table.addCell(new Cell().add(new Paragraph("Ukupno:").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(sumAllItemsPrice + "  kn").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
+		table.addCell(new Cell().add(new Paragraph(sumAllItemsPrice + "  €").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(convertPriceString(sumAllItemsPrice)).setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.LEFT))
-				.setBorder(Border.NO_BORDER));
+		
 		
 		
 		String sumAllItemsVat = sumAllItemsVat(order); 
 		table.addCell(new Cell().add(new Paragraph("Porez (25%):").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(sumAllItemsVat + "  kn").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
+		table.addCell(new Cell().add(new Paragraph(sumAllItemsVat + "  €").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(convertPriceString(sumAllItemsVat)).setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.LEFT))
-				.setBorder(Border.NO_BORDER));
+		
 		
 		
 		String totalPrice = totalPrice(order);
+		
 		table.addCell(new Cell().add(new Paragraph("Ukupan iznos naplate:").setFont(boldFont()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(totalPrice + "  kn").setFont(boldFont()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
-				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph(convertPriceString(totalPrice)).setFont(boldFont()).setFontSize(12).setTextAlignment(TextAlignment.LEFT))
+		table.addCell(new Cell().add(new Paragraph(totalPrice + "  €").setFont(boldFont()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
 		
+		
+		String totalPriceInKuna = totalPrice(order, Currency.HRK);
+		table.addCell(new Cell().setBorder(Border.NO_BORDER));
+		table.addCell(new Cell().add(new Paragraph("(" + totalPriceInKuna + "  kn)").setFont(font()).setFontSize(10).setTextAlignment(TextAlignment.RIGHT))
+				.setBorder(Border.NO_BORDER));
 		
 		//exchange rate
 		table.addCell(new Cell().add(new Paragraph("Tečaj:").setFont(font()).setFontSize(10).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
 		table.addCell(new Cell().add(new Paragraph("1€ = " + CONVERSION_RATE_STRING + " kn").setFont(font()).setFontSize(10).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
-		table.addCell(new Cell().add(new Paragraph("").setFont(font()).setFontSize(10).setTextAlignment(TextAlignment.RIGHT))
-				.setBorder(Border.NO_BORDER));
+	
 		
 		
 		return table.setWidth(550);
 	}
 	
 	
-	private String price(Item item) {
-		return getDecimalFormat().format(item.getPriceWithTaxRate());
+	private String price(Item item, Currency itemCurrency) {
+		return convertAndFormat(item.getPriceWithTaxRate(), itemCurrency);
 	}
 	
-	private String discount(Item item) {
-		return getDecimalFormat().format(item.getDiscountAmount());
+	private String discount(Item item, Currency itemCurrency) {
+		return convertAndFormat(item.getDiscountAmount(), itemCurrency);
 	}
 
 	private double priceWithDiscount(Item item) {
@@ -300,8 +304,8 @@ public class PdfInvoiceService {
 		return price;
 	}
 	
-	private String discountAllItemsPrice(Item item) {
-		return getDecimalFormat().format(item.getTotalPrice());
+	private String discountAllItemsPrice(Item item, Currency itemCurrency) {
+		return convertAndFormat(item.getTotalPrice(), itemCurrency);
 	}
 	
 	private String sumAllItemsPrice(PaymentOrder order) {
@@ -309,7 +313,7 @@ public class PdfInvoiceService {
 		for (Item item : order.getItems()) {
 			sum += priceWithDiscount(item)*item.getQuantity();
 		}
-		return getDecimalFormat().format(sum);
+		return convertAndFormat(sum, order.getCurrency());
 	}
 	
 	private String sumAllItemsVat(PaymentOrder order) {
@@ -318,11 +322,15 @@ public class PdfInvoiceService {
 			double taxRate = Double.parseDouble(item.getTaxRate()) / 100;
 			sum += taxRate * priceWithDiscount(item)*item.getQuantity();
 		}
-		return getDecimalFormat().format(sum);
+		return convertAndFormat(sum, order.getCurrency());
 	}
 	
 	private String totalPrice(PaymentOrder order) {
-		return getDecimalFormat().format(order.getTotalPrice());
+		return totalPrice(order, DEFAULT_CURRENCY);
+	}
+	
+	private String totalPrice(PaymentOrder order, Currency currency) {
+		return convertAndFormat(order.getTotalPrice(), order.getCurrency(), currency);
 	}
 	
 	private class RoundedBorderCellRenderer extends CellRenderer {
@@ -502,26 +510,16 @@ public class PdfInvoiceService {
 		
 	}
 	
-	private double convertPrice(double value) {
-		try {
-			double conversionRate =  getDecimalFormat().parse(CONVERSION_RATE_STRING).doubleValue();
-			return value / conversionRate;
-		} catch( Exception e) {
-			throw new RuntimeException(e);
-		}
+	private String convertAndFormat(double value, Currency valueCurrency) {
+		return convertAndFormat(value, valueCurrency, DEFAULT_CURRENCY);
 	}
 	
-	private String convertPriceString(double value) {
-		return "(€ " + getDecimalFormat().format(convertPrice(value)) + ")";
+	private String convertAndFormat(double value, Currency valueCurrency, Currency newCurrency) {
+		if (newCurrency != valueCurrency) {
+			return getDecimalFormat().format(newCurrency.convertFrom(valueCurrency, value));
+		}
+		return getDecimalFormat().format(value);
 	}
 	
-	private String convertPriceString(String value) {
-		try {
-			double val = getDecimalFormat().parse(value).doubleValue();
-			return "(€ " + getDecimalFormat().format(convertPrice(val)) + ")";
-		} catch( Exception e) {
-			throw new RuntimeException(e);
-		}
-		
-	}
+
 }
