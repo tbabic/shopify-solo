@@ -308,20 +308,30 @@ public class PdfInvoiceService {
 		return convertAndFormat(item.getTotalPrice(), itemCurrency);
 	}
 	
-	private String sumAllItemsPrice(PaymentOrder order) {
-		double sum = 0;
-		for (Item item : order.getItems()) {
-			sum += priceWithDiscount(item)*item.getQuantity();
-		}
-		return convertAndFormat(sum, order.getCurrency());
-	}
-	
-	private String sumAllItemsVat(PaymentOrder order) {
+	private double calculateVat(PaymentOrder order) {
 		double sum = 0;
 		for (Item item : order.getItems()) {
 			double taxRate = Double.parseDouble(item.getTaxRate()) / 100;
 			sum += taxRate * priceWithDiscount(item)*item.getQuantity();
 		}
+		return sum;
+	}
+	
+
+	private String sumAllItemsPrice(PaymentOrder order) {
+		try {
+			double vat = getDecimalFormat().parse(sumAllItemsVat(order)).doubleValue();
+			double totalPrice =  getDecimalFormat().parse(totalPrice(order)).doubleValue();
+			double itemsPrice = totalPrice - vat;
+			return getDecimalFormat().format(itemsPrice);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		
+	}
+	
+	private String sumAllItemsVat(PaymentOrder order) {
+		double sum = calculateVat(order);
 		return convertAndFormat(sum, order.getCurrency());
 	}
 	

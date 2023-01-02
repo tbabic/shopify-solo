@@ -291,11 +291,14 @@ public class PdfRefundService {
 	}
 	
 	private String sumAllItemsPrice(Refund refund) {
-		double sum = 0;
-		for (Item item : refund.getItems()) {
-			sum += priceWithDiscount(item)*item.getQuantity();
+		try {
+			double vat = getDecimalFormat().parse(sumAllItemsVat(refund)).doubleValue();
+			double totalPrice =  getDecimalFormat().parse(totalPrice(refund)).doubleValue();
+			double itemsPrice = totalPrice - vat;
+			return getDecimalFormat().format(itemsPrice);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
-		return convertAndFormat(-sum, refund.getOrder().getCurrency());
 	}
 	
 	private String sumAllItemsVat(Refund refund) {
