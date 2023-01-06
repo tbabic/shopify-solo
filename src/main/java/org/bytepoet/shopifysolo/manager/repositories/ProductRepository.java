@@ -19,13 +19,18 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
 			+ "LEFT JOIN FETCH distro.productPart part "
 			+ "LEFT JOIN FETCH part.distributions distro2 "
 			)
-	public List<Product> findAll();
+	public List<Product> findAndFetchAll();
 	
 	
 	@Query(value="SELECT distinct product FROM Product product "
 			+ "LEFT JOIN FETCH product.partDistributions distro "
 			+ "LEFT JOIN FETCH distro.productPart part "
 			+ "LEFT JOIN FETCH part.distributions distro2 "
+			+ "WHERE lower(product.name) LIKE lower(:name)"
+			)
+	public List<Product> findAndFetchByNameLikeIgnoreCase(String name, Sort sort);
+	
+	@Query(value="SELECT distinct product FROM Product product "
 			+ "WHERE lower(product.name) LIKE lower(:name)"
 			)
 	public List<Product> findByNameLikeIgnoreCase(String name, Sort sort);

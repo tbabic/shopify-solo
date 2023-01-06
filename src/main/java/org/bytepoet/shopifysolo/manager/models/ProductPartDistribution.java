@@ -47,7 +47,7 @@ public class ProductPartDistribution {
 		return product.getName();
 	}
 
-	UUID getId() {
+	public UUID getId() {
 		return id;
 	}
 
@@ -64,7 +64,7 @@ public class ProductPartDistribution {
 		return assignedQuantity;
 	}
 
-	void setProduct(Product product) {
+	public void setProduct(Product product) {
 		this.product = product;
 	}
 	
@@ -77,4 +77,14 @@ public class ProductPartDistribution {
 	}
 		
 	
+	public void update(int assignedQuantity, int partsUsed) {
+		this.assignedQuantity = assignedQuantity;
+		this.partsUsed = partsUsed;
+	}
+	
+	public void update(int assignedQuantity, int partsUsed, ProductPart part) {
+		this.assignedQuantity = assignedQuantity;
+		this.partsUsed = partsUsed;
+		this.productPart = part;
+	}
 }

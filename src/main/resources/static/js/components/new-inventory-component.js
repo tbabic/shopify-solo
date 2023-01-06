@@ -392,6 +392,7 @@ var newInventoryComponent = new Vue({
 			this.select(product);
 		},
 		
+		
 		select : function(product) {
 			this.partsFilterModal = "";
 			
@@ -621,9 +622,11 @@ var newInventoryComponent = new Vue({
 				delete this.selectedPart.id;
 			}
 			
+			
+			
 			let productPartAndDistribution = {
 				productPart: this.selectedPart,
-				productPartDistributions : this.selectedPart.partDistributions
+				distributions : this.selectedPart.partDistributions
 			};
 
 			return axios.post('/manager/inventory/parts', productPartAndDistribution).then(response => {

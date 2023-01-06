@@ -2,6 +2,7 @@ package org.bytepoet.shopifysolo.manager.controllers;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
@@ -42,6 +43,92 @@ public class InventoryProductsController {
 	@Autowired
 	private ShopifyApiClient shopifyApiClient;
 	
+	public static class Inventory {
+		List<Product> products;
+		List<ProductPartDistribution> distributions;
+		List<ProductPart> parts;
+	}
+	
+	
+	
+	@RequestMapping(path="", method = RequestMethod.GET)
+	public Inventory getInventory(
+			@RequestParam(name="productsFilter", required = false) String productsFilter, 
+			@RequestParam(name = "webshopInfo", required = false) boolean webshopInfo,
+			@RequestParam(name="partsFilter", required = false) String partsFilter) throws Exception {
+		List<Product> products;
+		List<ProductPart> parts;
+		List<ProductPartDistribution> distributions;
+		
+		if (StringUtils.isNotBlank(productsFilter) && StringUtils.isNotBlank(partsFilter)) {
+			throw new RuntimeException("Can't filter by products and parts at the same time");
+		}
+		
+		if (StringUtils.isBlank(productsFilter) && StringUtils.isBlank(partsFilter)) {
+			products = productRepository.findAll();
+			parts = productPartRepository.findAll();
+		} else if (StringUtils.isNotBlank(productsFilter)){
+			products =  productRepository.findByNameLikeIgnoreCase("%"+ productsFilter +"%", Sort.unsorted());
+			parts = productPartRepository.findAll();
+		} else {
+			products =  productRepository.findAll();
+			parts = productPartRepository.searchProductParts(partsFilter);
+		}
+		
+		distributions = productPartDistributionRepository.findAll();
+		
+		Inventory inventory = new Inventory();
+		inventory.parts = parts;
+		inventory.distributions = distributions;
+		
+		if (!webshopInfo) {
+			inventory.products = products;
+			return inventory;
+		}
+		
+		List<ShopifyProduct> shopifyProducts = shopifyApiClient.getProducts(null);
+		
+		
+		
+		Map<String, ShopifyProductVariant> variants = shopifyProducts.stream()
+				.flatMap(shopifyProduct -> shopifyProduct.variants.stream()
+						.peek(variant -> {
+							variant.title = variant.title.equals("Default Title") ? shopifyProduct.title : shopifyProduct.title + " / " + variant.title;
+						}))
+				.collect(Collectors.toMap(variant -> variant.id, variant -> variant));
+		
+		products.forEach(product -> {
+			if (StringUtils.isBlank(product.getWebshopId())){
+				return;
+			}
+			ShopifyProductVariant variant = variants.get(product.getWebshopId());
+			product.setWebshopQuantity(variant.quantity.intValue());
+			variants.remove(variant.id);
+		});
+		
+		variants.values().forEach( v -> {
+			products.add(Product.createFromWebshop(v));
+		});
+		
+		
+		inventory.products = products;
+		return inventory;
+	}
+	
+	
+	
+	
+	@RequestMapping( method = RequestMethod.POST)
+	@Transactional
+	public void saveInventory(@RequestBody Inventory inventory) {
+		productRepository.saveAll(inventory.products);
+		productPartRepository.saveAll(inventory.parts);
+		productPartDistributionRepository.saveAll(inventory.distributions);
+		
+		return;
+	}
+	
+	
 	@RequestMapping(path="/products", method = RequestMethod.GET)
 	public List<Product> getProducts(
 			@RequestParam(name="nameFilter", required = false) String nameFilter, 
@@ -49,9 +136,9 @@ public class InventoryProductsController {
 		List<Product> products;
 			
 		if (StringUtils.isBlank(nameFilter)) {
-			products = productRepository.findAll();
+			products = productRepository.findAndFetchAll();
 		} else {
-			products =  productRepository.findByNameLikeIgnoreCase("%"+ nameFilter +"%", Sort.unsorted());
+			products =  productRepository.findAndFetchByNameLikeIgnoreCase("%"+ nameFilter +"%", Sort.unsorted());
 		}
 		
 		
@@ -100,7 +187,19 @@ public class InventoryProductsController {
 			return productPartRepository.findAllProductParts();
 		}
 		
-		return productPartRepository.searchProductParts(search);
+		return productPartRepository.searchAndFetchProductParts(search);
+	}
+	
+	public static class SimpleDistribution {
+		
+		@JsonProperty
+		UUID id;
+		
+		@JsonProperty
+		private int partsUsed;
+		
+		@JsonProperty
+		private int assignedQuantity;
 	}
 	
 	public static class ProductPartAndDistributions {
@@ -108,33 +207,30 @@ public class InventoryProductsController {
 		ProductPart productPart;
 		
 		@JsonProperty
-		List<ProductPartDistribution> productPartDistributions;
+		List<SimpleDistribution> distributions;
 	}
 	
 	@RequestMapping(path="/parts", method = RequestMethod.POST)
-	public void saveProductPart(@RequestBody ProductPartAndDistributions productPartAndDistributions) {
-		productPartRepository.save(productPartAndDistributions.productPart);
-		//productPartDistributionRepository.saveAll(productPartAndDistributions.productPartDistributions);
-		
-		return;
-	}
-	
-	public static class Inventory {
-		List<Product> products;
-		List<ProductPartDistribution> distributions;
-		List<ProductPart> parts;
-	}
-	
-	
-	@RequestMapping( method = RequestMethod.POST)
 	@Transactional
-	public void saveInventory(@RequestBody Inventory inventory) {
-		productRepository.saveAll(inventory.products);
-		productPartRepository.saveAll(inventory.parts);
-		productPartDistributionRepository.saveAll(inventory.distributions);
+	public void saveProductPart(@RequestBody ProductPartAndDistributions productPartAndDistributions) {
+		ProductPart part = productPartRepository.save(productPartAndDistributions.productPart);
+		
+		
+		Map<UUID, SimpleDistribution> distroMap = productPartAndDistributions.distributions.stream().collect(Collectors.toMap(d -> d.id, d-> d));
+		
+		List<ProductPartDistribution> distributions = productPartDistributionRepository.findAllById(distroMap.keySet());
+		distributions.forEach(d -> {
+			SimpleDistribution simple = distroMap.get(d.getId());
+			d.update(simple.assignedQuantity, simple.partsUsed);
+		});
+		
+		
+		
+		productPartDistributionRepository.saveAll(distributions);
 		
 		return;
 	}
+	
 	
 	
 }
