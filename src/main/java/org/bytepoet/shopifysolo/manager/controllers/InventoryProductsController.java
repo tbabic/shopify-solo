@@ -4,9 +4,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.transaction.Transactional;
+
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.manager.models.Product;
 import org.bytepoet.shopifysolo.manager.models.ProductPart;
+import org.bytepoet.shopifysolo.manager.models.ProductPartDistribution;
+import org.bytepoet.shopifysolo.manager.repositories.ProductPartDistributionRepository;
 import org.bytepoet.shopifysolo.manager.repositories.ProductPartRepository;
 import org.bytepoet.shopifysolo.manager.repositories.ProductRepository;
 import org.bytepoet.shopifysolo.shopify.clients.ShopifyApiClient;
@@ -20,7 +24,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@RequestMapping("manager/products")
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@RequestMapping("manager/inventory")
 @RestController
 public class InventoryProductsController {
 
@@ -31,9 +37,12 @@ public class InventoryProductsController {
 	private ProductPartRepository productPartRepository;
 	
 	@Autowired
+	private ProductPartDistributionRepository productPartDistributionRepository;
+	
+	@Autowired
 	private ShopifyApiClient shopifyApiClient;
 	
-	@RequestMapping(method = RequestMethod.GET)
+	@RequestMapping(path="/products", method = RequestMethod.GET)
 	public List<Product> getProducts(
 			@RequestParam(name="nameFilter", required = false) String nameFilter, 
 			@RequestParam(name = "webshopInfo", required = false) boolean webshopInfo) throws Exception {
@@ -76,7 +85,7 @@ public class InventoryProductsController {
 		return products;
 	}
 	
-	@RequestMapping(method = RequestMethod.POST)
+	@RequestMapping(path="/products", method = RequestMethod.POST)
 	public void saveProduct(@RequestBody Product product) {
 		productRepository.save(product);
 		return;
@@ -94,9 +103,38 @@ public class InventoryProductsController {
 		return productPartRepository.searchProductParts(search);
 	}
 	
+	public static class ProductPartAndDistributions {
+		@JsonProperty
+		ProductPart productPart;
+		
+		@JsonProperty
+		List<ProductPartDistribution> productPartDistributions;
+	}
+	
 	@RequestMapping(path="/parts", method = RequestMethod.POST)
-	public void saveProductPart(@RequestBody ProductPart productPart) {
-		productPartRepository.save(productPart);
+	public void saveProductPart(@RequestBody ProductPartAndDistributions productPartAndDistributions) {
+		productPartRepository.save(productPartAndDistributions.productPart);
+		//productPartDistributionRepository.saveAll(productPartAndDistributions.productPartDistributions);
+		
 		return;
 	}
+	
+	public static class Inventory {
+		List<Product> products;
+		List<ProductPartDistribution> distributions;
+		List<ProductPart> parts;
+	}
+	
+	
+	@RequestMapping( method = RequestMethod.POST)
+	@Transactional
+	public void saveInventory(@RequestBody Inventory inventory) {
+		productRepository.saveAll(inventory.products);
+		productPartRepository.saveAll(inventory.parts);
+		productPartDistributionRepository.saveAll(inventory.distributions);
+		
+		return;
+	}
+	
+	
 }

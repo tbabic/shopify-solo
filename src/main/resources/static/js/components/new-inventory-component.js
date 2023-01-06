@@ -367,7 +367,7 @@ var newInventoryComponent = new Vue({
 				delete this.selectedProduct.id;
 			}
 
-			return axios.post('/manager/products', this.selectedProduct).then(response => {
+			return axios.post('/manager/inventory/products', this.selectedProduct).then(response => {
 				console.log(response);
 			}).catch(error => {
 				this.showError(error.response.data.message);
@@ -505,7 +505,7 @@ var newInventoryComponent = new Vue({
 				alternativeLink : this.addingPart.alternativeLink,
 				alternativeDescription2 : this.addingPart.alternativeDescription2,
 				alternativeLink2 : this.addingPart.alternativeLink2,
-				quantity : this.addingPart.partsUsed * (this.addingPart.freeForProducts + this.addingPart.assignedToProducts),
+				quantity : +this.addingPart.partsUsed * (+this.addingPart.freeForProducts + +this.addingPart.assignedToProducts),
 			};
 			
 			let existingAssignedQuantity = 0;
@@ -523,7 +523,7 @@ var newInventoryComponent = new Vue({
 				newPart.quantity = existingPart.quantity;
 				
 				existingPart.partDistributions.forEach(d => {
-					existingAssignedQuantity+= d.assignedQuantity;
+					existingAssignedQuantity+= +d.assignedQuantity;
 				});
 			}
 			
@@ -534,7 +534,7 @@ var newInventoryComponent = new Vue({
 			this.selectedProduct.partDistributions.push({
 				productPart : newPart,
 				partsUsed : this.addingPart.partsUsed,
-				assignedQuantity : (this.addingPart.assignedToProducts + existingAssignedQuantity)*this.addingPart.partsUsed,
+				assignedQuantity : (+this.addingPart.assignedToProducts + +existingAssignedQuantity)*(+this.addingPart.partsUsed),
 				assignedToProducts : this.addingPart.assignedToProducts,
 				freeForProducts : this.addingPart.freeForProducts,
 			});
@@ -620,8 +620,13 @@ var newInventoryComponent = new Vue({
 			if(this.selectedPart.id == null) {
 				delete this.selectedPart.id;
 			}
+			
+			let productPartAndDistribution = {
+				productPart: this.selectedPart,
+				productPartDistributions : this.selectedPart.partDistributions
+			};
 
-			return axios.post('/manager/products/parts', this.selectedPart).then(response => {
+			return axios.post('/manager/inventory/parts', productPartAndDistribution).then(response => {
 				console.log(response);
 			}).catch(error => {
 				this.showError(error.response.data.message);
@@ -711,7 +716,7 @@ var newInventoryComponent = new Vue({
 		
 		loadParts : function() {
 			this.startLoader();
-			return axios.get('/manager/products/parts', )
+			return axios.get('/manager/inventory/parts', )
 			.then(response => {
 				console.log("foundParts");
 				this.parts.splice(0,this.parts.length);
@@ -728,7 +733,7 @@ var newInventoryComponent = new Vue({
 		
 		loadProducts : function() {
 			this.startLoader();
-			return axios.get('/manager/products', {
+			return axios.get('/manager/inventory/products', {
 				params: {
 					webshopInfo : true
 				}

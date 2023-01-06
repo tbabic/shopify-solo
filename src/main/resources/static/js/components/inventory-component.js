@@ -150,7 +150,7 @@ var inventoryComponent = new Vue({
 				search : this.searchFilter.value
 			};
 			
-			return axios.get('/manager/inventory').then(response => {
+			return axios.get('/manager/old-inventory').then(response => {
 				this.inventoryList.splice(0,this.inventoryList.length);
 				response.data.forEach(inventory => { 
 					this.inventoryList.push(inventory);
@@ -226,7 +226,7 @@ var inventoryComponent = new Vue({
 		adjust : function(inventoryItem, adjustment) {
 			this.startSpinning(inventoryItem);
 			
-			return axios.post('/manager/inventory/move-quantity', adjustment).then(response => {
+			return axios.post('/manager/old-inventory/move-quantity', adjustment).then(response => {
 				inventoryItem.quantity -= adjustment.quantity;
 				inventoryItem.oldQuantity -= adjustment.quantity;
 				inventoryItem.shopifyQuantity +=+adjustment.quantity;
@@ -258,7 +258,7 @@ var inventoryComponent = new Vue({
 			});
 			
 			
-			return axios.post('/manager/inventory', inventoryToSave).then(response => {
+			return axios.post('/manager/old-inventory', inventoryToSave).then(response => {
 				console.log(response);
 				inventoryItem.oldQuantity = inventoryItem.quantity;
 			}).catch(error => {
@@ -314,7 +314,7 @@ var inventoryComponent = new Vue({
 			});
 			
 			
-			return axios.post('/manager/inventory', inventoryToSave).then(response => {
+			return axios.post('/manager/old-inventory', inventoryToSave).then(response => {
 				console.log(response);
 			}).then(() => {
 				return this.loadInventory();
@@ -330,7 +330,7 @@ var inventoryComponent = new Vue({
 			}
 			this.startLoader();
 
-			return axios.delete('/manager/inventory/' + inventory.id)
+			return axios.delete('/manager/old-inventory/' + inventory.id)
 			.then(response => {
 				console.log(response);
 			}).then(() => {

@@ -11,4 +11,11 @@ public class ShopifyUpdateVariantRequest {
 	@JsonProperty("compare_at_price")
 	private String compareAtPrice;
 	
+	public static ShopifyUpdateVariantRequest create(String price, String compareAtPrice) {
+		ShopifyUpdateVariantRequest request = new ShopifyUpdateVariantRequest();
+		request.price = price;
+		request.compareAtPrice = compareAtPrice;
+		return request;
+	}
+	
 }
