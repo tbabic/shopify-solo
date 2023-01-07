@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class InvoiceService {
 	
-	public static final String CONVERSION_RATE_STRING =  "7,534550";
+	public static final String CONVERSION_RATE_STRING =  "7,53450";
 	
 	@Value("${soloapi.note}")
 	private String note;

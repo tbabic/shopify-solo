@@ -9,7 +9,7 @@ import java.text.ParseException;
 public enum Currency {
 
 	HRK("1", "kn"),
-	EUR("7,534550", "€");
+	EUR("7,53450", "€");
 	
 	private final String value;
 	private final String symbol;
