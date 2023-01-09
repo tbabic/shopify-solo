@@ -10,6 +10,8 @@ var newInventoryComponent = new Vue({
 		
 		partsFilterView : "",
 		
+		filterPartsViewByProductsName : true,
+		
 		partsFilterModal : "",
 		
 		dropdownPartsFilterFocused : false,
@@ -242,6 +244,12 @@ var newInventoryComponent = new Vue({
 				part.description, part.link, 
 				part.alternativeDescription, part.alternativeLink, 
 				part.alternativeDescription2, part.alternativeDescription2];
+				if (this.filterPartsViewByProductsName) {
+					part.partDistributions.forEach(d => {
+					valuesToFilter.push(d.productName);
+				});
+				}
+				
 				for (let i = 0; i < valuesToFilter.length; i++) {
 					if (valuesToFilter[i] != null && valuesToFilter[i].toLowerCase().includes(filteringValue)) {
 						return true;
