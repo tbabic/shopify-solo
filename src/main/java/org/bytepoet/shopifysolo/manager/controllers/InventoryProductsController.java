@@ -1,5 +1,6 @@
 package org.bytepoet.shopifysolo.manager.controllers;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -90,12 +91,16 @@ public class InventoryProductsController {
 		
 		
 		
-		Map<String, ShopifyProductVariant> variants = shopifyProducts.stream()
-				.flatMap(shopifyProduct -> shopifyProduct.variants.stream()
-						.peek(variant -> {
-							variant.title = variant.title.equals("Default Title") ? shopifyProduct.title : shopifyProduct.title + " / " + variant.title;
-						}))
-				.collect(Collectors.toMap(variant -> variant.id, variant -> variant));
+		Map<String, ShopifyProduct> shopifyProductsMap = new HashMap<>();
+		Map<String, ShopifyProductVariant> variants = new HashMap<>();
+		
+		for (ShopifyProduct shopifyProduct : shopifyProducts) {
+			for (ShopifyProductVariant variant : shopifyProduct.variants) {
+				variant.title = variant.title.equals("Default Title") ? shopifyProduct.title : shopifyProduct.title + " / " + variant.title;
+				variants.put(variant.id, variant);
+				shopifyProductsMap.put(variant.id, shopifyProduct);
+			}
+		}
 		
 		products.forEach(product -> {
 			if (StringUtils.isBlank(product.getWebshopId())){
@@ -103,11 +108,12 @@ public class InventoryProductsController {
 			}
 			ShopifyProductVariant variant = variants.get(product.getWebshopId());
 			product.setWebshopQuantity(variant.quantity.intValue());
+			product.setWebshopStatus(shopifyProductsMap.get(variant.id).status);
 			variants.remove(variant.id);
 		});
 		
 		variants.values().forEach( v -> {
-			products.add(Product.createFromWebshop(v));
+			products.add(Product.createFromWebshop(v, shopifyProductsMap.get(v.id)));
 		});
 		
 		
@@ -148,14 +154,18 @@ public class InventoryProductsController {
 		
 		List<ShopifyProduct> shopifyProducts = shopifyApiClient.getProducts(null);
 		
+		Map<String, ShopifyProduct> shopifyProductsMap = new HashMap<>();
+		Map<String, ShopifyProductVariant> variants = new HashMap<>();
 		
+		for (ShopifyProduct shopifyProduct : shopifyProducts) {
+			for (ShopifyProductVariant variant : shopifyProduct.variants) {
+				variant.title = variant.title.equals("Default Title") ? shopifyProduct.title : shopifyProduct.title + " / " + variant.title;
+				variants.put(variant.id, variant);
+				shopifyProductsMap.put(variant.id, shopifyProduct);
+			}
+		}
 		
-		Map<String, ShopifyProductVariant> variants = shopifyProducts.stream()
-				.flatMap(shopifyProduct -> shopifyProduct.variants.stream()
-						.peek(variant -> {
-							variant.title = variant.title.equals("Default Title") ? shopifyProduct.title : shopifyProduct.title + " / " + variant.title;
-						}))
-				.collect(Collectors.toMap(variant -> variant.id, variant -> variant));
+	
 		
 		products.forEach(product -> {
 			if (StringUtils.isBlank(product.getWebshopId())){
@@ -163,11 +173,12 @@ public class InventoryProductsController {
 			}
 			ShopifyProductVariant variant = variants.get(product.getWebshopId());
 			product.setWebshopQuantity(variant.quantity.intValue());
+			product.setWebshopStatus(shopifyProductsMap.get(variant.id).status);
 			variants.remove(variant.id);
 		});
 		
 		variants.values().forEach( v -> {
-			products.add(Product.createFromWebshop(v));
+			products.add(Product.createFromWebshop(v, shopifyProductsMap.get(v.id)));
 		});
 		return products;
 	}

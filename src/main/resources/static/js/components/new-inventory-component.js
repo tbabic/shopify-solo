@@ -68,7 +68,7 @@ var newInventoryComponent = new Vue({
 		spinning : [],
 		
 		searchFilter : {
-			value: ''
+			value: '',
 		},
 		
 		
@@ -96,8 +96,11 @@ var newInventoryComponent = new Vue({
 		connectionFilters : {
 			connected : true,
 			webshopOnly: true,
-			materialsOnly: true
+			materialsOnly: true,
+			activeOnly : false
 		},
+		
+		
 		
 		loadingCount: 0,
 		debounceCounter: 0,
@@ -123,7 +126,7 @@ var newInventoryComponent = new Vue({
 			
 			console.log("sorting " + this.selectedSorting);
 			if ((this.searchFilter == null || this.searchFilter.value.trim().length =='')
-				&& this.connectionFilters.connected && this.connectionFilters.webshopOnly && this.connectionFilters.materialsOnly) {
+				&& this.connectionFilters.connected && this.connectionFilters.webshopOnly && this.connectionFilters.materialsOnly && !this.connectionFilters.activeOnly) {
 				filtered = this.products.filter(() => true);
 			} else {
 				filtered = this.products.filter(product => {
@@ -133,6 +136,10 @@ var newInventoryComponent = new Vue({
 					let connected = product.id != null && product.webshopInfo != null && product.webshopInfo.id != null;
 					let webshopOnly = product.id == null && product.webshopInfo != null && product.webshopInfo.id != null;
 					let materialsOnly = product.id != null && (product.webshopInfo == null || product.webshopInfo.id == null);
+					
+					if (this.connectionFilters.activeOnly && ( product.webshopInfo == null || product.webshopInfo.status != 'active')) {
+						return false;
+					}
 					
 					if (connected && this.connectionFilters.connected) {
 						return b;
@@ -145,13 +152,15 @@ var newInventoryComponent = new Vue({
 					if (materialsOnly && this.connectionFilters.materialsOnly) {
 						return b;
 					}
+					
+					
 									
 					return false;
 					
 				});
 			}
 			
-			
+			if (this.connectionFilters.activeOnly)
 				
 			
 			if(this.selectedSorting == "normal") {
@@ -210,6 +219,14 @@ var newInventoryComponent = new Vue({
 		filterMaterialsOnlyClass : function() {
 			let style = "btn btn-danger";
 			if (this.connectionFilters.materialsOnly == false) {
+				style += " strikethrough";
+			}
+			return style;
+		},
+		
+		filterActiveOnlyClass : function() {
+			let style = "btn btn-secondary";
+			if (this.connectionFilters.activeOnly == false) {
 				style += " strikethrough";
 			}
 			return style;

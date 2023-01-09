@@ -11,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 
+import org.bytepoet.shopifysolo.shopify.models.ShopifyProduct;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyProductVariant;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -70,6 +71,12 @@ public class Product {
 	public void setWebshopQuantity(int quantity) {
 		webshopInfo.quantity = quantity;
 	}
+	
+	@JsonIgnore
+	@Transient
+	public void setWebshopStatus(String status) {
+		webshopInfo.status = status;
+	}
 
 	UUID getId() {
 		return id;
@@ -91,12 +98,13 @@ public class Product {
 		return this.partDistributions.stream().mapToInt(d -> d.getFreeForProducts()).min().orElse(0);
 	}
 	
-	public static Product createFromWebshop(ShopifyProductVariant variant) {
+	public static Product createFromWebshop(ShopifyProductVariant variant, ShopifyProduct shopifyProduct) {
 		Product product = new Product();
 		product.id = null;
 		product.webshopInfo = new ProductWebshopInfo();
 		product.webshopInfo.id = variant.id;
 		product.webshopInfo.quantity = variant.quantity.intValue();
+		product.webshopInfo.status = shopifyProduct.status;
 		product.name = variant.title;
 		return product;
 	}

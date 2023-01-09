@@ -15,6 +15,10 @@ public class ProductWebshopInfo {
 	@JsonProperty
 	protected Integer quantity;
 	
+	@Transient
+	@JsonProperty
+	protected String status;
+	
 	
 	
 }
