@@ -231,6 +231,10 @@ public class InventoryProductsController {
 		return;
 	}
 	
+	@RequestMapping(path="/transfer-from-old", method = RequestMethod.POST)
+	public void transfer() {
+	
+	}
 	
 	
 }

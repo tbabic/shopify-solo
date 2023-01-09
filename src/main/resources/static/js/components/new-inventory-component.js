@@ -81,6 +81,9 @@ var newInventoryComponent = new Vue({
 			value: "normal",
 			text: "Normalno",
 		}, {
+			value: "alphabet",
+			text: "Abeceda"
+		},{
 			value: "quantity.webshop",
 			text: "Webshop količina"
 		},{
@@ -154,6 +157,16 @@ var newInventoryComponent = new Vue({
 			if(this.selectedSorting == "normal") {
 				return filtered;
 			}
+			else if (this.selectedSorting == "alphabet") {
+				filtered.sort((a, b) => { 
+					if (a.name < b.name) {
+						return -1;
+					} else if (a.name > b.name) {
+						return 1;
+					}
+					return 0;
+				 } );
+			}
 			else if (this.selectedSorting == "quantity.webshop") {
 				filtered.sort((a, b) => { 
 					if (a.shopifyQuantity != b.shopifyQuantity) {
@@ -162,7 +175,7 @@ var newInventoryComponent = new Vue({
 					else {
 						return a.quantity - +b.quantity;
 					}
-				 } )
+				 } );
 			}
 			else if (this.selectedSorting == "quantity.inventory") {
 				filtered.sort((a, b) => {
@@ -174,7 +187,7 @@ var newInventoryComponent = new Vue({
 						value = +a.quantity - +b.quantity;
 					}
 					return value;
-				 })
+				 });
 			}
 			
 			return filtered;
