@@ -160,7 +160,7 @@ var newInventoryComponent = new Vue({
 				});
 			}
 			
-			if (this.connectionFilters.activeOnly)
+			
 				
 			
 			if(this.selectedSorting == "normal") {
