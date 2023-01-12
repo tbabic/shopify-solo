@@ -39,19 +39,29 @@ public class ProductPartDistribution {
 	@JsonProperty
 	private int partsUsed;
 	
+	//@JsonProperty
+	//private int assignedQuantity;
 	@JsonProperty
-	private int assignedQuantity;
+	private boolean optional = false;
 	
 	@JsonProperty
 	public String productName() {
 		return product.getName();
 	}
+	
+	
+	@JsonIgnore
+	public Product getProduct() {
+		return product;
+	}
+
+
 
 	public UUID getId() {
 		return id;
 	}
 
-	int getPartsUsed() {
+	public int getPartsUsed() {
 		return partsUsed;
 	}
 
@@ -61,7 +71,7 @@ public class ProductPartDistribution {
 	}
 
 	int getAssignedQuantity() {
-		return assignedQuantity;
+		return product.getQuantity() * this.partsUsed;
 	}
 
 	public void setProduct(Product product) {
@@ -69,22 +79,27 @@ public class ProductPartDistribution {
 	}
 	
 	public int getAssignedToProducts() {
-		return assignedQuantity / partsUsed;
+		return product.getQuantity();
 	}
 	
 	public int getFreeForProducts() {
 		return productPart.getSpareQuantity() / partsUsed;
 	}
+	
+	public boolean availableToMove(int productsQuantity) {
+		return this.optional || this.productPart.availableToMove(productsQuantity * partsUsed);
+	}
+	
+	public boolean checkAvailable() {
+		return this.optional || this.productPart.checkAvialable();
+	}
+
+	public void setPartsUsed(int partsUsed) {
+		this.partsUsed = partsUsed;
+	}
 		
 	
-	public void update(int assignedQuantity, int partsUsed) {
-		this.assignedQuantity = assignedQuantity;
-		this.partsUsed = partsUsed;
-	}
 	
-	public void update(int assignedQuantity, int partsUsed, ProductPart part) {
-		this.assignedQuantity = assignedQuantity;
-		this.partsUsed = partsUsed;
-		this.productPart = part;
-	}
+	
+
 }

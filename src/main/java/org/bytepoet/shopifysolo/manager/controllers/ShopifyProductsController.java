@@ -79,28 +79,27 @@ public class ShopifyProductsController {
 				if (skips.contains(variant.id)) {
 					continue;
 				}
-				double price = format.parse(variant.price).doubleValue();
-				double compareAtPrice = 0.0;
-				if (variant.compareAtPrice != null) {
-					 compareAtPrice = format.parse(variant.compareAtPrice).doubleValue();
-				}
-				double newPrice = Currency.EUR.convertFrom(Currency.HRK, price);
-				double newCompareAtPrice = Currency.EUR.convertFrom(Currency.HRK, compareAtPrice);
+				double priceIncorrect = format.parse(variant.price).doubleValue();
 				
-
-				if (price == newPrice && newCompareAtPrice == compareAtPrice) {
+				double priceKn = Currency.HRK.convertFrom(Currency.EUR, priceIncorrect);
+				double priceEur = Currency.EUR.convertFrom(Currency.HRK, Math.round(priceKn));
+				
+				if (priceEur == priceIncorrect) {
 					continue;
 				}
 				
-				String formattedPrice = format.format(newPrice);
-				String formattedCompareAtPrice = format.format(newCompareAtPrice);
+				String formattedPrice = format.format(priceEur);
 				
-				ShopifyUpdateVariantRequest request = ShopifyUpdateVariantRequest.create(formattedPrice, formattedCompareAtPrice);
+				if (formattedPrice.equals(variant.price)) {
+					continue;
+				}
+				
+				ShopifyUpdateVariantRequest request = ShopifyUpdateVariantRequest.create(formattedPrice, "0");
 				
 				logger.info(MessageFormat.format("{0}: convertStart {1}/{2}", 
 						variant.id, product.title, variant.title));
 				logger.info(MessageFormat.format("{0}: price: {1} -> {2}; comparePrice: {3} -> {4}", 
-						variant.id, variant.price, formattedPrice, variant.compareAtPrice, formattedCompareAtPrice));
+						variant.id, variant.price, formattedPrice, variant.compareAtPrice, "0"));
 				
 				apiClient.updateProductVariant(variant.id, request);
 				

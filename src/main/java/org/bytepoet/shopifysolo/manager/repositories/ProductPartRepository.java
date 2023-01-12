@@ -41,6 +41,13 @@ public interface ProductPartRepository extends JpaRepository<ProductPart, UUID>,
 			+ "LEFT JOIN FETCH distro.product product "
 			+ "LEFT JOIN FETCH product.partDistributions distro2 ")
 	List<ProductPart> findAllProductParts();
+	
+	@Query(value="SELECT distinct part FROM ProductPart part "
+			+ "LEFT JOIN FETCH part.distributions distro "
+			+ "LEFT JOIN FETCH distro.product product "
+			+ "LEFT JOIN FETCH product.partDistributions distro2 "
+			+ "WHERE part.id IN (:ids)")
+	List<ProductPart> findAndFetchByIds(@Param("ids") List<UUID> ids);
 
 	
 }

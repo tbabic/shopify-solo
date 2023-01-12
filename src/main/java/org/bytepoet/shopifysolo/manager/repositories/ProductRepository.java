@@ -1,6 +1,7 @@
 package org.bytepoet.shopifysolo.manager.repositories;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.bytepoet.shopifysolo.manager.models.Product;
@@ -28,11 +29,46 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
 			+ "LEFT JOIN FETCH part.distributions distro2 "
 			+ "WHERE lower(product.name) LIKE lower(:name)"
 			)
-	public List<Product> findAndFetchByNameLikeIgnoreCase(String name, Sort sort);
+	public List<Product> findAndFetchByNameLikeIgnoreCase(@Param("name") String name, Sort sort);
+	
+	@Query(value="SELECT distinct product FROM Product product "
+			+ "LEFT JOIN FETCH product.partDistributions distro "
+			+ "LEFT JOIN FETCH distro.productPart part "
+			+ "WHERE product.webshopInfo.id = : id "
+			)
+	public Product findAndFetchByWebshopId(@Param("id")String id);
+	
+	@Query(value="SELECT distinct product FROM Product product "
+			+ "LEFT JOIN FETCH product.partDistributions distro "
+			+ "LEFT JOIN FETCH distro.productPart part "
+			+ "WHERE product.webshopInfo.id IN (:ids) "
+			)
+	public List<Product> findAndFetchByWebshopIds(@Param("ids")List<String> ids);
+	
+	@Query(value="SELECT distinct product FROM Product product "
+			+ "LEFT JOIN FETCH product.partDistributions distro "
+			+ "LEFT JOIN FETCH distro.productPart part "
+			+ "LEFT JOIN FETCH part.distributions distro2 "
+			+ "WHERE product.id IN (:ids) "
+			)
+	public List<Product> findAndFetchByIds(@Param("ids")List<UUID> ids);
+	
+	@Query(value="SELECT distinct product FROM Product product "
+			+ "LEFT JOIN FETCH product.partDistributions distro "
+			+ "LEFT JOIN FETCH distro.productPart part "
+			+ "LEFT JOIN FETCH part.distributions distro2 "
+			+ "WHERE product.id = :id "
+			)
+	public Optional<Product> findAndFetchById(@Param("id")UUID id);
+	
+	@Query(value="SELECT distinct product FROM Product product "
+			+ "WHERE product.webshopInfo.id = :id "
+			)
+	public Product findByWebshopId(@Param("id")String id);
 	
 	@Query(value="SELECT distinct product FROM Product product "
 			+ "WHERE lower(product.name) LIKE lower(:name)"
 			)
-	public List<Product> findByNameLikeIgnoreCase(String name, Sort sort);
+	public List<Product> findByNameLikeIgnoreCase(@Param("name")String name, Sort sort);
 	
 }

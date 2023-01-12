@@ -60,7 +60,7 @@ public class Item {
 		this.discount = lineItem.getDiscountPercent();
 		this.taxRate = taxRate;
 		this.weight = lineItem.getGrams();
-		this.shopifyId = lineItem.getId();
+		this.shopifyId = lineItem.getVariantId();
 		applyTaxRate();
 	}
 	

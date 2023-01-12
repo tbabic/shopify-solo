@@ -31,7 +31,8 @@ var newInventoryComponent = new Vue({
 			quantity : 0,
 			webshopInfo : {
 				id : null,
-				quantity : null
+				quantity : null,
+				status : null
 			},
 			partDistributions: []
 		},
@@ -50,6 +51,7 @@ var newInventoryComponent = new Vue({
 			totalQuantity : 0,
 			freeForProducts : 0,
 			disabled : false,
+			optional : false,
 		},
 		
 		selectedPart : {
@@ -65,6 +67,7 @@ var newInventoryComponent = new Vue({
 			assignedQuantity : 0,
 			spareQuantity : 0,
 			partDistributions : [],
+			optional : false
 		},
 		
 		spinning : [],
@@ -93,7 +96,7 @@ var newInventoryComponent = new Vue({
 			text: "Zalihe količina"
 		}],
 		
-		selectedSorting : "normal",
+		selectedSorting : "alphabet",
 		
 		connectionFilters : {
 			connected : true,
@@ -322,24 +325,36 @@ var newInventoryComponent = new Vue({
 			
 		},
 		
-		
+		adjustLeftDisabled : function(product) {
+			if (this.isSpinning(product)) {
+				return true;
+			}
+			if (product.adjustment.quantity == 0) {
+				return true;
+			}
+			if (product.adjustment.quantity > product.maxFreeAssignments) {
+				return true;
+			}
+			
+			return false;
+		},
 				
 		adjustLeft : function(inventoryItem) {			
 			let adjustment = {
-				inventoryId : inventoryItem.adjustment.inventoryId,
-				shopifyInventoryItemId : inventoryItem.adjustment.shopifyInventoryItemId,
+				productId : inventoryItem.adjustment.productId,
 				quantity : inventoryItem.adjustment.quantity
 			}
 			
 			this.adjust(inventoryItem, adjustment);
-
-			
+		},
+		
+		adjustRightDisabled : function(product) {
+			return this.isSpinning(product) || product.adjustment.quantity == 0 ||  product.webshopInfo == null || product.webshopInfo.quantity <= 0;
 		},
 		
 		adjustRight : function(inventoryItem) {
 			let adjustment = {
-				inventoryId : inventoryItem.adjustment.inventoryId,
-				shopifyInventoryItemId : inventoryItem.adjustment.shopifyInventoryItemId,
+				productId : inventoryItem.adjustment.productId,
 				quantity : -inventoryItem.adjustment.quantity
 			}
 			
@@ -349,27 +364,56 @@ var newInventoryComponent = new Vue({
 		
 		adjust : function(product, adjustment) {
 			this.startSpinning(product);
+			let relatedProducts = this.findAllRelatedProducts(product);
+			relatedProducts.forEach(p => {
+				this.startSpinning(p);
+			});
 			
 			
-			this.showError("not-implemented");
-			
-			this.stopSpinning(product);
-			
-			
+			axios.post('/manager/inventory/move-quantity', adjustment).then(response => {
+				
+				let query = {
+					productIds : relatedProducts.map(p => p.id)
+				}
+				
+				return axios.post('/manager/inventory/query', query).then(response => {
+					response.data.products.forEach(p => this.replaceProduct(p));
+					response.data.products.forEach(p => this.stopSpinning(p));
+				});
+			}).catch(error => {
+				this.showError(error.response.data.message);
+			})
+			.finally(() => {
+				
+			});
 		},
 		
-		quickSave : function(product) {
-			this.startSpinning(product);
-			
-			
-			this.showError("not-implemented");
-			
-			this.stopSpinning(product);
-			
+		refreshProduct : function(productId) {
+			return axios.get('/manager/inventory/products/' + productId)
+			.then(response => {
+				let product = response.data;
+				this.replaceProduct(product);
+				this.stopSpinning(product);			
+			});
 		},
 		
-		quantityChanged(inventory) {
-			return inventory.oldQuantity != inventory.quantity;
+		replaceProduct : function(product) {
+			let index = this.products.findIndex(p => p.id == product.id);
+			this.products.splice(index, 1);
+			this.products.push(product);
+			Vue.set(product, "adjustment", {
+				productId : product.id,
+				quantity : 0,
+			});
+		},
+		
+		findAllRelatedProducts : function(product) {
+			let parts = product.partDistributions.map(d => d.productPart);
+			let productIds = parts.flatMap(p => p.partDistributions.map(d => d.productId));
+			let relatedProducts = this.products.filter(p => productIds.indexOf(p.id) >= 0);
+			return relatedProducts;
+			
+			
 		},
 		
 		startSpinning(product) {
@@ -380,14 +424,14 @@ var newInventoryComponent = new Vue({
 		},
 		
 		stopSpinning(product) {
-			index = this.spinning.findIndex(el => el == product);
+			index = this.spinning.findIndex(el => el == product || el.id == product.id);
 			if (index >= 0) {
 				this.spinning.splice(index,1);
 			}
 		},
 		
 		isSpinning(product) {
-			index = this.spinning.findIndex(el => el == product);
+			index = this.spinning.findIndex(el => el == product || el.id == product.id);
 			return index >= 0;
 				
 		},
@@ -396,6 +440,7 @@ var newInventoryComponent = new Vue({
 			this.selectedProduct.id = null;
 			this.selectedProduct.webshopInfo.id = null;
 			this.selectedProduct.webshopInfo.quantity = null;
+			this.selectedProduct.webshopInfo.status = null;
 		},
 		
 		saveProduct : function() {
@@ -440,6 +485,7 @@ var newInventoryComponent = new Vue({
 			this.selectedProduct.quantity = product.quantity;
 			this.selectedProduct.webshopInfo.id = product.webshopInfo.id;
 			this.selectedProduct.webshopInfo.quantity = product.webshopInfo.quantity;
+			this.selectedProduct.webshopInfo.status = product.webshopInfo.status;
 			
 			
 			this.selectedProduct.partDistributions.splice(0);
@@ -460,6 +506,7 @@ var newInventoryComponent = new Vue({
 			this.selectedProduct.quantity = 0;
 			this.selectedProduct.webshopInfo.id = null;
 			this.selectedProduct.webshopInfo.quantity = null;
+			this.selectedProduct.webshopInfo.status = null;
 			this.selectedProduct.partDistributions = [];
 			
 			this.clearFilterProducts();
@@ -477,6 +524,7 @@ var newInventoryComponent = new Vue({
 			this.selectedPart.quantity = 0;
 			this.selectedPart.assignedQuantity = 0;
 			this.selectedPart.spareQuantity = 0;
+			this.selectedPart.optional = false;
 			
 			this.selectedPart.partDistributions.splice(0);
 
@@ -525,6 +573,7 @@ var newInventoryComponent = new Vue({
 			this.addingPart.assignedQuantity = 0;
 			this.addingPart.assignedToProducts = 0;
 			this.addingPart.totalQuantity = part.quantity;
+			this.addingPart.optional = part.optional;
 			
 			let sumTotalAssignedQuantity = 0;
 			part.partDistributions.forEach(d => {
@@ -545,6 +594,7 @@ var newInventoryComponent = new Vue({
 				alternativeDescription2 : this.addingPart.alternativeDescription2,
 				alternativeLink2 : this.addingPart.alternativeLink2,
 				quantity : +this.addingPart.partsUsed * (+this.addingPart.freeForProducts + +this.addingPart.assignedToProducts),
+				optional : false
 			};
 			
 			let existingAssignedQuantity = 0;
@@ -560,6 +610,7 @@ var newInventoryComponent = new Vue({
 				newPart.alternativeDescription2 = existingPart.alternativeDescription2;
 				newPart.alternativeLink2 = existingPart.alternativeLink2;
 				newPart.quantity = existingPart.quantity;
+				newPart.optional = existingPart.optional;
 				
 				existingPart.partDistributions.forEach(d => {
 					existingAssignedQuantity+= +d.assignedQuantity;
@@ -641,6 +692,7 @@ var newInventoryComponent = new Vue({
 			this.selectedPart.quantity = part.quantity;
 			this.selectedPart.assignedQuantity = part.assignedQuantity;
 			this.selectedPart.spareQuantity = part.spareQuantity;
+			this.selectedPart.optional = part.optional;
 			
 			this.selectedPart.partDistributions.splice(0);
 			part.partDistributions.forEach(distribution => {
@@ -786,6 +838,12 @@ var newInventoryComponent = new Vue({
 					if(product.name.includes("POKLON")) {
 						return;
 					}
+					
+					Vue.set(product, "adjustment", {
+						productId : product.id,
+						quantity : 0,
+					});
+					
 					this.products.push(product);
 				});
 				
@@ -826,12 +884,14 @@ var newInventoryComponent = new Vue({
 			this.selectedProduct.name = product.name;
 			this.selectedProduct.webshopInfo.id = product.webshopInfo.id;
 			this.selectedProduct.webshopInfo.quantity = product.webshopInfo.quantity;
+			this.selectedProduct.webshopInfo.status = product.webshopInfo.status;
 			this.productsFilter.filtered.splice(0);
 		},
 		
 		disconnect : function() {
 			this.selectedProduct.webshopInfo.id  = null;
 			this.selectedProduct.webshopInfo.quantity  = null;
+			this.selectedProduct.webshopInfo.status  = null;
 			this.changeDetection = true;
 			
 		},
@@ -895,6 +955,8 @@ var newInventoryComponent = new Vue({
 			this.role = response.data.role;
 			localStorage.setItem("token", this.authToken);
 			axios.defaults.headers.common['Authorization'] = this.authToken;
+		}).then(() => {
+			return axios.post('/manager/inventory/sync-products');
 		}).then(() => {
 			return this.loadProducts();
 		}).then(() => {

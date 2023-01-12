@@ -7,6 +7,7 @@ import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bytepoet.shopifysolo.manager.models.Inventory;
+import org.bytepoet.shopifysolo.manager.models.Product;
 import org.bytepoet.shopifysolo.manager.repositories.InventoryRepository;
 import org.bytepoet.shopifysolo.shopify.clients.ShopifyApiClient;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyInventoryAdjustment;
@@ -28,6 +29,7 @@ public class InventoryService {
 	private String shopifyInventoryLocation;
 
 	@Transactional
+	@Deprecated
 	public void moveQuantity( Long inventoryId, String shopifyInventoryId, int quantity) throws Exception {
 		ShopifyInventoryAdjustment inventoryAdjustment = new ShopifyInventoryAdjustment();
 		inventoryAdjustment.availableAdjustment = quantity;
@@ -51,4 +53,21 @@ public class InventoryService {
 		return;
 	}
 	
+	
+	public void moveQuantity(String shopifyInventoryId, int quantity) throws Exception {
+		ShopifyInventoryAdjustment inventoryAdjustment = new ShopifyInventoryAdjustment();
+		inventoryAdjustment.availableAdjustment = quantity;
+		inventoryAdjustment.inventoryItemId = shopifyInventoryId;
+		if (StringUtils.isBlank(shopifyInventoryLocation)) {
+			List<ShopifyLocation> locations = apiClient.getLocations();
+			if (locations.isEmpty()) {
+				throw new RuntimeException("No existing location");
+			}
+			this.shopifyInventoryLocation = locations.get(0).id;
+		}
+		inventoryAdjustment.locationId = this.shopifyInventoryLocation;
+		apiClient.adjustInventory(inventoryAdjustment);
+		return;
+		
+	}
 }

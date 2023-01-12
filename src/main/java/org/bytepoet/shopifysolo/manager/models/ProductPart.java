@@ -57,6 +57,11 @@ public class ProductPart {
 	private String alternativeDescription2;
 	
 	@Transient
+	@JsonProperty
+	private boolean optional = false;
+	
+	
+	@Transient
 	@JsonIgnore
 	private Integer assignedQuantityTransient;
 
@@ -66,6 +71,16 @@ public class ProductPart {
 	
 	
 	
+	
+	@JsonIgnore
+	public Set<ProductPartDistribution> getDistributions() {
+		return distributions;
+	}
+
+
+
+
+
 	@JsonProperty
 	public int getAssignedQuantity() {
 		if (assignedQuantityTransient != null) {
@@ -86,6 +101,35 @@ public class ProductPart {
 	@JsonProperty(access=Access.READ_ONLY)
 	public List<ProductPartDistributionInternal> getPartDistributions() {
 		return distributions.stream().map(d -> ProductPartDistributionInternal.from(d)).collect(Collectors.toList());
+	}
+	
+	@JsonProperty(access=Access.READ_ONLY)
+	public List<UUID> getAssignedProductIds() {
+		return distributions.stream().map(d -> d.productId()).collect(Collectors.toList());
+	}
+	
+	public boolean availableToMove(int individualPartsQuantity) {
+		if (!this.optional && (this.getSpareQuantity() - individualPartsQuantity) < 0) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public boolean checkAvialable() {
+		if (!this.optional && this.getSpareQuantity() < 0) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public void reduceQuantity(int individualPartsQuantity) {
+		this.quantity -= individualPartsQuantity;
+	}
+	
+	public void addQuantity(int individualPartsQuantity) {
+		this.quantity += individualPartsQuantity;
 	}
 	
 	private static class ProductPartDistributionInternal {

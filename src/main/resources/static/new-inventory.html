@@ -124,18 +124,18 @@
 								<div class="input-group-prepend">
 	
 									<button tabindex="-1" class="btn btn-inventory-item" type="button"
-										v-bind:disabled="product.webshopInfo == null || product.webshopInfo.id == null || isSpinning(product)" 
+										v-bind:disabled="adjustLeftDisabled(product)" 
 										v-on:click="adjustLeft(product)">
 										<
 									</button>
 								</div>
 								<input type="numeric" class="form-control" placeholder="0"
-									v-model="product.webshopInfo.quantity"
+									v-model="product.adjustment.quantity"
 									v-on:keyup.enter="adjustLeft(product)"
 									v-bind:disabled="product.webshopInfo.id == null || isSpinning(product)" >
 								<div class="input-group-append">
 									<button tabindex="-1" class="btn btn-inventory-item" type="button"
-										v-bind:disabled="product.webshopInfo.id == null || isSpinning(product)" 
+										v-bind:disabled="adjustRightDisabled(product)" 
 										v-on:click="adjustRight(product)">
 										>
 									</button>
@@ -147,17 +147,10 @@
 						<div class ="col-2 text-left">
 							<div class="input-group mb-3">
 								<input type="numeric" placeholder="0"
-									v-bind:class="(quantityChanged(product) ? 'text-success ' : '') + 'form-control'"
-									v-model="product.quantity"
-									v-on:keyup.enter="quickSave(product)"
-									v-bind:disabled="product.id == null || isSpinning(product)">
-								<div class="input-group-append">
-									<button tabindex="-1" class="btn btn-inventory-item" type="button"
-										v-bind:disabled="product.id == null || isSpinning(product)" 
-										v-on:click="quickSave(product)">
-										<img src="/icons/box-arrow-down.svg" alt="Spremi" title="left">
-									</button>
-								</div>
+									v-bind:class="(product.maxFreeAssignments > 0 ? ' ' : 'text-danger ') + 'form-control'"
+									v-model="product.maxFreeAssignments"
+									disabled>
+							
 							</div>
 						</div>
 						

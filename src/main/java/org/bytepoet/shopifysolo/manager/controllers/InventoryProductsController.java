@@ -1,25 +1,39 @@
 package org.bytepoet.shopifysolo.manager.controllers;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
+import org.bytepoet.shopifysolo.manager.controllers.InventoryController.MoveQuantity;
+import org.bytepoet.shopifysolo.manager.models.Inventory;
 import org.bytepoet.shopifysolo.manager.models.Product;
 import org.bytepoet.shopifysolo.manager.models.ProductPart;
 import org.bytepoet.shopifysolo.manager.models.ProductPartDistribution;
 import org.bytepoet.shopifysolo.manager.repositories.ProductPartDistributionRepository;
 import org.bytepoet.shopifysolo.manager.repositories.ProductPartRepository;
 import org.bytepoet.shopifysolo.manager.repositories.ProductRepository;
+import org.bytepoet.shopifysolo.services.InventoryService;
 import org.bytepoet.shopifysolo.shopify.clients.ShopifyApiClient;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyInventoryAdjustment;
+import org.bytepoet.shopifysolo.shopify.models.ShopifyLocation;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyProduct;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyProductVariant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -44,10 +58,16 @@ public class InventoryProductsController {
 	@Autowired
 	private ShopifyApiClient shopifyApiClient;
 	
+	@Autowired
+	private InventoryService inventoryService;
+	
 	public static class Inventory {
-		List<Product> products;
-		List<ProductPartDistribution> distributions;
-		List<ProductPart> parts;
+		@JsonProperty
+		public List<Product> products;
+		@JsonProperty
+		public List<ProductPartDistribution> distributions;
+		@JsonProperty
+		public List<ProductPart> parts;
 	}
 	
 	
@@ -55,7 +75,6 @@ public class InventoryProductsController {
 	@RequestMapping(path="", method = RequestMethod.GET)
 	public Inventory getInventory(
 			@RequestParam(name="productsFilter", required = false) String productsFilter, 
-			@RequestParam(name = "webshopInfo", required = false) boolean webshopInfo,
 			@RequestParam(name="partsFilter", required = false) String partsFilter) throws Exception {
 		List<Product> products;
 		List<ProductPart> parts;
@@ -81,64 +100,26 @@ public class InventoryProductsController {
 		Inventory inventory = new Inventory();
 		inventory.parts = parts;
 		inventory.distributions = distributions;
-		
-		if (!webshopInfo) {
-			inventory.products = products;
-			return inventory;
-		}
-		
-		List<ShopifyProduct> shopifyProducts = shopifyApiClient.getProducts(null);
-		
-		
-		
-		Map<String, ShopifyProduct> shopifyProductsMap = new HashMap<>();
-		Map<String, ShopifyProductVariant> variants = new HashMap<>();
-		
-		for (ShopifyProduct shopifyProduct : shopifyProducts) {
-			for (ShopifyProductVariant variant : shopifyProduct.variants) {
-				variant.title = variant.title.equals("Default Title") ? shopifyProduct.title : shopifyProduct.title + " / " + variant.title;
-				variants.put(variant.id, variant);
-				shopifyProductsMap.put(variant.id, shopifyProduct);
-			}
-		}
-		
-		products.forEach(product -> {
-			if (StringUtils.isBlank(product.getWebshopId())){
-				return;
-			}
-			ShopifyProductVariant variant = variants.get(product.getWebshopId());
-			product.setWebshopQuantity(variant.quantity.intValue());
-			product.setWebshopStatus(shopifyProductsMap.get(variant.id).status);
-			variants.remove(variant.id);
-		});
-		
-		variants.values().forEach( v -> {
-			products.add(Product.createFromWebshop(v, shopifyProductsMap.get(v.id)));
-		});
-		
-		
 		inventory.products = products;
+		
+		//syncWebshopInfo(products);
+
 		return inventory;
 	}
 	
 	
-	
-	
-	@RequestMapping( method = RequestMethod.POST)
-	@Transactional
-	public void saveInventory(@RequestBody Inventory inventory) {
-		productRepository.saveAll(inventory.products);
-		productPartRepository.saveAll(inventory.parts);
-		productPartDistributionRepository.saveAll(inventory.distributions);
+	@RequestMapping(path="/sync-products", method = RequestMethod.POST)
+	public void syncProducts() throws Exception {
+		List<Product> products = productRepository.findAll();
 		
-		return;
+		syncWebshopInfo(products);
+
+		
 	}
-	
 	
 	@RequestMapping(path="/products", method = RequestMethod.GET)
 	public List<Product> getProducts(
-			@RequestParam(name="nameFilter", required = false) String nameFilter, 
-			@RequestParam(name = "webshopInfo", required = false) boolean webshopInfo) throws Exception {
+			@RequestParam(name="nameFilter", required = false) String nameFilter) throws Exception {
 		List<Product> products;
 			
 		if (StringUtils.isBlank(nameFilter)) {
@@ -147,11 +128,48 @@ public class InventoryProductsController {
 			products =  productRepository.findAndFetchByNameLikeIgnoreCase("%"+ nameFilter +"%", Sort.unsorted());
 		}
 		
+		return products;
+	}
+	
+	@RequestMapping(path="/products/query", method = RequestMethod.POST)
+	public List<Product> getProducts(@RequestBody List<UUID> productIds) throws Exception {
+		List<Product> products;
+			
+		products = productRepository.findAndFetchByIds(productIds);
+		//syncWebshopInfo(products);
 		
-		if (!webshopInfo) {
-			return products;
+		return products;
+	}
+	
+	@RequestMapping(path="/products/{id}", method = RequestMethod.GET)
+	public Product getProduct(@PathVariable UUID productId) throws Exception {		
+		return productRepository.findAndFetchById(productId).get();
+	}
+	
+	public static class Query {
+		@JsonProperty
+		List<UUID> productIds;
+		@JsonProperty
+		List<UUID> partIds;
+	}
+	
+	@RequestMapping(path="/query", method = RequestMethod.POST)
+	public Inventory queryInventory(@RequestBody Query query) throws Exception {
+		Inventory inventory = new Inventory();
+		if (!CollectionUtils.isEmpty(query.productIds)) {
+			inventory.products = productRepository.findAndFetchByIds(query.productIds);
+			
 		}
-		
+		if (!CollectionUtils.isEmpty(query.partIds)) {
+			inventory.parts = productPartRepository.findAndFetchByIds(query.partIds);
+		}		
+		return inventory;
+	}
+
+
+
+
+	private void syncWebshopInfo(Collection<Product> products) throws Exception {
 		List<ShopifyProduct> shopifyProducts = shopifyApiClient.getProducts(null);
 		
 		Map<String, ShopifyProduct> shopifyProductsMap = new HashMap<>();
@@ -165,8 +183,6 @@ public class InventoryProductsController {
 			}
 		}
 		
-	
-		
 		products.forEach(product -> {
 			if (StringUtils.isBlank(product.getWebshopId())){
 				return;
@@ -177,16 +193,44 @@ public class InventoryProductsController {
 			variants.remove(variant.id);
 		});
 		
+		List<Product> toSync = products.stream().filter(p -> !p.isSynced()).collect(Collectors.toList());
+		productRepository.saveAll(toSync);
+		
 		variants.values().forEach( v -> {
 			products.add(Product.createFromWebshop(v, shopifyProductsMap.get(v.id)));
 		});
-		return products;
 	}
 	
 	@RequestMapping(path="/products", method = RequestMethod.POST)
-	public void saveProduct(@RequestBody Product product) {
+	@Transactional
+	public void saveProduct(@RequestBody Product product) throws Exception {
+		if (!product.checkAvailableMaterials()) {
+			throw new RuntimeException("Not enough materials");
+		}
+		
+		Optional<Product> optional = productRepository.findById(product.getId());
+		if (optional.isPresent() && optional.get().getQuantity() == product.getQuantity()) {
+			productRepository.save(product);
+			return;
+		} 
 		productRepository.save(product);
+		updateWebshopQuantity(product);
 		return;
+	}
+	
+	
+	public static class MoveQuantity {
+		public UUID productId;
+		public int quantity;
+	}
+
+	@RequestMapping(path="/move-quantity", method = RequestMethod.POST)
+	public void moveQuantity( @RequestBody MoveQuantity moveQuantity) throws Exception {
+		Product product = productRepository.findAndFetchById(moveQuantity.productId).get();
+		product.moveQuantity(moveQuantity.quantity);
+		updateWebshopQuantity(product);
+		productRepository.save(product);
+		
 	}
 	
 	
@@ -208,17 +252,14 @@ public class InventoryProductsController {
 		
 		@JsonProperty
 		private int partsUsed;
-		
-		@JsonProperty
-		private int assignedQuantity;
 	}
 	
 	public static class ProductPartAndDistributions {
 		@JsonProperty
-		ProductPart productPart;
+		private ProductPart productPart;
 		
 		@JsonProperty
-		List<SimpleDistribution> distributions;
+		private List<SimpleDistribution> distributions;
 	}
 	
 	@RequestMapping(path="/parts", method = RequestMethod.POST)
@@ -230,22 +271,36 @@ public class InventoryProductsController {
 		Map<UUID, SimpleDistribution> distroMap = productPartAndDistributions.distributions.stream().collect(Collectors.toMap(d -> d.id, d-> d));
 		
 		List<ProductPartDistribution> distributions = productPartDistributionRepository.findAllById(distroMap.keySet());
+		List<ProductPartDistribution> distributionsToSave = new ArrayList<>();
 		distributions.forEach(d -> {
 			SimpleDistribution simple = distroMap.get(d.getId());
-			d.update(simple.assignedQuantity, simple.partsUsed);
+			if (d.getPartsUsed() != simple.partsUsed) {
+				d.setPartsUsed(simple.partsUsed);;
+			}
+			distributionsToSave.add(d);
 		});
 		
 		
 		
-		productPartDistributionRepository.saveAll(distributions);
+		productPartDistributionRepository.saveAll(distributionsToSave);
 		
 		return;
 	}
 	
-	@RequestMapping(path="/transfer-from-old", method = RequestMethod.POST)
-	public void transfer() {
 	
+	
+
+	private void updateWebshopQuantity(Product product) throws Exception {
+		ShopifyProductVariant variant = shopifyApiClient.getShopifyVariant(product.getWebshopId());
+		int quantity = product.getQuantity() - variant.quantity.intValue(); 
+		
+		inventoryService.moveQuantity(variant.inventoryItemId, quantity);
+		return;
 	}
 	
+
+	
+	
+
 	
 }
