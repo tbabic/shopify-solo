@@ -127,6 +127,20 @@ public abstract class Order {
 	@Embedded
 	@JsonProperty
 	private SearchProcedureHistory searchProcedureHistory;
+	
+	@JsonProperty
+	@Enumerated(EnumType.STRING)
+	private InventoryJobStatus inventoryJob = InventoryJobStatus.PENDING;
+	
+	
+
+	public InventoryJobStatus getInventoryJob() {
+		return inventoryJob;
+	}
+
+	public void setInventoryJob(InventoryJobStatus inventoryJob) {
+		this.inventoryJob = inventoryJob;
+	}
 
 	public static enum Type {
 		

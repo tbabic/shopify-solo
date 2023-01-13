@@ -97,8 +97,16 @@ public class ProductPartDistribution {
 	public void setPartsUsed(int partsUsed) {
 		this.partsUsed = partsUsed;
 	}
+
+
+	public void reduceAvailability(int quantity) {
+		this.productPart.reduceQuantity(quantity * this.partsUsed);
+	}
 		
-	
+	@JsonIgnore
+	ProductPart getProductPart() {
+		return this.productPart;
+	}
 	
 	
 

@@ -4,12 +4,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import javax.transaction.Transactional;
+
 import org.bytepoet.shopifysolo.manager.models.GiveawayOrder;
+import org.bytepoet.shopifysolo.manager.models.InventoryJobStatus;
 import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.OrderStatus;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -54,4 +58,14 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 			+ "OR o.status = 'IN_PROCESS' "
 			+ "OR o.status = 'IN_POST' ")
 	List<Order> getOrdersToSyncAfterDate( @Param("date") Date date);
+	
+	@Query("SELECT order.inventoryJob FROM ManagedOrder order WHERE order.id = :id")
+	InventoryJobStatus getJobStatus(@Param("id") long id);
+	
+	@Modifying
+	@Query("UPDATE ManagedOrder o SET o.inventoryJob = :status WHERE o.id = :id")
+	@Transactional
+	void updateJobStatus(@Param("status") InventoryJobStatus status, @Param("id") long id);
+	
+	List<Order> findByInventoryJob(InventoryJobStatus status);
 }

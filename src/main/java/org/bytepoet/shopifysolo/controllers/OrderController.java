@@ -15,6 +15,7 @@ import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
 import org.bytepoet.shopifysolo.services.CachedFunctionalService;
 import org.bytepoet.shopifysolo.services.DiscountService;
+import org.bytepoet.shopifysolo.services.InventoryUpdateService;
 import org.bytepoet.shopifysolo.services.InvoiceService;
 import org.bytepoet.shopifysolo.services.MailService;
 import org.bytepoet.shopifysolo.services.PdfInvoiceService;
@@ -83,6 +84,9 @@ public class OrderController {
 	@Autowired
 	private DiscountService discountService;
 	
+	@Autowired
+	private InventoryUpdateService inventoryUpdateService;
+	
 	
 	@PostMapping
 	public void postOrder(@RequestBody ShopifyOrder shopifyOrder, ContentCachingRequestWrapper request) throws Exception {
@@ -127,10 +131,7 @@ public class OrderController {
 			//TODO: upload pdf Invoice to google drive
 		}
 		
-		if(CollectionUtils.isEmpty(shopifyOrder.getDiscountCodes())) {
-			return;
-		}
-		if(shopifyOrder.getDiscountCodes().get(0).getType().equalsIgnoreCase("fixed_amount")) {
+		if(!CollectionUtils.isEmpty(shopifyOrder.getDiscountCodes()) && shopifyOrder.getDiscountCodes().get(0).getType().equalsIgnoreCase("fixed_amount")) {
 			String discountCode = shopifyOrder.getDiscountCodes().get(0).getCode();
 			boolean hasDiscount = CachedFunctionalService.<ShopifyOrder, Boolean>cacheAndExecute(
 					shopifyOrder,
@@ -143,6 +144,8 @@ public class OrderController {
 				orderRepository.saveAndFlush(order);
 			}
 		}
+		
+		inventoryUpdateService.updateInventory(order, shopifyOrder);
 		return;
 	}
 	

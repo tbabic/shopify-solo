@@ -10,6 +10,7 @@ import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
 import org.bytepoet.shopifysolo.services.CachedFunctionalService;
 import org.bytepoet.shopifysolo.services.DiscountService;
+import org.bytepoet.shopifysolo.services.InventoryUpdateService;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +68,9 @@ public class TenderController {
 	@Autowired
 	private DiscountService discountService;
 	
+	@Autowired
+	private InventoryUpdateService inventoryUpdateService;
+	
 	@PostMapping
 	public void postOrder(@RequestBody ShopifyOrder shopifyOrder, ContentCachingRequestWrapper request) throws Exception {
 		authorizationService.processRequest(request);
@@ -94,10 +98,7 @@ public class TenderController {
 			}
 		}
 		
-		if(CollectionUtils.isEmpty(shopifyOrder.getDiscountCodes())) {
-			return;
-		}
-		if(shopifyOrder.getDiscountCodes().get(0).getType().equalsIgnoreCase("fixed_amount")) {
+		if(!CollectionUtils.isEmpty(shopifyOrder.getDiscountCodes()) && shopifyOrder.getDiscountCodes().get(0).getType().equalsIgnoreCase("fixed_amount")) {
 			String discountCode = shopifyOrder.getDiscountCodes().get(0).getCode();
 			boolean hasDiscount = CachedFunctionalService.<ShopifyOrder, Boolean>cacheAndExecute(
 					shopifyOrder,
@@ -110,6 +111,7 @@ public class TenderController {
 				orderRepository.saveAndFlush(order);
 			}
 		}
+		inventoryUpdateService.updateInventory(order, shopifyOrder);
 	}
 
 }

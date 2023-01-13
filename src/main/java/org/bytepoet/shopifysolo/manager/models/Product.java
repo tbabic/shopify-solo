@@ -3,6 +3,7 @@ package org.bytepoet.shopifysolo.manager.models;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Embedded;
@@ -151,6 +152,10 @@ public class Product {
 		return true;
 	}
 	
+	public void reduceAvailability(int quantity) {
+		this.partDistributions.forEach(d -> d.reduceAvailability(quantity));
+	}
+	
 	public void sync() {
 		this.webshopInfo.isSynced = true;
 	}
@@ -161,8 +166,11 @@ public class Product {
 	
 
 	
-	
-	
+	@JsonIgnore
+	public List<ProductPart> getParts() {
+		return this.partDistributions.stream().map(d -> d.getProductPart()).collect(Collectors.toList());
+		
+	}
 	
 	
 	
