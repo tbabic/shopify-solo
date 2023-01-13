@@ -119,7 +119,8 @@ public class InventoryProductsController {
 	
 	@RequestMapping(path="/products", method = RequestMethod.GET)
 	public List<Product> getProducts(
-			@RequestParam(name="nameFilter", required = false) String nameFilter) throws Exception {
+			@RequestParam(name="nameFilter", required = false) String nameFilter,
+			@RequestParam(name="includeWebshop", required = false) Boolean includeWebshop) throws Exception {
 		List<Product> products;
 			
 		if (StringUtils.isBlank(nameFilter)) {
@@ -127,6 +128,8 @@ public class InventoryProductsController {
 		} else {
 			products =  productRepository.findAndFetchByNameLikeIgnoreCase("%"+ nameFilter +"%", Sort.unsorted());
 		}
+		
+		fetchWebshopProducts(products);
 		
 		return products;
 	}
@@ -170,6 +173,13 @@ public class InventoryProductsController {
 
 
 	private void syncWebshopInfo(Collection<Product> products) throws Exception {
+		List<Product> toSync = fetchWebshopProducts(products);
+		
+		productRepository.saveAll(toSync);
+	}
+
+
+	private List<Product> fetchWebshopProducts(Collection<Product> products) throws Exception {
 		List<ShopifyProduct> shopifyProducts = shopifyApiClient.getProducts(null);
 		
 		Map<String, ShopifyProduct> shopifyProductsMap = new HashMap<>();
@@ -194,11 +204,12 @@ public class InventoryProductsController {
 		});
 		
 		List<Product> toSync = products.stream().filter(p -> !p.isSynced()).collect(Collectors.toList());
-		productRepository.saveAll(toSync);
+		
 		
 		variants.values().forEach( v -> {
 			products.add(Product.createFromWebshop(v, shopifyProductsMap.get(v.id)));
 		});
+		return toSync;
 	}
 	
 	@RequestMapping(path="/products", method = RequestMethod.POST)
@@ -207,7 +218,9 @@ public class InventoryProductsController {
 		if (!product.checkAvailableMaterials()) {
 			throw new RuntimeException("Not enough materials");
 		}
-		
+		if (product.getWebshopInfo().getQuantity() == null) {
+			product.getWebshopInfo().setQuantity(0);
+		}
 		Optional<Product> optional = productRepository.findById(product.getId());
 		if (optional.isPresent() && optional.get().getQuantity() == product.getQuantity()) {
 			productRepository.save(product);

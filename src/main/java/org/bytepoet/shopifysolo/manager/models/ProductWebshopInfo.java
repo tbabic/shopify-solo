@@ -14,7 +14,7 @@ public class ProductWebshopInfo {
 	
 	
 	@JsonProperty
-	private Integer quantity;
+	private Integer quantity = 0;
 	
 	
 	@JsonProperty
@@ -31,7 +31,7 @@ public class ProductWebshopInfo {
 	}
 
 
-	protected void setQuantity(Integer quantity) {
+	public void setQuantity(Integer quantity) {
 		if (quantity != this.quantity) {
 			isSynced = false;
 		}

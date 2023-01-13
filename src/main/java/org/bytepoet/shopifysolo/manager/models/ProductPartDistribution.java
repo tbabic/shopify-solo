@@ -40,7 +40,8 @@ public class ProductPartDistribution {
 	private int partsUsed;
 	
 	//@JsonProperty
-	//private int assignedQuantity;
+	private int assignedQuantity = 0;
+	
 	@JsonProperty
 	private boolean optional = false;
 	
