@@ -139,7 +139,7 @@ public class InventoryProductsController {
 			products =  productRepository.findAndFetchByNameLikeIgnoreCase("%"+ nameFilter +"%", Sort.unsorted());
 		}
 		
-		//fetchWebshopProducts(products);
+		fetchWebshopProducts(products);
 		
 		return products;
 	}
