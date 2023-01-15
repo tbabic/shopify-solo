@@ -7,6 +7,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.websocket.server.PathParam;
 
@@ -113,6 +114,49 @@ public class ShopifyProductsController {
 		
 	}
 	
+	
+	
+	@RequestMapping(path="/description-cleanup", method=RequestMethod.POST)
+	public void cleanup() throws Exception {
+		List<ShopifyProduct> allProducts = apiClient.getProducts(null);
+		List<ShopifyProduct> modifiedProducts = new ArrayList<>();
+		List<ShopifyProduct> skippedProducts = new ArrayList<>();
+		
+		String startingBlock = "<p><span>Svaki komad nakita dolazi u";
+		String startingBlock2 = "<p data-mce-fragment=\"1\"><span data-mce-fragment=\"1\">Svaki komad nakita dolazi u";
+		String startingBlock3 = "<p data-mce-fragment=\"1\"><span>Svaki komad nakita dolazi u";
+		String startingBlock4 = "<br data-mce-fragment=\"1\">Svaki komad nakita dolazi u";
+		
+		String [] blocks = {startingBlock, startingBlock2, startingBlock3, startingBlock4};
+		for(ShopifyProduct product : allProducts) {
+			String body = product.bodyHtml;
+			boolean found = false;
+			for (String block : blocks) {
+				if (body.contains(block)) {
+					int index = body.indexOf(block);
+					String newBody = body.substring(0, index);
+					//logger.info(newBody);
+					product.bodyHtml = newBody;
+					modifiedProducts.add(product);
+					found = true;
+					break;
+				}
+			}
+			if (!found)  {
+				skippedProducts.add(product);
+			}
+			
+		}
+		
+		for(ShopifyProduct product : modifiedProducts) {
+			apiClient.updateProductBody(product.id, product.bodyHtml);
+		}
+		
+		for(ShopifyProduct product : skippedProducts) {
+			logger.info("skipped: " + product.title);
+			//logger.info(product.bodyHtml);
+		}
+	}
 	
 	
 }
