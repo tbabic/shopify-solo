@@ -81,6 +81,9 @@ var createOrderComponent = new Vue({
 			this.variants.splice(0,this.variants.length);
 			response.data.forEach(product => {
 				product.variants.forEach(variant => {
+					if (product.status != 'active') {
+						return;
+					}
 					if (variant.title == 'Default Title') {
 						variant.title = product.title;
 					} else {
