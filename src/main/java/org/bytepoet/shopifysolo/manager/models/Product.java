@@ -139,7 +139,7 @@ public class Product {
 
 	}
 	
-	public boolean checkAvailableMaterials() {
+	public boolean validateAvailableMaterials() {
 		if (CollectionUtils.isEmpty(partDistributions) && this.getQuantity() > 0) {
 			return false;
 		}

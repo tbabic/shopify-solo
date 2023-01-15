@@ -20,6 +20,9 @@ public class ShopifyProduct {
 	@JsonProperty
 	public String title;
 	
+	@JsonProperty("body_html")
+	public String bodyHtml;
+	
 	@JsonProperty
 	public List<ShopifyProductVariant> variants;
 	

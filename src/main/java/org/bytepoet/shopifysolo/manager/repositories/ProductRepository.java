@@ -4,11 +4,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.transaction.Transactional;
+
+import org.bytepoet.shopifysolo.manager.models.InventoryJobStatus;
 import org.bytepoet.shopifysolo.manager.models.Product;
 import org.bytepoet.shopifysolo.manager.models.ProductPart;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -70,5 +74,11 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
 			+ "WHERE lower(product.name) LIKE lower(:name)"
 			)
 	public List<Product> findByNameLikeIgnoreCase(@Param("name")String name, Sort sort);
+	
+	@Modifying
+	@Query("UPDATE Product p SET p.webshopInfo.quantity = :quantity WHERE p.id = :id")
+	@Transactional
+	void updateQuantity(@Param("quantity") int quantity, @Param("id") UUID id);
+
 	
 }

@@ -596,6 +596,41 @@ public class ShopifyApiClient {
 		}
 		
 	}
+	
+	public static class ShopifyUpdateProductBody {
+		@JsonProperty("body_html")
+		public String bodyHtml;
+}
+	
+	public static class ShopifyUpdateProductBodyWrapper {
+		@JsonProperty
+		public ShopifyUpdateProductBody product = new ShopifyUpdateProductBody();
+	}
+	
+
+	
+	public void updateProductBody(String productId, String bodyHtml) throws Exception {
+		String url = MessageFormat.format(SHOPIFY_PRODUCT, clientHost, productId);
+		
+		
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		ShopifyUpdateProductBodyWrapper requestObject = new ShopifyUpdateProductBodyWrapper();
+		requestObject.product.bodyHtml = bodyHtml;
+		String requestBody = mapper.writeValueAsString(requestObject);
+		
+		Request request = new Request.Builder()
+				.url(url)
+				.header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+				.put(RequestBody.create(MediaType.get("application/json"), requestBody))
+				.build();
+		Response response = client.newCall(request).execute();
+		String responseBody = response.body().string();
+		if (!response.isSuccessful()) {
+			throw new RuntimeException("Could not update variant: " + responseBody);
+		}
+		
+	}
 
 	public ShopifyPriceRule getDiscountPriceRule(String discountCode) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();

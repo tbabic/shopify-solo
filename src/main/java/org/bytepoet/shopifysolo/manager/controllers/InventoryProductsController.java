@@ -1,6 +1,7 @@
 package org.bytepoet.shopifysolo.manager.controllers;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -25,11 +26,14 @@ import org.bytepoet.shopifysolo.manager.repositories.ProductPartDistributionRepo
 import org.bytepoet.shopifysolo.manager.repositories.ProductPartRepository;
 import org.bytepoet.shopifysolo.manager.repositories.ProductRepository;
 import org.bytepoet.shopifysolo.services.InventoryService;
+import org.bytepoet.shopifysolo.services.TransactionalService;
 import org.bytepoet.shopifysolo.shopify.clients.ShopifyApiClient;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyInventoryAdjustment;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyLocation;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyProduct;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyProductVariant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.CollectionUtils;
@@ -40,11 +44,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @RequestMapping("manager/inventory")
 @RestController
 public class InventoryProductsController {
+	
+	private static final Logger logger = LoggerFactory.getLogger(InventoryProductsController.class);
 
 	@Autowired
 	private ProductRepository productRepository;
@@ -60,6 +67,9 @@ public class InventoryProductsController {
 	
 	@Autowired
 	private InventoryService inventoryService;
+	
+	@Autowired
+	private TransactionalService transactionalService;
 	
 	public static class Inventory {
 		@JsonProperty
@@ -129,7 +139,7 @@ public class InventoryProductsController {
 			products =  productRepository.findAndFetchByNameLikeIgnoreCase("%"+ nameFilter +"%", Sort.unsorted());
 		}
 		
-		fetchWebshopProducts(products);
+		//fetchWebshopProducts(products);
 		
 		return products;
 	}
@@ -215,7 +225,7 @@ public class InventoryProductsController {
 	@RequestMapping(path="/products", method = RequestMethod.POST)
 	@Transactional
 	public void saveProduct(@RequestBody Product product) throws Exception {
-		if (!product.checkAvailableMaterials()) {
+		if (!product.validateAvailableMaterials()) {
 			throw new RuntimeException("Not enough materials");
 		}
 		if (product.getWebshopInfo().getQuantity() == null) {
@@ -236,6 +246,8 @@ public class InventoryProductsController {
 		public UUID productId;
 		public int quantity;
 	}
+	
+	
 
 	@RequestMapping(path="/move-quantity", method = RequestMethod.POST)
 	public void moveQuantity( @RequestBody MoveQuantity moveQuantity) throws Exception {
@@ -311,9 +323,70 @@ public class InventoryProductsController {
 		return;
 	}
 	
+	public static class AutoAdjustmentProduct {
+		public UUID productId;
+		public int assignedQuantity;
+		public int availableAssignments;
+		@JsonIgnore
+		private Product product;
+	}
+	
+	@RequestMapping(path="/auto-assignment", method = RequestMethod.POST)
+	public void autoAssignment() throws Exception {
+		List<Product> products = productRepository.findAndFetchAll();
+		boolean assigned = true;
+		Map<UUID, AutoAdjustmentProduct> map = new HashMap<>();
+		while (assigned) {
+			assigned = false;
+			for (Product product : products) {
+				if (!"active".equals( product.getWebshopInfo().getStatus())) {
+					continue;
+				}
+				try {
+					AutoAdjustmentProduct adjustment = map.get(product.getId());
+					if (adjustment == null) {
+						adjustment = new AutoAdjustmentProduct();
+						adjustment.productId = product.getId();
+						adjustment.product = product;
+						map.put(adjustment.productId, adjustment);
+					}
+					if (adjustment.assignedQuantity >= 10) {
+						continue;
+					}
+					product.moveQuantity(1);
+					assigned = true;
+					
+					adjustment.assignedQuantity++;
+				} catch (Exception e) {
+					assigned = false;
+				}
+			}
+		}
+		
+		List<ShopifyProduct> shopifyProducts = shopifyApiClient.getProducts(null);
+		Map<String,ShopifyProductVariant> shopifyMap = shopifyProducts.stream().flatMap(p -> p.variants.stream()).collect(Collectors.toMap(v -> v.id, v -> v));
+		
+		
+		map.values().forEach(adjustment -> {
+			adjustment.availableAssignments = adjustment.product.getMaxFreeAssignments();
+		});
+		for (AutoAdjustmentProduct adjustment : map.values()) {
+			ShopifyProductVariant variant = shopifyMap.get(adjustment.product.getWebshopId());
+			
+			logger.info(MessageFormat.format("adjust {0}: {1} + {2} = {3}", 
+					adjustment.product.getName(), variant.quantity, adjustment.assignedQuantity, adjustment.product.getQuantity()));
+			
+			inventoryService.moveQuantity(variant.inventoryItemId, adjustment.assignedQuantity);
+			productRepository.updateQuantity(adjustment.product.getQuantity(), adjustment.product.getId() );
+			
+		}
+		
+		
+		logger.info("done");
+	}
 
 	
 	
-
+	
 	
 }

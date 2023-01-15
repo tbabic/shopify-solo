@@ -92,7 +92,7 @@ public class ProductPartDistribution {
 	}
 	
 	public boolean checkAvailable() {
-		return this.optional || this.productPart.checkAvialable();
+		return this.optional || this.productPart.checkAvailable();
 	}
 
 	public void setPartsUsed(int partsUsed) {

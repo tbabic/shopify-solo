@@ -39,7 +39,7 @@ public class ProductWebshopInfo {
 	}
 
 
-	protected String getStatus() {
+	public String getStatus() {
 		return status;
 	}
 

@@ -86,16 +86,27 @@ public class ProductPart {
 		if (assignedQuantityTransient != null) {
 			return assignedQuantityTransient;
 		}
+		
+		assignedQuantityTransient = getActualAssignedQuantity();
+		return assignedQuantityTransient;
+	}
+	
+	@JsonIgnore
+	public int getActualAssignedQuantity() {
 		if (distributions == null) {
 			return 0;
 		}
-		assignedQuantityTransient = distributions.stream().mapToInt(d -> d.getAssignedQuantity()).sum();
-		return assignedQuantityTransient;
+		return distributions.stream().mapToInt(d -> d.getAssignedQuantity()).sum();
 	}
 	
 	@JsonProperty
 	public int getSpareQuantity() {
 		return quantity - getAssignedQuantity();
+	}
+	
+	@JsonIgnore
+	public int getActualSpareQuantity() {
+		return quantity - getActualAssignedQuantity();
 	}
 	
 	@JsonProperty(access=Access.READ_ONLY)
@@ -109,15 +120,15 @@ public class ProductPart {
 	}
 	
 	public boolean availableToMove(int individualPartsQuantity) {
-		if (!this.optional && (this.getSpareQuantity() - individualPartsQuantity) < 0) {
+		if (!this.optional && (this.getActualSpareQuantity() - individualPartsQuantity) < 0) {
 			return false;
 		}
 		
 		return true;
 	}
 	
-	public boolean checkAvialable() {
-		if (!this.optional && this.getSpareQuantity() < 0) {
+	public boolean checkAvailable() {
+		if (!this.optional && this.getActualSpareQuantity() < 0) {
 			return false;
 		}
 		

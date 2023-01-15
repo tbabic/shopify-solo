@@ -53,7 +53,8 @@ var createOrderComponent = new Vue({
 					variant.compare_at_price = variant.price;
 					variant.regularPrice = variant.price;
 				}
-				variant.price = (100- +variant.discount) * +variant.regularPrice / 100;
+				variant.price = (100- +variant.discount) * + +variant.regularPrice / 100;
+				variant.price = variant.price.toFixed(2);
 			}
 			
 			variant.change = variant.loadedPrice != variant.price;
@@ -94,7 +95,8 @@ var createOrderComponent = new Vue({
 						Vue.set(variant, "regularPrice", variant.price)
 					} else {
 						Vue.set(variant, "regularPrice", variant.compare_at_price)
-						variant.discount = (100*+variant.regularPrice - 100*+variant.price) / +variant.regularPrice;
+						variant.discount = (100*+ +variant.regularPrice - 100*+ +variant.price) / +variant.regularPrice;
+						variant.discount = Math.round(variant.discount);
 					}
 					variant.loadedPrice = variant.price;
 					variant.selected = false;
