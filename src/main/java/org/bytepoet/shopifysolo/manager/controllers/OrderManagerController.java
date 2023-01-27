@@ -1,13 +1,17 @@
 package org.bytepoet.shopifysolo.manager.controllers;
 
 import java.io.ByteArrayInputStream;
+import java.text.DateFormat;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
+
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.JoinType;
@@ -67,6 +71,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -526,6 +533,25 @@ public class OrderManagerController {
 		
 		sendRefundEmail(paymentOrder.getEmail(), invoice.getNumber(), pdfInvoice);
 		
+	}
+	
+	@RequestMapping(path="/refunds/{id}/pdf", method=RequestMethod.GET)
+	public ResponseEntity refundOrderGet(@PathVariable("id") Long refundId) throws Exception {
+		Refund refund = refundRepository.getOne(refundId);
+		
+		
+		byte [] pdfInvoice = pdfRefundService.createInvoice(refund);
+		
+		//sendRefundEmail(paymentOrder.getEmail(), invoice.getNumber(), pdfInvoice);
+		FileContent response = new FileContent();
+		response.fileName = refund.getInvoice().getNumber() + ".pdf";
+		response.base64Data = Base64.encodeBase64String(pdfInvoice);
+		
+		
+		return ResponseEntity.ok()
+				.contentType(MediaType.APPLICATION_PDF)
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + response.fileName + "\"")
+				.body(pdfInvoice);
 	}
 	
 	

@@ -219,7 +219,7 @@ public class PdfRefundService {
 	
 	private IBlockElement invoiceSum(Refund refund) {
 		
-		Table table = new Table(UnitValue.createPercentArray(new float[] {70f, 20f, 10f}));
+		Table table = new Table(UnitValue.createPercentArray(new float[] {70f, 30f}));
 		
 		String sumAllItemsPrice = sumAllItemsPrice(refund);
 		table.addCell(new Cell().add(new Paragraph("Ukupno:").setFont(font()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))

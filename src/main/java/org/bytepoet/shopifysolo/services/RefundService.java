@@ -7,6 +7,7 @@ import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.stream.Collectors;
 
+import org.bytepoet.shopifysolo.manager.models.Currency;
 import org.bytepoet.shopifysolo.manager.models.Invoice;
 import org.bytepoet.shopifysolo.manager.models.Item;
 import org.bytepoet.shopifysolo.manager.models.PaymentType;
@@ -41,6 +42,8 @@ public class RefundService {
 	@Value("${webinvoice.item-id}")
 	private String defaultItemId;
 	
+	private Currency defaultCurrency = Currency.EUR;
+	
 	
 	@Autowired
 	private WebInvoiceClient webInvoiceClient;
@@ -58,7 +61,7 @@ public class RefundService {
 						.name(refund.getOrder().getEmail())
 						.email(refund.getOrder().getEmail())
 						.build())
-				.items(refund.getItems().stream().map(item -> mapItem(item)).collect(Collectors.toList()))
+				.items(refund.getItems().stream().map(item -> mapItem(item, refund.getOrder().getCurrency())).collect(Collectors.toList()))
 				.build();
 		
 		String token = webInvoiceClient.getToken();
@@ -107,18 +110,24 @@ public class RefundService {
 		return note;
 	}
 	
-	private WebInvoiceItem mapItem(Item item) {
+	private WebInvoiceItem mapItem(Item item,  Currency orderCurrency) {
 		DecimalFormat df = new DecimalFormat("#.00");
 		df.setRoundingMode(RoundingMode.HALF_UP);
 		DecimalFormatSymbols newSymbols = new DecimalFormatSymbols();
 		newSymbols.setDecimalSeparator('.');
 		df.setDecimalFormatSymbols(newSymbols);
-		
+		String price;
+		if (orderCurrency == defaultCurrency) {
+			price = df.format(-item.getPriceWithTaxRate());
+		} else {
+			double priceValue = orderCurrency.convertTo(defaultCurrency, item.getPriceWithTaxRate());
+			price = df.format(-priceValue);
+		}
 		
 		return new WebInvoiceItem.Builder()
 				.itemId(defaultItemId)
 				.name(item.getName())
-				.price(df.format(-item.getPriceWithTaxRate()))
+				.price(price)
 				.discount(item.getDiscount())
 				.quantity(Integer.toString(item.getQuantity()))
 				.vat(item.getTaxRate())
