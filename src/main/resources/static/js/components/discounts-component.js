@@ -2,26 +2,19 @@ var homeComponent = new Vue({
 	el:"#discounts",
 	data: {
 		categories : {
-			50 : {
+			20 : {
 				inputCode: "",
 				codes : []
 			},
-			150 : {
+			40 : {
 				inputCode: "",
 				codes : []
 			},
-			200 : {
+			60 : {
 				inputCode: "",
 				codes : []
-			},
-			250 :{
-				inputCode: "",
-				codes : []
-			},
-			400 : {
-				inputCode: "",
-				codes : []
-			},
+			}
+		
 		},
 		loadingCount : 0
 	},
