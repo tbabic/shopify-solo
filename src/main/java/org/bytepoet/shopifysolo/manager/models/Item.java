@@ -1,5 +1,6 @@
 package org.bytepoet.shopifysolo.manager.models;
 
+import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -158,6 +159,11 @@ public class Item {
 		if (StringUtils.isNotBlank(this.price)) {
 			price = Double.parseDouble(this.price) * taxRate * discount;
 		}
+		
+		BigDecimal bd = BigDecimal.valueOf(price);
+	    bd = bd.setScale(2, RoundingMode.HALF_UP);
+	    price = bd.doubleValue();
+		
 		return price*quantity;
 		
 		
