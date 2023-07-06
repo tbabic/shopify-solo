@@ -53,6 +53,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import net.bytebuddy.asm.Advice.This;
 import okhttp3.Credentials;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -71,9 +72,13 @@ public class ShopifyApiClient {
 	
 	private static final String TRANSACTION_ENDPOINT_FORMAT = "https://{0}/admin/api/2020-01/orders/{1}/transactions.json";
 	
+	private static final String FULFILLMENT_ENDPOINT_FORMAT = "https://{0}/admin/api/2023-07/fulfillments.json";
+	
+	private static final String FULFILLMENT_ORDERS_ENDPOINT_FORMAT = "https://{0}/admin/api/2020-01/orders/{1}/fulfillment_orders.json";
+	
 	private static final String ORDER_FULFILLMENT_ENDPOINT_FORMAT = "https://{0}/admin/api/2020-01/orders/{1}/fulfillments.json";
 	
-	private static final String UPDATE_ORDER_FULFILLMENT_ENDPOINT_FORMAT = "https://{0}/admin/api/2020-01/orders/{1}/fulfillments/{2}.json";
+	private static final String UPDATE_ORDER_FULFILLMENT_ENDPOINT_FORMAT = "https://{0}/admin/api/2023-07/fulfillments/{1}/update_tracking.json";
 	
 	private static final String PRICE_RULES_FORMAT = "https://{0}/admin/api/2020-10/price_rules.json";
 	
@@ -276,6 +281,38 @@ public class ShopifyApiClient {
 		}
 	}
 	
+	public static class FulfillmentOrderId {
+		@JsonProperty
+		public String id;
+	}
+	
+	private static class FulfillmentOrdersWrapper {
+		@JsonProperty("fulfillment_orders")
+		private List<FulfillmentOrderId> fulfillments;
+	}
+	
+	public List<FulfillmentOrderId> getFulfillmentOrders(String orderId)  throws Exception {
+		String url = MessageFormat.format(FULFILLMENT_ORDERS_ENDPOINT_FORMAT, clientHost, orderId);
+		Request request = new Request.Builder()
+			      .url(url)
+			      .header(HttpHeaders.AUTHORIZATION, Credentials.basic(clientUsername, clientPassword))
+			      .build();
+		Response response = client.newCall(request).execute();
+		String responseBodyString = response.body().string();
+		if (!response.isSuccessful()) {
+			logger.error("Url: " + url);
+			logger.error("Authorization: " + Credentials.basic(clientUsername, clientPassword));
+			logger.error("Client host: " + clientHost);
+			logger.error("Client username: " + clientUsername);
+			logger.error("Client password: " + clientPassword);
+			throw new RuntimeException("Could not fetch shopify transactions: " + responseBodyString);
+		}
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		FulfillmentOrdersWrapper wrapper = mapper.readValue(responseBodyString, FulfillmentOrdersWrapper.class);
+		return wrapper.fulfillments;
+	}
+	
 	private static class FulfillmentsWrapper {
 		@JsonProperty
 		private List<ShopifyFulfillment> fulfillments;
@@ -309,38 +346,57 @@ public class ShopifyApiClient {
 		private CreateFulfillment fulfillment;
 	}
 	
+	private static class FulfillmentOrder {
+		
+		@JsonProperty("fulfillment_order_id")
+		private String id;
+	}
+	
+	private static class FulfillmentTracking {
+		
+		@JsonProperty("number")
+		private String trackingNumber;
+		
+		@JsonProperty("url")
+		private String trackingUrl;
+		
+		@JsonProperty("company")
+		private String trackingCompany;
+	}
+	
 	private static class CreateFulfillment {
 		
 		@JsonProperty
 		@JsonInclude(JsonInclude.Include.NON_NULL)
 		private String id;
 		
-		@JsonProperty("location_id")
-		private String locationId;
-		
-		@JsonProperty("tracking_number")
-		private String trackingNumber;
-		
-		@JsonProperty("tracking_urls")
-		private List<String> trackingUrls;
-		
-		@JsonProperty("tracking_company")
-		private String trackingCompany;
-		
+		@JsonProperty("line_items_by_fulfillment_order")
+		private List<FulfillmentOrder> orders;
+
+		@JsonProperty("tracking_info")
+		private FulfillmentTracking tracking;
+
 		@JsonProperty("notify_customer")
 		private boolean notifyCustomer;
 	}
 	
 	public void fulfillOrder(String orderId, String trackingNumber, boolean notifyCustomer) throws Exception{
 		
-		String url = MessageFormat.format(ORDER_FULFILLMENT_ENDPOINT_FORMAT, clientHost, orderId);
+		List<FulfillmentOrderId> fulfillmentOrderIds = this.getFulfillmentOrders(orderId);
+		String url = MessageFormat.format(FULFILLMENT_ENDPOINT_FORMAT, clientHost);
 		
 		CreateFulfillment createFulfillment = new CreateFulfillment();
-		createFulfillment.locationId = this.locationId;
-		createFulfillment.trackingNumber = trackingNumber;
+		FulfillmentOrder fullfillmentOrder = new FulfillmentOrder();
+		fullfillmentOrder.id = fulfillmentOrderIds.get(0).id;
+		createFulfillment.orders = Arrays.asList(fullfillmentOrder);
+
+		FulfillmentTracking tracking = new FulfillmentTracking();
+		tracking.trackingNumber = trackingNumber;
+		tracking.trackingUrl = MessageFormat.format(trackingUrl, trackingNumber);
+		tracking.trackingCompany = this.trackingCompany;
+		
+		createFulfillment.tracking = tracking;
 		createFulfillment.notifyCustomer = notifyCustomer;
-		createFulfillment.trackingUrls = Arrays.asList(MessageFormat.format(trackingUrl, trackingNumber));
-		createFulfillment.trackingCompany = this.trackingCompany;
 		
 		CreateFulfillmentWrapper createFulfillmentWrapper = new CreateFulfillmentWrapper();
 		createFulfillmentWrapper.fulfillment = createFulfillment;
@@ -361,15 +417,21 @@ public class ShopifyApiClient {
 	
 	public void updateFulfillment(String orderId, String fullfillmentId, String trackingNumber, boolean notifyCustomer) throws Exception{
 		
-		String url = MessageFormat.format(UPDATE_ORDER_FULFILLMENT_ENDPOINT_FORMAT, clientHost, orderId, fullfillmentId);
+		List<FulfillmentOrderId> fulfillmentOrderIds = this.getFulfillmentOrders(orderId);
+		String url = MessageFormat.format(UPDATE_ORDER_FULFILLMENT_ENDPOINT_FORMAT, clientHost, fullfillmentId);
 		
 		CreateFulfillment createFulfillment = new CreateFulfillment();
-		createFulfillment.id = fullfillmentId;
-		createFulfillment.locationId = this.locationId;
-		createFulfillment.trackingNumber = trackingNumber;
+		FulfillmentOrder fullfillmentOrder = new FulfillmentOrder();
+		fullfillmentOrder.id = fulfillmentOrderIds.get(0).id;
+		createFulfillment.orders = Arrays.asList(fullfillmentOrder);
+
+		FulfillmentTracking tracking = new FulfillmentTracking();
+		tracking.trackingNumber = trackingNumber;
+		tracking.trackingUrl = MessageFormat.format(trackingUrl, trackingNumber);
+		tracking.trackingCompany = this.trackingCompany;
+		
+		createFulfillment.tracking = tracking;
 		createFulfillment.notifyCustomer = notifyCustomer;
-		createFulfillment.trackingUrls = Arrays.asList(MessageFormat.format(trackingUrl, trackingNumber));
-		createFulfillment.trackingCompany = this.trackingCompany;
 		
 		CreateFulfillmentWrapper createFulfillmentWrapper = new CreateFulfillmentWrapper();
 		createFulfillmentWrapper.fulfillment = createFulfillment;
