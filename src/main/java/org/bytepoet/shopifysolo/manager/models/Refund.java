@@ -73,6 +73,10 @@ public class Refund {
 		}
 		return items.stream().collect(Collectors.summingDouble(Item::getTotalPrice));
 	}
+	
+	public double getTotalPrice(Currency currency) {
+		return currency.convertFrom(order.getCurrency(), this.getTotalPrice());
+	}
 
 	
 	

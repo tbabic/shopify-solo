@@ -547,6 +547,36 @@ var orderTableComponent = new Vue({
 			})
 		},
 		
+		testInvoice: function(order) {
+			this.startLoader();
+			let url = '/manager/orders/' + order.id + '/test-invoice'
+			axios.post(url, null, {
+				params : {
+					r1 : this.r1,
+					oib : this.oib
+				}
+			}).then(response => {
+				var binaryString = window.atob(response.data.base64Data);
+			    var binaryLen = binaryString.length;
+			    var bytes = new Uint8Array(binaryLen);
+			    for (var i = 0; i < binaryLen; i++) {
+			       var ascii = binaryString.charCodeAt(i);
+			       bytes[i] = ascii;
+			    }
+				
+			    var blob = new Blob([bytes], {type: "application/pdf"});
+			    var link = document.createElement('a');
+			    link.href = window.URL.createObjectURL(blob);
+			    var fileName = response.data.fileName;
+			    link.download = fileName;
+			    link.click();
+			}).catch(error => {
+				this.showError(error.response.data.message);
+			}).finally(() => {
+				this.endLoader();
+			})
+		},
+		
 		fulfillOrder : function() {
 			this.startLoader();
 			let url = '/manager/orders/' + this.fulfillment.order.id + "/process-fulfillment"

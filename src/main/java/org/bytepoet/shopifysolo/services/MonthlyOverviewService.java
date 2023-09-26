@@ -20,6 +20,7 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.bytepoet.shopifysolo.manager.models.Currency;
 import org.bytepoet.shopifysolo.manager.models.Invoice;
 import org.bytepoet.shopifysolo.manager.models.Item;
 import org.bytepoet.shopifysolo.manager.models.OrderArchive;
@@ -36,6 +37,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class MonthlyOverviewService {
+	
+	private static Currency CURRENCY = Currency.EUR;
 
 	@Value("${soloapi.shipping-title}")
 	private String shippingTitle;
@@ -62,11 +65,11 @@ public class MonthlyOverviewService {
 			DateFormat df = new SimpleDateFormat("dd.MM.yyyy");
 			this.invoiceDate = df.format(order.getPaymentDate());
 			this.paymentDate = df.format(order.getPaymentDate());
-			this.amount = getDecimalFormat().format(order.getTotalPrice());
+			this.amount = getDecimalFormat().format(order.getTotalPrice(CURRENCY));
 			Optional<Item> shippingItem = order.getItems().stream().filter(i -> i.getName().equalsIgnoreCase(shippingTitle)).findFirst();
 			this.shipping = "0,00";
 			if (shippingItem.isPresent()) {
-				this.shipping = getDecimalFormat().format(shippingItem.get().getTotalPrice());
+				this.shipping = getDecimalFormat().format(CURRENCY.convertFrom(order.getCurrency(), shippingItem.get().getTotalPrice()));
 			}
 			this.paymentType = mapPaymentType(order.getPaymentType());
 			
@@ -78,11 +81,11 @@ public class MonthlyOverviewService {
 			DateFormat df = new SimpleDateFormat("dd.MM.yyyy");
 			this.invoiceDate = df.format(refund.getInvoice().getDate());
 			this.paymentDate = df.format(refund.getInvoice().getDate());
-			this.amount = getDecimalFormat().format(-refund.getTotalPrice());
+			this.amount = getDecimalFormat().format(-refund.getTotalPrice(CURRENCY));
 			Optional<Item> shippingItem = refund.getItems().stream().filter(i -> i.getName().equalsIgnoreCase(shippingTitle)).findFirst();
 			this.shipping = "-0,00";
 			if (shippingItem.isPresent()) {
-				this.shipping = getDecimalFormat().format(-shippingItem.get().getTotalPrice());
+				this.shipping = getDecimalFormat().format(CURRENCY.convertFrom(refund.getOrder().getCurrency(), -shippingItem.get().getTotalPrice()));
 			}
 			this.paymentType = mapPaymentType(refund.getOrder().getPaymentType());
 		}
@@ -183,14 +186,14 @@ public class MonthlyOverviewService {
 				})
 				.collect(Collectors.toList());
 		
-		double totalIncome = paymentOrders.stream().collect(Collectors.summingDouble(po -> po.getTotalPrice()))
-				- refunds.stream().collect(Collectors.summingDouble(r -> r.getTotalPrice()));
+		double totalIncome = paymentOrders.stream().collect(Collectors.summingDouble(po -> po.getTotalPrice(CURRENCY)))
+				- refunds.stream().collect(Collectors.summingDouble(r -> r.getTotalPrice(CURRENCY)));
 		
-		double creditCardIncome = paymentOrders.stream().filter(po -> po.getPaymentType() == PaymentType.CREDIT_CARD ).collect(Collectors.summingDouble(po -> po.getTotalPrice()))
-				- refunds.stream().filter(r -> r.getOrder().getPaymentType() == PaymentType.CREDIT_CARD ).collect(Collectors.summingDouble(r -> r.getTotalPrice()));
+		double creditCardIncome = paymentOrders.stream().filter(po -> po.getPaymentType() == PaymentType.CREDIT_CARD ).collect(Collectors.summingDouble(po -> po.getTotalPrice(CURRENCY)))
+				- refunds.stream().filter(r -> r.getOrder().getPaymentType() == PaymentType.CREDIT_CARD ).collect(Collectors.summingDouble(r -> r.getTotalPrice(CURRENCY)));
 		
-		double bankIncome = paymentOrders.stream().filter(po -> po.getPaymentType() == PaymentType.BANK_TRANSACTION ).collect(Collectors.summingDouble(po -> po.getTotalPrice()))
-				- refunds.stream().filter(r -> r.getOrder().getPaymentType() == PaymentType.BANK_TRANSACTION ).collect(Collectors.summingDouble(r -> r.getTotalPrice()));
+		double bankIncome = paymentOrders.stream().filter(po -> po.getPaymentType() == PaymentType.BANK_TRANSACTION ).collect(Collectors.summingDouble(po -> po.getTotalPrice(CURRENCY)))
+				- refunds.stream().filter(r -> r.getOrder().getPaymentType() == PaymentType.BANK_TRANSACTION ).collect(Collectors.summingDouble(r -> r.getTotalPrice(CURRENCY)));
 		
 		
 		

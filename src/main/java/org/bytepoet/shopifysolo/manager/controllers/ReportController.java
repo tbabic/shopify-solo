@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.bytepoet.shopifysolo.manager.models.Currency;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.models.Refund;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
@@ -56,10 +57,10 @@ public class ReportController {
 		
 		Report report = new Report();
 		report.orderCount = order.size();
-		report.orderSum = order.stream().collect(Collectors.summingDouble(p -> p.getTotalPrice())).doubleValue();
+		report.orderSum = order.stream().collect(Collectors.summingDouble(p -> p.getTotalPrice(Currency.EUR))).doubleValue();
 		
 		report.refundCount = refunds.size();
-		report.refundSum = refunds.stream().collect(Collectors.summingDouble(r -> r.getTotalPrice())).doubleValue();
+		report.refundSum = refunds.stream().collect(Collectors.summingDouble(r -> r.getTotalPrice(Currency.EUR))).doubleValue();
 		
 		report.totalSum = report.orderSum - report.refundSum;
 		return report;

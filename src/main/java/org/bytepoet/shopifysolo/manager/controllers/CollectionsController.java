@@ -152,7 +152,12 @@ public class CollectionsController {
 			int quantity1 = quantity(p1);
 			int quantity2 = quantity(p2);
 			
-			if (body.sorting == Sorting.PRICE || body.sorting == Sorting.AVAILABLE_AND_PRICE) {
+			if (body.sorting == Sorting.AVAILABLE_AND_PRICE)
+			{
+				compare = Integer.compare(quantity2, quantity1);
+			}
+			
+			if (body.sorting == Sorting.PRICE || (compare == 0 && body.sorting == Sorting.AVAILABLE_AND_PRICE)) {
 				double price1 = minPrice(p1);
 				double price2 = minPrice(p2);
 				compare = Double.compare(price1, price2);
