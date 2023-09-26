@@ -68,7 +68,7 @@ public class PaymentOrder extends Order {
 		super();
 	};
 	
-	public PaymentOrder(ShopifyOrder shopifyOrder, PaymentType paymentType, String taxRate, String shippingTitle) {
+	public PaymentOrder(ShopifyOrder shopifyOrder, PaymentType paymentType, String taxRate) {
 		if (shopifyOrder == null) {
 			throw new RuntimeException("Shopify order can not be null");
 		}
@@ -83,8 +83,8 @@ public class PaymentOrder extends Order {
 		this.contact = shopifyOrder.getEmail();
 		this.items = shopifyOrder.getLineItems().stream().map(lineItem -> new Item(lineItem, taxRate)).collect(Collectors.toList());
 		
-		if (!shopifyOrder.getShippingPrice().equals("0.00")) {
-			items.add(new Item(shippingTitle, shopifyOrder.getShippingPrice(), 1, "0", taxRate));
+		if (StringUtils.isNotBlank(shopifyOrder.getShippingTitle()) && ! (shopifyOrder.getShippingPrice().equals("0.00") || !shopifyOrder.getShippingPrice().equals("0"))) {
+			items.add(new Item(shopifyOrder.getShippingTitle(), shopifyOrder.getShippingPrice(), 1, "0", taxRate));
 		}
 		this.note = shopifyOrder.getNote();
 		if(this.getTotalPrice() >= 500.0) {
@@ -92,7 +92,7 @@ public class PaymentOrder extends Order {
 		}
 	}
 	
-	public PaymentOrder(ShopifyOrder shopifyOrder, GatewayToPaymentTypeMapper paymentTypeMapper, String taxRate, String shippingTitle, String giftCodeType) {
+	public PaymentOrder(ShopifyOrder shopifyOrder, GatewayToPaymentTypeMapper paymentTypeMapper, String taxRate, String giftCodeType) {
 		if (shopifyOrder == null) {
 			throw new RuntimeException("Shopify order can not be null");
 		}
@@ -107,8 +107,8 @@ public class PaymentOrder extends Order {
 		this.contact = shopifyOrder.getEmail();
 		this.items = shopifyOrder.getLineItems().stream().map(lineItem -> new Item(lineItem, taxRate)).collect(Collectors.toList());
 		
-		if (!shopifyOrder.getShippingPrice().equals("0.00")) {
-			items.add(new Item(shippingTitle, shopifyOrder.getShippingPrice(), 1, "0", taxRate));
+		if (StringUtils.isNotBlank(shopifyOrder.getShippingTitle()) && ! (shopifyOrder.getShippingPrice().equals("0.00") || !shopifyOrder.getShippingPrice().equals("0"))) {
+			items.add(new Item(shopifyOrder.getShippingTitle(), shopifyOrder.getShippingPrice(), 1, "0", taxRate));
 		}
 		this.note = shopifyOrder.getNote();
 		if(this.getTotalPrice() >= 500.0) {
@@ -262,6 +262,10 @@ public class PaymentOrder extends Order {
 			return 0;
 		}
 		return items.stream().collect(Collectors.summingDouble(Item::getTotalPrice));
+	}
+	
+	public double getTotalPrice(Currency currency) {
+		return currency.convertFrom(this.currency, this.getTotalPrice());
 	}
 
 	@Override

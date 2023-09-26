@@ -89,7 +89,7 @@ public class TenderController {
 		synchronized(this.getClass()) {
 			
 			Order o = orderRepository.getOrderWithShopifyId(shopifyOrder.getId()).orElseGet(() -> {
-				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, paymentTypeMapper, taxRate, shippingTitle, giftCodeType));
+				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, paymentTypeMapper, taxRate, giftCodeType));
 			});
 			if (o instanceof PaymentOrder) {
 				order = (PaymentOrder) o;

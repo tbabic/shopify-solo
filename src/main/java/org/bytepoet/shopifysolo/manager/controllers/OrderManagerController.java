@@ -310,7 +310,7 @@ public class OrderManagerController {
 			String draftId = shopifyApiClient.createDraftOrder(shopifyCreateOrder);
 			String shopifyOrderId = shopifyApiClient.completeDraftOrder(draftId);
 			ShopifyOrder shopifyOrder = shopifyApiClient.getOrder(shopifyOrderId);
-			return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, PaymentType.BANK_TRANSACTION, taxRate, shippingTitle));
+			return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, PaymentType.BANK_TRANSACTION, taxRate));
 		}
 		
 		
@@ -476,6 +476,26 @@ public class OrderManagerController {
 		PaymentOrder paymentOrder = orderRepository.getPaymentOrderById(orderId).get();
 		byte [] pdfInvoice = pdfInvoiceService.createInvoice(paymentOrder, r1, oib);
 		
+		FileContent response = new FileContent();
+		response.fileName = paymentOrder.getInvoiceNumber() + ".pdf";
+		response.base64Data = Base64.encodeBase64String(pdfInvoice);
+		return response;
+		
+	}
+	
+	@RequestMapping(path="/{id}/test-invoice", method=RequestMethod.POST)
+	public FileContent testInvoice(@PathVariable("id") Long orderId, 
+			@RequestParam(name="paymentDate", required=false) Date paymentDate,
+			@RequestParam(name="r1", required=false) boolean r1,
+			@RequestParam(name="oib", required=false) String oib) throws Exception {
+		
+		PaymentOrder paymentOrder = orderRepository.getPaymentOrderById(orderId).get();
+		String in = paymentOrder.getInvoiceNumber();
+		paymentOrder.setInvoiceNumber("1-test-1");
+		paymentOrder.setPaymentDate(new Date());
+		byte [] pdfInvoice = pdfInvoiceService.createInvoice(paymentOrder, r1, oib);
+		paymentOrder.setInvoiceNumber(in);
+		paymentOrder.setPaymentDate(null);
 		FileContent response = new FileContent();
 		response.fileName = paymentOrder.getInvoiceNumber() + ".pdf";
 		response.base64Data = Base64.encodeBase64String(pdfInvoice);

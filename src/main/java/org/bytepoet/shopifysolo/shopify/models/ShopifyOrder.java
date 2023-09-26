@@ -58,6 +58,9 @@ public class ShopifyOrder {
 	
 	@JsonProperty("shipping_address")
 	private ShopifyShippingAddress shippingAddress;
+	
+	@JsonProperty("shipping_lines")
+	private List<ShopifyShippingLine> shippingLines;
 
 	@JsonProperty("created_at")
 	@JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ssX")
@@ -94,9 +97,19 @@ public class ShopifyOrder {
 	public String getTotalPrice() {
 		return totalPrice;
 	}
+	
+	public String getShippingTitle() {
+		if (shippingLines == null || shippingLines.isEmpty()) {
+			return null;
+		}
+		return shippingLines.get(0).getTitle();
+	}
 
 	public String getShippingPrice() {
-		return shipping.getPrice();
+		if (shippingLines == null || shippingLines.isEmpty()) {
+			return "0.00";
+		}
+		return shippingLines.get(0).getPrice();
 	}
 	
 	public Date getCreated() {
