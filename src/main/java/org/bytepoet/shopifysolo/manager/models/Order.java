@@ -132,7 +132,9 @@ public abstract class Order {
 	@Enumerated(EnumType.STRING)
 	private InventoryJobStatus inventoryJob = InventoryJobStatus.PENDING;
 	
-	
+	@JsonProperty
+	@Enumerated(EnumType.STRING)
+	protected ShippingType shippingType = ShippingType.HP_REGISTERED_MAIL;
 
 	public InventoryJobStatus getInventoryJob() {
 		return inventoryJob;
@@ -411,6 +413,15 @@ public abstract class Order {
 		shippingSearchStatus = status;
 		shippingSearchStatusDate = date;
 	}
+
+	public ShippingType getShippingType() {
+		return shippingType;
+	}
+
+	public void setShippingType(ShippingType shippingType) {
+		this.shippingType = shippingType;
+	}
+	
 	
 	
 	

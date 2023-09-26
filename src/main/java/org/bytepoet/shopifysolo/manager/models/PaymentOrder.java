@@ -83,8 +83,11 @@ public class PaymentOrder extends Order {
 		this.contact = shopifyOrder.getEmail();
 		this.items = shopifyOrder.getLineItems().stream().map(lineItem -> new Item(lineItem, taxRate)).collect(Collectors.toList());
 		
-		if (StringUtils.isNotBlank(shopifyOrder.getShippingTitle()) && ! (shopifyOrder.getShippingPrice().equals("0.00") || !shopifyOrder.getShippingPrice().equals("0"))) {
-			items.add(new Item(shopifyOrder.getShippingTitle(), shopifyOrder.getShippingPrice(), 1, "0", taxRate));
+		if (StringUtils.isNotBlank(shopifyOrder.getShippingTitle())) {
+			if(! (shopifyOrder.getShippingPrice().equals("0.00") || !shopifyOrder.getShippingPrice().equals("0"))) {
+				items.add(new Item(shopifyOrder.getShippingTitle(), shopifyOrder.getShippingPrice(), 1, "0", taxRate));
+			}
+			this.shippingType = ShippingType.valueOf(shopifyOrder.getShippingTitle());
 		}
 		this.note = shopifyOrder.getNote();
 		if(this.getTotalPrice() >= 500.0) {
@@ -107,9 +110,14 @@ public class PaymentOrder extends Order {
 		this.contact = shopifyOrder.getEmail();
 		this.items = shopifyOrder.getLineItems().stream().map(lineItem -> new Item(lineItem, taxRate)).collect(Collectors.toList());
 		
-		if (StringUtils.isNotBlank(shopifyOrder.getShippingTitle()) && ! (shopifyOrder.getShippingPrice().equals("0.00") || !shopifyOrder.getShippingPrice().equals("0"))) {
-			items.add(new Item(shopifyOrder.getShippingTitle(), shopifyOrder.getShippingPrice(), 1, "0", taxRate));
+		if (StringUtils.isNotBlank(shopifyOrder.getShippingTitle())) {
+			if(! (shopifyOrder.getShippingPrice().equals("0.00") || !shopifyOrder.getShippingPrice().equals("0"))) {
+				items.add(new Item(shopifyOrder.getShippingTitle(), shopifyOrder.getShippingPrice(), 1, "0", taxRate));
+			}
+			this.shippingType = ShippingType.valueOf(shopifyOrder.getShippingTitle());
 		}
+		
+
 		this.note = shopifyOrder.getNote();
 		if(this.getTotalPrice() >= 500.0) {
 			this.note += "\nPoslati bon od 50 kn";

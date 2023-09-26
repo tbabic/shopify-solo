@@ -40,6 +40,7 @@ public class GiveawayOrder extends Order {
 		this.items = shopifyOrder.getLineItems().stream().map(lineItem -> new Item(lineItem, "0")).collect(Collectors.toList());
 		this.note = shopifyOrder.getNote();
 		this.giveawayPlatform = platform;
+		this.shippingType = ShippingType.HP_REGISTERED_MAIL;
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(this.creationDate);
 		calendar.add(Calendar.DATE, WAITING_LIST_PERIOD);
