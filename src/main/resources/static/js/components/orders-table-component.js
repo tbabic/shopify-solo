@@ -768,6 +768,10 @@ var orderTableComponent = new Vue({
 			return link;
 		},
 		
+		isShippingItem : function(item) {
+			return item.name.includes("HP") || item.name.includes("GLS");
+		},
+		
 		startLoader : function() {
 			this.loadingCount++;
 			if (this.loadingCount > 0) {

@@ -96,6 +96,18 @@
 										</div>
 										
 										<div class="col">
+											<span class="label label-default">Dostava:</span>
+											<div class="btn-group" role="group">
+												<button type="button" data-value="HP_REGISTERED_MAIL" v-on:click="filtering('shippingType', $event)" v-bind:class="'btn btn-filter ' + (filters.shippingType == 'HP_REGISTERED_MAIL' ? 'active' : '')">
+													HP
+												</button>
+												<button type="button" data-value="GLS_DELIVERY" v-on:click="filtering('shippingType', $event)" v-bind:class="'btn btn-filter ' + (filters.shippingType == 'GLS_DELIVERY' ? 'active' : '')">
+													GLS
+												</button>
+											</div>
+										</div>
+										
+										<div class="col">
 											<span class="label label-default">Tip:</span>
 											<div class="btn-group" role="group">
 												<button type="button" data-value="PAYMENT" v-on:click="filtering('type', $event)" v-bind:class="'btn btn-filter ' + (filters.type == 'PAYMENT' ? 'active' : '')">
@@ -219,7 +231,7 @@
 								<td class="shopify-number">{{ order.shopifyOrderNumber }}</td>
 								<td>
 									<span v-for="item in order.items">
-										<span v-if="item.name !== 'Preporučena poštarina'">
+										<span v-if="!isShippingItem(item)">
 											<a v-bind:href="linkifyItem(item.name)" target="_blank" >{{ item.name }}</a>
 											<span v-if="item.quantity > 1">(x{{ item.quantity }})</span>, 
 										</span>

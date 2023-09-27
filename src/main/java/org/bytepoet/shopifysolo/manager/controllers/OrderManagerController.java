@@ -36,6 +36,7 @@ import org.bytepoet.shopifysolo.manager.models.Refund;
 import org.bytepoet.shopifysolo.manager.models.RefundInvoice;
 import org.bytepoet.shopifysolo.manager.models.SearchProcedureStatus;
 import org.bytepoet.shopifysolo.manager.models.ShippingSearchStatus;
+import org.bytepoet.shopifysolo.manager.models.ShippingType;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.manager.repositories.RefundRepository;
 import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
@@ -168,6 +169,7 @@ public class OrderManagerController {
 			@RequestParam(name="shippingSearchStatus", required=false) List<ShippingSearchStatus> shippingSearchStatus,
 			@RequestParam(name="hasNote", required=false) Boolean hasNote,
 			@RequestParam(name="search", required=false) String search,
+			@RequestParam(name="shippingType", required=false) ShippingType shippingType,
 			@RequestParam(name="page", required=false, defaultValue = "0") int page,
 			@RequestParam(name="size", required=false, defaultValue = "20") int size,
 			@RequestParam(name="sortBy", required=false, defaultValue ="id") String sortBy, 
@@ -211,6 +213,10 @@ public class OrderManagerController {
 				}
 				if(shippingSearchStatus != null && !shippingSearchStatus.isEmpty()) {
 					predicates.add(actualRoot.get("shippingSearchStatus").in(shippingSearchStatus));
+				}
+				
+				if (shippingType != null) {
+					predicates.add(criteriaBuilder.equal(actualRoot.get("shippingType"), shippingType));
 				}
 				if(hasNote != null) {
 					if (hasNote.booleanValue()) {
