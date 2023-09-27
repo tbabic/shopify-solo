@@ -114,7 +114,7 @@ public class PaymentOrder extends Order {
 			if(! (shopifyOrder.getShippingPrice().equals("0.00") || !shopifyOrder.getShippingPrice().equals("0"))) {
 				items.add(new Item(shopifyOrder.getShippingTitle(), shopifyOrder.getShippingPrice(), 1, "0", taxRate));
 			}
-			this.shippingType = ShippingType.valueOf(shopifyOrder.getShippingTitle());
+			this.shippingType = ShippingType.valueOfShippingTittle(shopifyOrder.getShippingTitle());
 		}
 		
 
