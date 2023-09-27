@@ -7,10 +7,14 @@ public enum ShippingType {
 		HP_REGISTERED_MAIL,
 		GLS_DELIVERY;
 		
-		public static ShippingType valueOf (ShopifyShippingLine shopifyShippingLine) {
-			if (shopifyShippingLine.getTitle().toUpperCase().contains("HP")) {
+		public static ShippingType valueOfShippingTittle (String shopifyShippingTitle) {
+			if (shopifyShippingTitle.toUpperCase().contains("HP")) {
 				return HP_REGISTERED_MAIL;
 			}
-			return GLS_DELIVERY;
+			if (shopifyShippingTitle.toUpperCase().contains("GLS")) {
+				return GLS_DELIVERY;
+			}
+			return HP_REGISTERED_MAIL;
+			
 		}
 }
