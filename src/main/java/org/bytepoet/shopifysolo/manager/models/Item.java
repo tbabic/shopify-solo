@@ -47,6 +47,9 @@ public class Item {
 	@JsonProperty
 	private String shopifyId;
 	
+	@JsonProperty
+	private boolean isShipping;
+	
 	@ManyToOne
     @JoinColumn(name = "refundId")
 	@JsonIgnore
@@ -252,6 +255,16 @@ public class Item {
 		double discountMultiplier = Double.parseDouble(this.discount) / 100;;
 		return this.getPriceWithTaxRate() * quantity * discountMultiplier;
 	}
+
+	public boolean isShipping() {
+		return isShipping;
+	}
+
+	public void setShipping(boolean isShipping) {
+		this.isShipping = isShipping;
+	}
+	
+	
 	
 	
 	

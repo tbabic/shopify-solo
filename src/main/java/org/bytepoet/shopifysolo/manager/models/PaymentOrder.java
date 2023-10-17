@@ -84,8 +84,11 @@ public class PaymentOrder extends Order {
 		this.items = shopifyOrder.getLineItems().stream().map(lineItem -> new Item(lineItem, taxRate)).collect(Collectors.toList());
 		
 		if (StringUtils.isNotBlank(shopifyOrder.getShippingTitle())) {
-			if(! shopifyOrder.getShippingPrice().equals("0.00") || !shopifyOrder.getShippingPrice().equals("0")) {
-				items.add(new Item(shopifyOrder.getShippingTitle(), shopifyOrder.getShippingPrice(), 1, "0", taxRate));
+			Item item = new Item(shopifyOrder.getShippingTitle(), shopifyOrder.getShippingPrice(), 1, "0", taxRate);
+			item.setShipping(true);
+			if(item.getTotalPrice() != 0.0) {
+				
+				items.add(item);
 			}
 			this.shippingType = ShippingType.valueOfShippingTittle(shopifyOrder.getShippingTitle());
 		}
@@ -111,8 +114,11 @@ public class PaymentOrder extends Order {
 		this.items = shopifyOrder.getLineItems().stream().map(lineItem -> new Item(lineItem, taxRate)).collect(Collectors.toList());
 		
 		if (StringUtils.isNotBlank(shopifyOrder.getShippingTitle())) {
-			if(! shopifyOrder.getShippingPrice().equals("0.00") || !shopifyOrder.getShippingPrice().equals("0")) {
-				items.add(new Item(shopifyOrder.getShippingTitle(), shopifyOrder.getShippingPrice(), 1, "0", taxRate));
+			Item item = new Item(shopifyOrder.getShippingTitle(), shopifyOrder.getShippingPrice(), 1, "0", taxRate);
+			item.setShipping(true);
+			if(item.getTotalPrice() != 0.0) {
+				
+				items.add(item);
 			}
 			this.shippingType = ShippingType.valueOfShippingTittle(shopifyOrder.getShippingTitle());
 		}

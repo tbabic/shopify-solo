@@ -1,11 +1,10 @@
 package org.bytepoet.shopifysolo.manager.models;
 
-import org.bytepoet.shopifysolo.shopify.models.ShopifyShippingLine;
-
 public enum ShippingType {
 
 		HP_REGISTERED_MAIL,
-		GLS_DELIVERY;
+		GLS_DELIVERY,
+		PERSONAL_TAKEOVER;
 		
 		public static ShippingType valueOfShippingTittle (String shopifyShippingTitle) {
 			if (shopifyShippingTitle.toUpperCase().contains("HP")) {
