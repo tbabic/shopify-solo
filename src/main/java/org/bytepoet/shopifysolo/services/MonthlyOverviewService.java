@@ -63,7 +63,7 @@ public class MonthlyOverviewService {
 			this.invoiceDate = df.format(order.getPaymentDate());
 			this.paymentDate = df.format(order.getPaymentDate());
 			this.amount = getDecimalFormat().format(order.getTotalPrice());
-			Optional<Item> shippingItem = order.getItems().stream().filter(i -> i.getName().equalsIgnoreCase(shippingTitle)).findFirst();
+			Optional<Item> shippingItem = order.getItems().stream().filter(i -> i.getName().equalsIgnoreCase(shippingTitle) || i.getName().contains("GLS") || i.getName().contains("HP") || i.getName().contains("Dostava")).findFirst();
 			this.shipping = "0,00";
 			if (shippingItem.isPresent()) {
 				this.shipping = getDecimalFormat().format(shippingItem.get().getTotalPrice());
