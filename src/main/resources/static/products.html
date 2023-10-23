@@ -117,11 +117,12 @@
 					
 					
 					<div class ="col-2 text-right">
-						€{{ variant.price }} ({{ Math.round(+variant.price * 7.53450) }} kn)
+						€ {{ variant.price }} ({{ parseFloat((+variant.price * 7.53450)).toFixed(2) }} kn)
 					</div>
-					<div class ="col-2 text-right">
-						€{{ variant.regularPrice }} ({{ Math.round(+variant.regularPrice * 7.53450) }} kn)
+					<div class ="col-2">
+						€ <input class="" style="width:33%" v-model="variant.regularPrice" v-on:change="changePrice(variant)"></input> ({{ parseFloat((+variant.regularPrice * 7.53450)).toFixed(2) }} kn)
 					</div>
+				
 					
 					<div class ="col-2">
 						<button v-on:click="updateVariant(variant)" v-bind:disabled="!variant.change" class="btn btn-primary">SPREMI</button>
