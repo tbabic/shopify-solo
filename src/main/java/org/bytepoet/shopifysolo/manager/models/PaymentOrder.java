@@ -86,10 +86,7 @@ public class PaymentOrder extends Order {
 		if (StringUtils.isNotBlank(shopifyOrder.getShippingTitle())) {
 			Item item = new Item(shopifyOrder.getShippingTitle(), shopifyOrder.getShippingPrice(), 1, "0", taxRate);
 			item.setShipping(true);
-			if(item.getTotalPrice() != 0.0) {
-				
-				items.add(item);
-			}
+			items.add(item);
 			this.shippingType = ShippingType.valueOfShippingTittle(shopifyOrder.getShippingTitle());
 		}
 		this.note = shopifyOrder.getNote();
@@ -116,11 +113,9 @@ public class PaymentOrder extends Order {
 		if (StringUtils.isNotBlank(shopifyOrder.getShippingTitle())) {
 			Item item = new Item(shopifyOrder.getShippingTitle(), shopifyOrder.getShippingPrice(), 1, "0", taxRate);
 			item.setShipping(true);
-			if(item.getTotalPrice() != 0.0) {
-				
-				items.add(item);
-			}
+			items.add(item);
 			this.shippingType = ShippingType.valueOfShippingTittle(shopifyOrder.getShippingTitle());
+			
 		}
 		
 
@@ -150,10 +145,19 @@ public class PaymentOrder extends Order {
 			return;
 		}
 		
+
+		
+		
+		
 		boolean isGiftCode = this.items.stream().allMatch(item -> 
 			item.getName().toLowerCase().contains("poklon") 
-			|| item.getName().toLowerCase().contains("poštarina"));
-		if (isGiftCode) {
+			|| item.isShipping());
+		
+		boolean isPriorityShipping = this.items.stream().anyMatch(item ->
+			item.isShipping() && (item.getName().toLowerCase().contains("ubrzan") || item.getName().toLowerCase().contains("fast")));
+		
+		
+		if (isGiftCode || isPriorityShipping) {
 			this.sendingDate = invoice.getDate();
 		}
 		
