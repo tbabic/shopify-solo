@@ -52,10 +52,10 @@ public class OrderFulfillmentService {
 		sendNotification = sendNotification & !order.isPersonalTakeover();
 		logger.info(MessageFormat.format("notification id: {0}, shopify: {1}, {2}", order.getShopifyOrderNumber(), order.getShopifyOrderId(), sendNotification));
 		if (CollectionUtils.isEmpty(fulfillments)) {
-			shopifyApiClient.fulfillOrder(order.getShopifyOrderId(), order.getTrackingNumber(), sendNotification);
+			shopifyApiClient.fulfillOrder(order.getShopifyOrderId(), order.getTrackingNumber(), order.getShippingType(), sendNotification);
 			return true;
 		} else {
-			shopifyApiClient.updateFulfillment(order.getShopifyOrderId(), fulfillments.get(0).id, order.getTrackingNumber(), sendNotification);
+			shopifyApiClient.updateFulfillment(order.getShopifyOrderId(), fulfillments.get(0).id, order.getTrackingNumber(), order.getShippingType(), sendNotification);
 		}
 		return false;
 	}

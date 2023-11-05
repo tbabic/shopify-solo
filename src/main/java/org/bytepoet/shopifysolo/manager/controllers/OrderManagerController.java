@@ -127,6 +127,9 @@ public class OrderManagerController {
 	@Value("${email.body}")
 	private String body;
 	
+	@Value("${email.priority-body}")
+	private String priorityBody;
+	
 	@Value("${email.refund-body}")
 	private String refundBody;
 	
@@ -413,7 +416,7 @@ public class OrderManagerController {
 		
 		byte [] pdfInvoice = pdfInvoiceService.createInvoice(paymentOrder, r1, oib);
 		
-		sendEmail(paymentOrder.getEmail(), invoice.getNumber(), pdfInvoice);
+		sendEmail(paymentOrder.getEmail(), invoice.getNumber(), pdfInvoice, paymentOrder.isPriorityShipping());
 		paymentOrder.setReceiptSent(true);
 		orderRepository.save(paymentOrder);
 		
@@ -442,7 +445,7 @@ public class OrderManagerController {
 		PaymentOrder paymentOrder = orderRepository.getPaymentOrderById(orderId).get();
 		byte [] pdfInvoice = pdfInvoiceService.createInvoice(paymentOrder, r1, oib);
 		
-		sendEmail(paymentOrder.getEmail(), paymentOrder.getInvoiceNumber(), pdfInvoice);
+		sendEmail(paymentOrder.getEmail(), paymentOrder.getInvoiceNumber(), pdfInvoice, paymentOrder.isPriorityShipping());
 		paymentOrder.setReceiptSent(true);
 		orderRepository.save(paymentOrder);
 		
@@ -514,15 +517,15 @@ public class OrderManagerController {
 		sendNotification = sendNotification & !order.isPersonalTakeover();
 		logger.info(MessageFormat.format("notification id: {0}, shopify: {1}, {2}", order.getShopifyOrderNumber(), order.getShopifyOrderId(), sendNotification));
 		if (CollectionUtils.isEmpty(fulfillments)) {
-			shopifyApiClient.fulfillOrder(order.getShopifyOrderId(), order.getTrackingNumber(), sendNotification);
+			shopifyApiClient.fulfillOrder(order.getShopifyOrderId(), order.getTrackingNumber(), order.getShippingType(), sendNotification);
 			return true;
 		} else {
-			shopifyApiClient.updateFulfillment(order.getShopifyOrderId(), fulfillments.get(0).id, order.getTrackingNumber(), sendNotification);
+			shopifyApiClient.updateFulfillment(order.getShopifyOrderId(), fulfillments.get(0).id, order.getTrackingNumber(), order.getShippingType(),sendNotification);
 		}
 		return false;
 	}
 	
-	private void sendEmail(String email, String invoiceNumber, byte[] pdfInvoice) throws Exception {
+	private void sendEmail(String email, String invoiceNumber, byte[] pdfInvoice, boolean isPriority) throws Exception {
 		
 		MailReceipient to = new MailReceipient(email);
 		if (StringUtils.isNotBlank(alwaysBcc)) {
@@ -534,7 +537,9 @@ public class OrderManagerController {
 				.mimeType("application/pdf")
 				.content(new ByteArrayInputStream(pdfInvoice));	
 		
-		mailService.sendEmail(to, subject, body, Collections.singletonList(attachment));
+		String emailBody = isPriority ? this.priorityBody : this.body;
+		
+		mailService.sendEmail(to, subject, emailBody, Collections.singletonList(attachment));
 	}
 	
 	

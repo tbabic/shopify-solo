@@ -135,6 +135,17 @@ public class PaymentOrder extends Order {
 		
 		
 	}
+	
+	public boolean isGiftCode() {
+		return this.items.stream().allMatch(item -> 
+			item.getName().toLowerCase().contains("poklon") 
+			|| item.isShipping());
+	}
+	
+	public boolean isPriorityShipping() {
+		return this.items.stream().anyMatch(item ->
+			item.isShipping() && (item.getName().toLowerCase().contains("ubrzan") || item.getName().toLowerCase().contains("fast")));
+	}
 
 	public void updateInvoice(Invoice invoice) {
 		this.invoice = invoice;
@@ -146,18 +157,7 @@ public class PaymentOrder extends Order {
 		}
 		
 
-		
-		
-		
-		boolean isGiftCode = this.items.stream().allMatch(item -> 
-			item.getName().toLowerCase().contains("poklon") 
-			|| item.isShipping());
-		
-		boolean isPriorityShipping = this.items.stream().anyMatch(item ->
-			item.isShipping() && (item.getName().toLowerCase().contains("ubrzan") || item.getName().toLowerCase().contains("fast")));
-		
-		
-		if (isGiftCode || isPriorityShipping) {
+		if (isGiftCode() || isPriorityShipping()) {
 			this.sendingDate = invoice.getDate();
 		}
 		

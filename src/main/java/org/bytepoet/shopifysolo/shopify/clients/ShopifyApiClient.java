@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.bytepoet.shopifysolo.manager.models.ShippingType;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCollect;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCollection;
 import org.bytepoet.shopifysolo.shopify.models.ShopifyCollectionCustomUpdate;
@@ -118,14 +119,23 @@ public class ShopifyApiClient {
 	
 	private static final String LOCATIONS_FORMAT = "https://{0}/admin/api/2021-10/locations.json";
 	
-	@Value("${fulfillment.tracking-url}")
-	private String trackingUrl;
+	@Value("${fulfillment.hp.tracking-url}")
+	private String hpTrackingUrl;
 	
-	@Value("${fulfillment.location-id}")
-	private String locationId;
+	@Value("${fulfillment.hp.location-id}")
+	private String hpLocationId;
 	
-	@Value("${fulfillment.tracking-company}")
-	private String trackingCompany;
+	@Value("${fulfillment.hp.tracking-company}")
+	private String hpTrackingCompany;
+	
+	@Value("${fulfillment.gls.tracking-url}")
+	private String glsTrackingUrl;
+	
+	@Value("${fulfillment.gls.location-id}")
+	private String glsLocationId;
+	
+	@Value("${fulfillment.gls.tracking-company}")
+	private String glsTrackingCompany;
 	
 	@Value("${shopify.api.host}")
 	private String clientHost;
@@ -380,7 +390,7 @@ public class ShopifyApiClient {
 		private boolean notifyCustomer;
 	}
 	
-	public void fulfillOrder(String orderId, String trackingNumber, boolean notifyCustomer) throws Exception{
+	public void fulfillOrder(String orderId, String trackingNumber, ShippingType shippingType, boolean notifyCustomer) throws Exception{
 		
 		List<FulfillmentOrderId> fulfillmentOrderIds = this.getFulfillmentOrders(orderId);
 		String url = MessageFormat.format(FULFILLMENT_ENDPOINT_FORMAT, clientHost);
@@ -392,8 +402,15 @@ public class ShopifyApiClient {
 
 		FulfillmentTracking tracking = new FulfillmentTracking();
 		tracking.trackingNumber = trackingNumber;
-		tracking.trackingUrl = MessageFormat.format(trackingUrl, trackingNumber);
-		tracking.trackingCompany = this.trackingCompany;
+		if (shippingType == ShippingType.HP_REGISTERED_MAIL) {
+			tracking.trackingUrl = MessageFormat.format(hpTrackingUrl, trackingNumber);
+			tracking.trackingCompany = this.hpTrackingCompany;
+		}
+		else {
+			tracking.trackingUrl = MessageFormat.format(glsTrackingUrl, trackingNumber);
+			tracking.trackingCompany = this.glsTrackingCompany;
+		}
+		
 		
 		createFulfillment.tracking = tracking;
 		createFulfillment.notifyCustomer = notifyCustomer;
@@ -415,7 +432,7 @@ public class ShopifyApiClient {
 		}
 	}
 	
-	public void updateFulfillment(String orderId, String fullfillmentId, String trackingNumber, boolean notifyCustomer) throws Exception{
+	public void updateFulfillment(String orderId, String fullfillmentId, String trackingNumber, ShippingType shippingType, boolean notifyCustomer) throws Exception{
 		
 		List<FulfillmentOrderId> fulfillmentOrderIds = this.getFulfillmentOrders(orderId);
 		String url = MessageFormat.format(UPDATE_ORDER_FULFILLMENT_ENDPOINT_FORMAT, clientHost, fullfillmentId);
@@ -427,8 +444,14 @@ public class ShopifyApiClient {
 
 		FulfillmentTracking tracking = new FulfillmentTracking();
 		tracking.trackingNumber = trackingNumber;
-		tracking.trackingUrl = MessageFormat.format(trackingUrl, trackingNumber);
-		tracking.trackingCompany = this.trackingCompany;
+		if (shippingType == ShippingType.HP_REGISTERED_MAIL) {
+			tracking.trackingUrl = MessageFormat.format(hpTrackingUrl, trackingNumber);
+			tracking.trackingCompany = this.hpTrackingCompany;
+		}
+		else {
+			tracking.trackingUrl = MessageFormat.format(glsTrackingUrl, trackingNumber);
+			tracking.trackingCompany = this.glsTrackingCompany;
+		}
 		
 		createFulfillment.tracking = tracking;
 		createFulfillment.notifyCustomer = notifyCustomer;

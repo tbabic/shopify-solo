@@ -60,6 +60,9 @@ public class OrderController {
 	@Value("${email.body}")
 	private String body;
 	
+	@Value("${email.priority-body}")
+	private String priorityBody;
+	
 	@Value("${ignore.receipt}")
 	private String ignoreReceipts;
 	
@@ -125,7 +128,7 @@ public class OrderController {
 		
 		if(!order.isReceiptSent()) {
 			byte [] pdfInvoice = pdfInvoiceService.createInvoice(order, false, null);
-			sendEmail(order.getEmail(), order.getInvoiceNumber(), pdfInvoice);
+			sendEmail(order.getEmail(), order.getInvoiceNumber(), pdfInvoice, order.isPriorityShipping());
 			order.setReceiptSent(true);
 			orderRepository.save(order);
 			//TODO: upload pdf Invoice to google drive
@@ -149,7 +152,7 @@ public class OrderController {
 		return;
 	}
 	
-	private void sendEmail(String email, String invoiceNumber, byte[] pdfInvoice) throws Exception {
+	private void sendEmail(String email, String invoiceNumber, byte[] pdfInvoice, boolean isPriority) throws Exception {
 		
 		MailReceipient to = new MailReceipient(email);
 		if (StringUtils.isNotBlank(alwaysBcc)) {
@@ -161,7 +164,9 @@ public class OrderController {
 				.mimeType("application/pdf")
 				.content(new ByteArrayInputStream(pdfInvoice));	
 		
-		mailService.sendEmail(to, subject, body, Collections.singletonList(attachment));
+		String emailBody = isPriority ? this.priorityBody : this.body;
+		
+		mailService.sendEmail(to, subject, emailBody, Collections.singletonList(attachment));
 	}
 	
 }
