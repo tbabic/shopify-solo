@@ -853,7 +853,12 @@
 							<div class="modal-header">
 								<h5 class="modal-title" id="exampleModalLabel">
 									EPK Generator: <a href="https://epk.posta.hr/HP.EPK.Web.Production/">link</a> | Broj skeniranih: {{ epkOrdersSize }}
-								</h5>		
+									| <label for="file-upload" class="btn btn-primary">Uploadaj CSV</label>
+									<input v-on:change="uploadCSV" id="file-upload" type="file" style="display:none"/>
+								</h5>
+								
+								
+										
 								<button type="button" class="close" data-dismiss="modal">
 									<span>&times;</span>
 								</button>
@@ -863,6 +868,8 @@
 									<div class="col">
 										Broj skeniranih: {{ epkOrdersSize }}
 									</div>
+									
+									
 								</div> 
 							
 								<div v-for="order in epk.orders" class="row">

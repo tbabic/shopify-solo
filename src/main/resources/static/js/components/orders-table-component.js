@@ -248,6 +248,58 @@ var orderTableComponent = new Vue({
 			});
 		},
 		
+		uploadCSV(event) {
+			console.log("csv uploaded");
+			console.log(event.target.files);
+			let files = event.target.files;
+			let csv = files[0];
+			console.log(csv);
+			let fileReader = new FileReader();
+			this.startLoader();
+			fileReader.readAsText(csv, "cp1250");
+			fileReader.onload = () => {
+          	
+				//console.log(fileReader.result);
+				let rows = fileReader.result.split('\r\n');
+				headers = rows[0].split(';');
+				let idIndex = headers.indexOf("Referenca klijenta");
+				let trackingNumberIndex = headers.indexOf("Broj paketa");
+				
+				if (idIndex < 0) {
+					this.showError("Could not find order id column");
+					this.endLoader();
+					return;
+				}
+				
+				if (trackingNumberIndex < 0) {
+					this.showError("Could not find tracking number column");
+					this.endLoader();
+					return;
+				}
+				
+				
+				for (let i = 1; i < rows.length; i++) {
+					if (rows[i].length == 0) {
+						continue;
+					}
+					let data = rows[i].split(';');
+					let id = data[idIndex].replaceAll('"','');
+					
+					this.findOrderById(id).then(() => {
+						let trackingNumber = data[trackingNumberIndex].replaceAll('"', '');
+						this.epk.orders[id].trackingNumber = trackingNumber;
+					});
+					
+					
+				}
+				
+				this.endLoader();
+				
+			};
+			
+			
+		},
+		
 		findOrderById : function(id) {
 			if(id == undefined || id == null || id == '') {
 				return;
@@ -922,6 +974,13 @@ var orderTableComponent = new Vue({
 	},
 	mounted : function () {
 		this.startLoader();
+		
+		let queryString = window.location.search;
+		let urlParams = new URLSearchParams(queryString);
+		let skipPreload = urlParams.get('skipPreload');
+		
+		
+		
 		let token = localStorage.getItem("token");
 		
 		let loginPromise = null;
@@ -941,7 +1000,7 @@ var orderTableComponent = new Vue({
 			localStorage.setItem("token", this.authToken);
 			axios.defaults.headers.common['Authorization'] = this.authToken;
 		}).then( () => {
-			if (this.role != 'ROLE_LIMITED_USER' && this.role != 'ROLE_SMC_MANAGER')  {
+			if (this.role != 'ROLE_LIMITED_USER' && this.role != 'ROLE_SMC_MANAGER' && !skipPreload)  {
 				this.loadOrders(0,50).finally( () => {
 					this.endLoader();
 				});
