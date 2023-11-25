@@ -46,6 +46,9 @@
 												<button type="button" data-value="IN_PROCESS" v-on:click="filtering('status', $event)" v-bind:class="'btn btn-filter ' + (filters.status == 'IN_PROCESS' ? 'active' : '')">
 													U izradi
 												</button>
+												<button type="button" data-value="READY" v-on:click="filtering('status', $event)" v-bind:class="'btn btn-filter ' + (filters.status == 'READY' ? 'active' : '')">
+													Spremno
+												</button>
 												<button type="button" data-value=IN_POST v-on:click="filtering('status', $event)" v-bind:class="'btn btn-filter ' + (filters.status == 'IN_POST' ? 'active' : '')">
 													U pošti
 												</button>
@@ -182,6 +185,7 @@
 													<button type="button" class="dropdown-item btn-initial" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('INITIAL', 'status')">Novo</button>
 													<button type="button" class="dropdown-item btn-in-preparation" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('IN_PREPARATION', 'status')">Za pripremu</button>
 													<button type="button" class="dropdown-item btn-in-process" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('IN_PROCESS', 'status')">Za izradu</button>
+													<button type="button" class="dropdown-item btn-ready" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('READY', 'status')">Spremno</button>
 													<button type="button" class="dropdown-item btn-in-post" data-toggle="modal" data-target="#statusChangeModal" v-on:click="changeSelectedOrdersStatus('IN_POST', 'status')">U posti</button>
 												</div>
 											</div>
@@ -211,8 +215,9 @@
 								<th>racun</th>
 								<th>e-mail</th>
 								<th>težina</th>
-								<th>webshop narudzba</th>
+								<th>web id</th>
 								<th>model</th>
+								<th>Slanje</th>
 								<th>Napomena</th>
 								<th v-if="role == 'ROLE_CREATOR' || role == 'ROLE_ADMIN'">uplata</th>
 								<th>nacin placanja</th>
@@ -236,11 +241,23 @@
 								<td class="shopify-number">{{ order.shopifyOrderNumber }}</td>
 								<td>
 									<span v-for="item in order.items">
-										<span>
+										<span v-if="!item.isShipping">
 											<a v-bind:href="linkifyItem(item.name)" target="_blank" >{{ item.name }}</a>
 											<span v-if="item.quantity > 1">(x{{ item.quantity }})</span>, 
 										</span>
 									</span>
+								</td>
+								<td>
+									<span v-if="order.shippingType == 'GLS_DELIVERY' && order.priorityShipping == true" class="delivery-priority">
+										GLS <img src="/icons/alert-octagon.svg" alt="" width="20" height="20" title="left">
+									</span>
+									<span v-else-if="order.shippingType == 'GLS_DELIVERY'" class="delivery-gls">
+										GLS
+									</span>
+									<span v-if="order.shippingType == 'HP_REGISTERED_MAIL'" class="delivery-hp">
+										HP
+									</span>
+
 								</td>
 								<td>
 									<button v-if="hasNote(order)" type="button" class="btn btn-secondary" data-toggle="tooltip" data-placement="top" v-bind:title="order.note">

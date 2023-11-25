@@ -902,6 +902,9 @@ var orderTableComponent = new Vue({
 			if (order.status == "IN_PROCESS") {
 				return "order-in-process"
 			}
+			if (order.status == "READY") {
+				return "order-ready"
+			}
 			if (order.status == "IN_POST") {
 				return "order-in-post"
 			}

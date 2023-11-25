@@ -84,6 +84,16 @@ th {
     border-color: #dacca2 !important;
 }
 
+.order-ready .order-id,  .status-ready{
+	background-color: #008040;
+}
+
+.btn-ready{
+	color: black !important;
+    background-color: #008040 !important;
+    border-color: #008040 !important;
+}
+
 .order-in-post .order-id, .status-in-post {
 	background-color: #9c8c5a;
 }

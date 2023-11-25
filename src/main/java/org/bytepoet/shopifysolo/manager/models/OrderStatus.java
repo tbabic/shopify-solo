@@ -5,6 +5,7 @@ public enum OrderStatus {
 	INITIAL,
 	IN_PREPARATION,
 	IN_PROCESS,
+	READY,
 	IN_POST,
 	FULFILLED,
 	CANCELED,
