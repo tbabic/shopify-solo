@@ -1,2 +1,2 @@
-ALTER TABLE public.managed_order
+ALTER TABLE managed_order
    ALTER COLUMN note TYPE text;

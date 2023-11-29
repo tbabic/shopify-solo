@@ -1,4 +1,4 @@
-CREATE TABLE public.inventory
+CREATE TABLE inventory
 (
    id bigserial, 
    item text, 

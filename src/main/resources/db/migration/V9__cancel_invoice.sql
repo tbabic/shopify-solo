@@ -12,7 +12,7 @@ create table refund (
 );
 
 
-alter table if exists public.item 
+alter table if exists item 
    add column refund_id int8;
     
     
@@ -26,5 +26,5 @@ alter table if exists refund
    foreign key (order_id)
    references managed_order;
    
-ALTER TABLE public.item
+ALTER TABLE item
    ALTER COLUMN order_id DROP NOT NULL;

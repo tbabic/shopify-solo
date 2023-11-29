@@ -1,4 +1,4 @@
-CREATE TABLE public.audit_log
+CREATE TABLE audit_log
 (
    id uuid, 
    previous_state text, 

@@ -1,5 +1,5 @@
 
-alter table if exists public.managed_order 
+alter table if exists managed_order 
 	add column gift_code text;
 
 

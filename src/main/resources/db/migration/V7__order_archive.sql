@@ -1,4 +1,4 @@
-CREATE TABLE public.order_archive
+CREATE TABLE order_archive
 (
    id bigserial, 
    data text, 
