@@ -28,7 +28,7 @@ public class GlsService {
 				.addHeaderAndField("Ulica", o -> o.getShippingInfo().getStreetAndNumber())
 				.addHeaderAndField("Kućni broj", o -> "")
 				.addHeaderAndField("Stubište", o -> "")
-				.addHeaderAndField("Kontakt osoba", o -> "")
+				.addHeaderAndField("Kontakt osoba", o -> o.getShippingInfo().getFullName())
 				.addHeaderAndField("Kontakt telefon", o -> o.getShippingInfo().getPhoneNumber())
 				.addHeaderAndField("Kontakt email", o -> o.getContact())
 				.addHeaderAndField("Komentar", o -> StringUtils.defaultString(o.getShippingInfo().getOther()))
