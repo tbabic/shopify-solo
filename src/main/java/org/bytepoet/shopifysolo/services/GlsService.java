@@ -17,6 +17,8 @@ public class GlsService {
 	
 	public FileData generateAddressBookCsv(List<Order> orders) {
 		
+		validate(orders);
+		
 		byte [] bytes = new CsvBuilder<Order>()
 				.setEncoding("windows-1250")
 				.setDataObjects(orders)
@@ -43,6 +45,25 @@ public class GlsService {
 		String base64Value = Base64.encodeBase64String(bytes);
 		
 		return new FileData("adresnice.csv", base64Value);
+	}
+	
+	public void validate(List<Order> orders) {
+		boolean invalid = false;
+		String message = "INVALID:";
+		String regex = ".*[ ][0-9]+[ ]?[a-zA-Z]?";
+		
+		for (Order order: orders) {
+			
+			String address = order.getShippingInfo().getStreetAndNumber();
+			if (!address.matches(regex)) {
+				invalid = true;
+				message += "\n " + order.getId() + " - " + order.getShippingInfo().getFullName() + ";";
+			}
+		}
+		
+		if (invalid) {
+			throw new RuntimeException(message);
+		}
 	}
 	
 	
