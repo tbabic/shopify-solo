@@ -50,7 +50,7 @@ public class GlsService {
 	public void validate(List<Order> orders) {
 		boolean invalid = false;
 		String message = "INVALID:";
-		String regex = ".*[ ][0-9]+[ ]?[a-zA-Z]?";
+		String regex = ".*[ ][0-9/]+[ ]?[a-zA-Z]?";
 		
 		for (Order order: orders) {
 			
