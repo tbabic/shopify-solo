@@ -208,9 +208,12 @@ public class InventoryProductsController {
 				return;
 			}
 			ShopifyProductVariant variant = variants.get(product.getWebshopId());
-			product.setWebshopQuantity(variant.quantity.intValue());
-			product.setWebshopStatus(shopifyProductsMap.get(variant.id).status);
-			variants.remove(variant.id);
+			if (variant != null) {
+				product.setWebshopQuantity(variant.quantity.intValue());
+				product.setWebshopStatus(shopifyProductsMap.get(variant.id).status);
+				variants.remove(variant.id);
+			}
+			
 		});
 		
 		List<Product> toSync = products.stream().filter(p -> !p.isSynced()).collect(Collectors.toList());
