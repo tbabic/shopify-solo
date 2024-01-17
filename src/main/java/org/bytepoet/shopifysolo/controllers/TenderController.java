@@ -6,6 +6,7 @@ import java.util.List;
 import org.bytepoet.shopifysolo.authorization.AuthorizationService;
 import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
+import org.bytepoet.shopifysolo.manager.models.PaymentType;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
 import org.bytepoet.shopifysolo.mappers.GatewayToPaymentTypeMapper;
 import org.bytepoet.shopifysolo.services.CachedFunctionalService;
@@ -77,7 +78,7 @@ public class TenderController {
 		if(shopifyOrder.getTags().contains("giveaway")) {
 			return;
 		}
-		if (!bankDepositGateway.contains(shopifyOrder.getGateway())) {
+		if (paymentTypeMapper.getPaymentType(shopifyOrder.getGateways()) != PaymentType.BANK_TRANSACTION) {
 			return;
 		}
 		List<String> ignoreReceiptsList = Arrays.asList(ignoreTenders.split(","));

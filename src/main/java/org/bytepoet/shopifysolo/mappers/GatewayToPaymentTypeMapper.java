@@ -28,16 +28,22 @@ public class GatewayToPaymentTypeMapper {
 				}
 			}
 		}
-		return getPaymentType(order.getGateway());
+		return getPaymentType(order.getGateways());
 	}
 	
-	public PaymentType getPaymentType(String paymentGateway) {
-		if(cardGateway.contains(paymentGateway)) {
+	public PaymentType getPaymentType(List<String> paymentGateways) {
+		if (paymentGateways == null || paymentGateways.isEmpty()) {
+			return PaymentType.valueOf(defaultPaymentType);
+		}
+		
+		if (paymentGateways.stream().anyMatch(g -> cardGateway.contains(g))) {
 			return PaymentType.CREDIT_CARD;
 		}
-		if(bankDepositGateway.contains(paymentGateway)) {
+		
+		if (paymentGateways.stream().anyMatch(g -> bankDepositGateway.contains(g))) {
 			return PaymentType.BANK_TRANSACTION;
 		}
+		
 		return PaymentType.valueOf(defaultPaymentType);
 	}
 	

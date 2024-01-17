@@ -17,8 +17,8 @@ public class ShopifyOrder {
 	@JsonProperty("order_number")
 	private String number;
 	
-	@JsonProperty("gateway")
-	private String gateway;
+	@JsonProperty("payment_gateway_names")
+	private List<String> gateways;
 	
 	@JsonProperty("email")
 	private String email;
@@ -74,8 +74,8 @@ public class ShopifyOrder {
 		return number;
 	}
 	
-	public String getGateway() {
-		return gateway;
+	public List<String> getGateways() {
+		return gateways;
 	}
 
 	public String getEmail() {
