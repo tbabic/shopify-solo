@@ -27,6 +27,12 @@ public class GatewayToPaymentTypeMapper {
 					return PaymentType.CREDIT_CARD;
 				}
 			}
+			
+			for (String cg : bankDepositGateway) {
+				if (order.getTags().toLowerCase().contains(cg.toLowerCase())) {
+					return PaymentType.BANK_TRANSACTION;
+				}
+			}
 		}
 		return getPaymentType(order.getGateways());
 	}
