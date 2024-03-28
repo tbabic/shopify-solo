@@ -78,7 +78,7 @@ public class TenderController {
 		if(shopifyOrder.getTags().contains("giveaway")) {
 			return;
 		}
-		if (paymentTypeMapper.getPaymentType(shopifyOrder.getGateways()) != PaymentType.BANK_TRANSACTION) {
+		if (paymentTypeMapper.getPaymentType(shopifyOrder) != PaymentType.BANK_TRANSACTION) {
 			return;
 		}
 		List<String> ignoreReceiptsList = Arrays.asList(ignoreTenders.split(","));
