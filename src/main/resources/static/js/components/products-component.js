@@ -37,9 +37,10 @@ var createOrderComponent = new Vue({
 		
 		changePrice : function(variant)
 		{
-			this.applyDiscount(variant);
+			
 			if (variant.discount != 0) {
 				variant.compare_at_price = variant.regularPrice;
+				this.applyDiscount(variant);
 			}
 			else {
 				variant.price = variant.regularPrice;
