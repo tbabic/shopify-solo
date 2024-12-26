@@ -104,51 +104,51 @@ public class OrderController {
 		logger.debug(shopifyOrder.toString());
 		PaymentOrder order;
 		synchronized(this.getClass()) {
-			Order o = orderRepository.getOrderWithShopifyId(shopifyOrder.getId()).orElseGet(() -> {
+			Order o1 = orderRepository.getOrderWithShopifyId(shopifyOrder.getId()).orElseGet(() -> {
 				return orderRepository.saveAndFlush(new PaymentOrder(shopifyOrder, paymentTypeMapper, taxRate, giftCodeType));
 			});
-			if (o instanceof PaymentOrder) {
-				order = (PaymentOrder) o;
+			if (o1 instanceof PaymentOrder) {
+				order = (PaymentOrder) o1;
 			} else {
 				return;
 			}
-		}
 		
-		
-		if (!order.isReceiptCreated()) {
-			Invoice createdInvoice = CachedFunctionalService.<ShopifyOrder,Invoice>cacheAndExecute(
-					shopifyOrder, 
-					o -> "orders/"+o.getId(), 
-					o -> {
-						return invoiceService.createInvoice(order);
-					});
-			order.updateInvoice(createdInvoice);
-			orderRepository.saveAndFlush(order);
-		}
-		
-		if(!order.isReceiptSent()) {
-			byte [] pdfInvoice = pdfInvoiceService.createInvoice(order, false, null);
-			sendEmail(order.getEmail(), order.getInvoiceNumber(), pdfInvoice, order.isPriorityShipping());
-			order.setReceiptSent(true);
-			orderRepository.save(order);
-			//TODO: upload pdf Invoice to google drive
-		}
-		
-		if(!CollectionUtils.isEmpty(shopifyOrder.getDiscountCodes()) && shopifyOrder.getDiscountCodes().get(0).getType().equalsIgnoreCase("fixed_amount")) {
-			String discountCode = shopifyOrder.getDiscountCodes().get(0).getCode();
-			boolean hasDiscount = CachedFunctionalService.<ShopifyOrder, Boolean>cacheAndExecute(
-					shopifyOrder,
-					o -> "discounts/" + o.getId() + "/" + discountCode,
-					o -> {
-						return discountService.processDiscount(shopifyOrder.getDiscountCodes().get(0));
-					});
-			if(hasDiscount) {
-				order.addNote("\n" + MessageFormat.format(giftCodeNote, discountCode));
+
+			if (!order.isReceiptCreated()) {
+				Invoice createdInvoice = CachedFunctionalService.<ShopifyOrder,Invoice>cacheAndExecute(
+						shopifyOrder, 
+						o -> "orders/"+o.getId(), 
+						o -> {
+							return invoiceService.createInvoice(order);
+						});
+				order.updateInvoice(createdInvoice);
 				orderRepository.saveAndFlush(order);
 			}
+			
+			if(!order.isReceiptSent()) {
+				byte [] pdfInvoice = pdfInvoiceService.createInvoice(order, false, null);
+				sendEmail(order.getEmail(), order.getInvoiceNumber(), pdfInvoice, order.isPriorityShipping());
+				order.setReceiptSent(true);
+				orderRepository.save(order);
+				//TODO: upload pdf Invoice to google drive
+			}
+			
+			if(!CollectionUtils.isEmpty(shopifyOrder.getDiscountCodes()) && shopifyOrder.getDiscountCodes().get(0).getType().equalsIgnoreCase("fixed_amount")) {
+				String discountCode = shopifyOrder.getDiscountCodes().get(0).getCode();
+				boolean hasDiscount = CachedFunctionalService.<ShopifyOrder, Boolean>cacheAndExecute(
+						shopifyOrder,
+						o -> "discounts/" + o.getId() + "/" + discountCode,
+						o -> {
+							return discountService.processDiscount(shopifyOrder.getDiscountCodes().get(0));
+						});
+				if(hasDiscount) {
+					order.addNote("\n" + MessageFormat.format(giftCodeNote, discountCode));
+					orderRepository.saveAndFlush(order);
+				}
+			}
+			
+			inventoryUpdateService.updateInventory(order, shopifyOrder);
 		}
-		
-		inventoryUpdateService.updateInventory(order, shopifyOrder);
 		return;
 	}
 	
