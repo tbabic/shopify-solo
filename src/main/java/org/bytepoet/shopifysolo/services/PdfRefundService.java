@@ -241,7 +241,7 @@ public class PdfRefundService {
 		table.addCell(new Cell().add(new Paragraph(totalPrice + "  €").setFont(boldFont()).setFontSize(12).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
 		
-		String totalPriceInKuna = totalPrice(refund, Currency.HRK);
+		/*String totalPriceInKuna = totalPrice(refund, Currency.HRK);
 		table.addCell(new Cell().setBorder(Border.NO_BORDER));
 		table.addCell(new Cell().add(new Paragraph("(" + totalPriceInKuna + "  kn)").setFont(font()).setFontSize(10).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
@@ -253,7 +253,7 @@ public class PdfRefundService {
 		table.addCell(new Cell().add(new Paragraph("1€ = " + PdfInvoiceService.CONVERSION_RATE_STRING + " kn").setFont(font()).setFontSize(10).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
 		table.addCell(new Cell().add(new Paragraph("").setFont(font()).setFontSize(10).setTextAlignment(TextAlignment.RIGHT))
-				.setBorder(Border.NO_BORDER));
+				.setBorder(Border.NO_BORDER));*/
 		
 		return table.setWidth(550);
 	}

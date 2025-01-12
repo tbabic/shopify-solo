@@ -267,7 +267,7 @@ public class PdfInvoiceService {
 				.setBorder(Border.NO_BORDER));
 		
 		
-		String totalPriceInKuna = totalPrice(order, Currency.HRK);
+		/*String totalPriceInKuna = totalPrice(order, Currency.HRK);
 		table.addCell(new Cell().setBorder(Border.NO_BORDER));
 		table.addCell(new Cell().add(new Paragraph("(" + totalPriceInKuna + "  kn)").setFont(font()).setFontSize(10).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
@@ -276,7 +276,7 @@ public class PdfInvoiceService {
 		table.addCell(new Cell().add(new Paragraph("Tečaj:").setFont(font()).setFontSize(10).setTextAlignment(TextAlignment.RIGHT))
 				.setBorder(Border.NO_BORDER));
 		table.addCell(new Cell().add(new Paragraph("1€ = " + CONVERSION_RATE_STRING + " kn").setFont(font()).setFontSize(10).setTextAlignment(TextAlignment.RIGHT))
-				.setBorder(Border.NO_BORDER));
+				.setBorder(Border.NO_BORDER));*/
 	
 		
 		
