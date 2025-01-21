@@ -1,5 +1,6 @@
 package org.bytepoet.shopifysolo.manager.models;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 import javax.persistence.Embeddable;
@@ -36,6 +37,8 @@ public class RefundInvoice {
 	
 	@JsonProperty
 	private boolean isSent;
+	
+	private BigDecimal vatAmount;
 
 	public static class Builder {
 		private Refund refund;
@@ -45,6 +48,7 @@ public class RefundInvoice {
 		private String jir;
 		private String note;
 		private Date date;
+		private BigDecimal vatAmount;
 
 		public Builder number(String number) {
 			this.number = number;
@@ -75,6 +79,11 @@ public class RefundInvoice {
 			this.date = date;
 			return this;
 		}
+		
+		public Builder vatAmount(BigDecimal vatAmount) {
+			this.vatAmount = vatAmount;
+			return this;
+		}
 
 		public RefundInvoice build() {
 			return new RefundInvoice(this);
@@ -89,6 +98,7 @@ public class RefundInvoice {
 		this.jir = builder.jir;
 		this.note = builder.note;
 		this.date = builder.date;
+		this.vatAmount = builder.vatAmount;
 	}
 	
 	private RefundInvoice() {
@@ -147,6 +157,10 @@ public class RefundInvoice {
 
 	void setDate(Date date) {
 		this.date = date;
+	}
+
+	public BigDecimal getVatAmount() {
+		return vatAmount;
 	}
 	
 	

@@ -72,6 +72,7 @@ public class InvoiceService {
 				.note(note)
 				.number(details.getInvoiceNumber())
 				.qrCode(response.qrCode)
+				.vatAmount(details.getVatAmount())
 				.build();
 		
 		return invoice;		

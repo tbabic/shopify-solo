@@ -309,6 +309,11 @@ public class PdfInvoiceService {
 	}
 	
 	private double calculateVat(PaymentOrder order) {
+		//TODO: enable if everything ok
+		/*if (order.getInvoice().getVatAmount() != null)
+		{
+			return order.getInvoice().getVatAmount().doubleValue();
+		}*/
 		double sum = 0;
 		for (Item item : order.getItems()) {
 			double taxRate = Double.parseDouble(item.getTaxRate()) / 100;

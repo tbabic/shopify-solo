@@ -50,6 +50,10 @@ public class Item {
 	@JsonProperty
 	private boolean isShipping;
 	
+	private BigDecimal netPrice;
+	
+	private BigDecimal grossPrice;
+	
 	@ManyToOne
     @JoinColumn(name = "refundId")
 	@JsonIgnore
@@ -60,6 +64,7 @@ public class Item {
 	public Item(ShopifyLineItem lineItem, String taxRate) {
 		this.name = lineItem.getFullTitle();
 		this.price = lineItem.getPricePerItem();
+		this.grossPrice = BigDecimal.valueOf(Double.parseDouble(this.price));
 		this.quantity = lineItem.getQuantity();
 		this.discount = lineItem.getDiscountPercent();
 		this.taxRate = taxRate;
@@ -73,6 +78,7 @@ public class Item {
 	public Item(String name, String price, int quantity, String discount, String taxRate) {
 		this.name = name;
 		this.price = price;
+		this.grossPrice = BigDecimal.valueOf(Double.parseDouble(this.price));
 		this.quantity = quantity;
 		this.discount = discount;
 		this.taxRate = taxRate;
@@ -191,6 +197,7 @@ public class Item {
 		double priceWithoutTax = totalPrice / (1.0+taxRate);
 		DecimalFormat df = getDecimalFormat();
 		this.price = df.format(priceWithoutTax);
+		this.netPrice = BigDecimal.valueOf(priceWithoutTax);
 	}
 	
 	public double getPriceWithTaxRate() {
@@ -263,6 +270,16 @@ public class Item {
 	public void setShipping(boolean isShipping) {
 		this.isShipping = isShipping;
 	}
+
+	public BigDecimal getNetPrice() {
+		return netPrice;
+	}
+
+	public BigDecimal getGrossPrice() {
+		return grossPrice;
+	}
+	
+	
 	
 	
 	

@@ -58,9 +58,6 @@ public class PaymentOrder extends Order {
 	@Embedded
 	private Invoice invoice;
 	
-	@Embedded
-	private Invoice cancelInvoice;
-	
 	@JsonProperty
 	private String giftCode;
 
@@ -294,10 +291,6 @@ public class PaymentOrder extends Order {
 
 	public Invoice getInvoice() {
 		return invoice;
-	}
-
-	public Invoice getCancelInvoice() {
-		return cancelInvoice;
 	}
 	
 	public Refund createRefund(List<Long> itemsIds) {

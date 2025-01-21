@@ -1,9 +1,11 @@
 package org.bytepoet.shopifysolo.webinvoice.models;
 
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -40,6 +42,17 @@ public class WebInvoiceDetails {
 		@JsonProperty("naplatniUredjajOznaka")
 		private String deviceNumber;
 		
+		@JsonProperty("rekapitulacijaPdv")
+		private List<TaxLine> taxLines;
+		
+	}
+	
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public static class TaxLine {
+		
+		@JsonProperty("iznosPoreza")
+		private String vat;
+		
 	}
 	
 	@JsonProperty("racunResult")
@@ -63,6 +76,20 @@ public class WebInvoiceDetails {
 		} catch (ParseException e) {
 			throw new RuntimeException(e);
 		}
+	}
+	
+	public BigDecimal getVatAmount()
+	{
+		BigDecimal vat = BigDecimal.valueOf(0);
+		if (details.dto.taxLines == null || details.dto.taxLines.isEmpty())
+		{
+			return null;
+		}
+		for (TaxLine taxLine : details.dto.taxLines )
+		{
+			vat.add( BigDecimal.valueOf(Double.parseDouble(taxLine.vat)));
+		}
+		return vat;
 	}
 	
 	public String getInvoiceNumber() {

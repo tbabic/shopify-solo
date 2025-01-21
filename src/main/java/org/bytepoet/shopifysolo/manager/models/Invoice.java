@@ -1,10 +1,12 @@
 package org.bytepoet.shopifysolo.manager.models;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 import javax.persistence.Embeddable;
 import javax.persistence.Transient;
 
+import org.bytepoet.shopifysolo.manager.models.RefundInvoice.Builder;
 import org.hibernate.annotations.Parent;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -40,6 +42,8 @@ public class Invoice {
 	
 	@Transient
 	private String qrCode;
+	
+	private BigDecimal vatAmount;
 
 	public static class Builder {
 		private PaymentOrder order;
@@ -50,6 +54,7 @@ public class Invoice {
 		private String note;
 		private Date date;
 		private String qrCode;
+		private BigDecimal vatAmount;
 
 		public Builder number(String number) {
 			this.number = number;
@@ -85,6 +90,11 @@ public class Invoice {
 			this.qrCode = qrCode;
 			return this;
 		}
+		
+		public Builder vatAmount(BigDecimal vatAmount) {
+			this.vatAmount = vatAmount;
+			return this;
+		}
 
 		public Invoice build() {
 			return new Invoice(this);
@@ -100,6 +110,7 @@ public class Invoice {
 		this.note = builder.note;
 		this.date = builder.date;
 		this.qrCode = builder.qrCode;
+		this.vatAmount = builder.vatAmount;
 	}
 	
 	private Invoice() {
@@ -167,6 +178,12 @@ public class Invoice {
 	void setDate(Date date) {
 		this.date = date;
 	}
+
+	public BigDecimal getVatAmount() {
+		return vatAmount;
+	}
+	
+	
 	
 	
 	

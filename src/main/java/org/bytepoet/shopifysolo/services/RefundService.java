@@ -75,6 +75,7 @@ public class RefundService {
 				.zki(details.getZki())
 				.note(note)
 				.number(details.getInvoiceNumber())
+				.vatAmount(details.getVatAmount())
 				.build();
 		
 		return invoice;		

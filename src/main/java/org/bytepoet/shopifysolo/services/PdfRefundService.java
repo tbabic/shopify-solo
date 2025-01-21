@@ -302,6 +302,13 @@ public class PdfRefundService {
 	}
 	
 	private String sumAllItemsVat(Refund refund) {
+		//TODO: enable if everything ok
+		
+		/*if (refund.getInvoice().getVatAmount() != null)
+		{
+			return convertAndFormat(-refund.getInvoice().getVatAmount().doubleValue(), refund.getOrder().getCurrency());
+		}*/
+		
 		double sum = 0;
 		for (Item item : refund.getItems()) {
 			double taxRate = Double.parseDouble(item.getTaxRate()) / 100;
