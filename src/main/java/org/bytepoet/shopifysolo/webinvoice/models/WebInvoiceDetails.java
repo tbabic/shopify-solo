@@ -87,7 +87,7 @@ public class WebInvoiceDetails {
 		}
 		for (TaxLine taxLine : details.dto.taxLines )
 		{
-			vat.add( BigDecimal.valueOf(Double.parseDouble(taxLine.vat)));
+			vat = vat.add( BigDecimal.valueOf(Double.parseDouble(taxLine.vat)));
 		}
 		return vat;
 	}
