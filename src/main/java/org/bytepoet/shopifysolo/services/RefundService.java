@@ -1,5 +1,6 @@
 package org.bytepoet.shopifysolo.services;
 
+import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -119,10 +120,10 @@ public class RefundService {
 		df.setDecimalFormatSymbols(newSymbols);
 		String price;
 		if (orderCurrency == defaultCurrency) {
-			price = df.format(-item.getPriceWithTaxRate());
+			price = df.format(item.getPriceWithTaxRate().negate());
 		} else {
-			double priceValue = orderCurrency.convertTo(defaultCurrency, item.getPriceWithTaxRate());
-			price = df.format(-priceValue);
+			BigDecimal priceValue = orderCurrency.convertTo(defaultCurrency, item.getPriceWithTaxRate());
+			price = df.format(priceValue.negate());
 		}
 		
 		return new WebInvoiceItem.Builder()

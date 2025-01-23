@@ -200,7 +200,11 @@ public class Item {
 		this.netPrice = BigDecimal.valueOf(priceWithoutTax);
 	}
 	
-	public double getPriceWithTaxRate() {
+	public BigDecimal getPriceWithTaxRate() {
+		if (this.grossPrice != null)
+		{
+			return this.grossPrice;
+		}
 		double taxRate = 1;
 		if (StringUtils.isNotBlank(this.taxRate)) {
 			taxRate = 1 + (Double.parseDouble(this.taxRate) / 100);
@@ -209,7 +213,7 @@ public class Item {
 		if (StringUtils.isNotBlank(this.price)) {
 			price = Double.parseDouble(this.price) * taxRate;
 		}
-		return price;
+		return BigDecimal.valueOf(price);
 	}
 
 	private DecimalFormat getDecimalFormat() {
@@ -260,7 +264,7 @@ public class Item {
 	@JsonIgnore
 	public double getDiscountAmount() {
 		double discountMultiplier = Double.parseDouble(this.discount) / 100;;
-		return this.getPriceWithTaxRate() * quantity * discountMultiplier;
+		return this.getPriceWithTaxRate().doubleValue() * quantity * discountMultiplier;
 	}
 
 	public boolean isShipping() {

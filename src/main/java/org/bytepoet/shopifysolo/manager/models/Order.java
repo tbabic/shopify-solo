@@ -424,6 +424,10 @@ public abstract class Order {
 	
 	@JsonProperty
 	public boolean isGiftCode() {
+		if (this.items == null)
+		{
+			return false;
+		}
 		return this.items.stream().allMatch(item -> 
 			item.getName().toLowerCase().contains("poklon") 
 			|| item.isShipping());
@@ -431,6 +435,10 @@ public abstract class Order {
 	
 	@JsonProperty
 	public boolean isPriorityShipping() {
+		if (this.items == null)
+		{
+			return false;
+		}
 		return this.items.stream().anyMatch(item ->
 			item.isShipping() && (item.getName().toLowerCase().contains("ubrzan") || item.getName().toLowerCase().contains("fast")));
 	}

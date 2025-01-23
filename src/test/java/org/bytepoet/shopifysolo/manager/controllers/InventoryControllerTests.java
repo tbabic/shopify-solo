@@ -79,8 +79,8 @@ public class InventoryControllerTests {
 		
 		inventoryList = inventoryController.getInventory("item");
 		Assert.assertThat(inventoryList.size(), equalTo(2));
-		assertInventory(inventoryList.get(0), inventory2);
-		assertInventory(inventoryList.get(1), inventory1);
+		assertInventory(inventoryList.get(0), inventory1);
+		assertInventory(inventoryList.get(1), inventory2);
 		
 		inventoryList = inventoryController.getInventory("second");
 		Assert.assertThat(inventoryList.size(), equalTo(1));

@@ -14,7 +14,7 @@ public enum Currency {
 	
 	private final String value;
 	private final String symbol;
-	private final double doubleValue;
+	private final BigDecimal decimalValue;
 
 	
 
@@ -27,8 +27,9 @@ public enum Currency {
 		DecimalFormat decimalFormat = new DecimalFormat();
 		decimalFormat.setDecimalFormatSymbols(symbols);
 		decimalFormat.setRoundingMode(RoundingMode.HALF_UP);
+		decimalFormat.setParseBigDecimal(true);
 		try {
-			doubleValue = decimalFormat.parse(value).doubleValue();
+			decimalValue = (BigDecimal) decimalFormat.parse(value);
 		} catch (ParseException e) {
 			throw new RuntimeException(e);
 		}
@@ -38,8 +39,8 @@ public enum Currency {
 		return value;
 	}
 	
-	public double getDecimalValue() {
-		return doubleValue;
+	public BigDecimal getDecimalValue() {
+		return decimalValue;
 	}
 	
 	public double convertFrom(Currency currency, double value) {
@@ -50,12 +51,29 @@ public enum Currency {
 		return convert(this, currency, value);
 	}
 	
+	public BigDecimal convertFrom(Currency currency, BigDecimal value) {
+		return convert(currency, this, value);
+	}
+	
+	public BigDecimal convertTo(Currency currency, BigDecimal value) {
+		return convert(this, currency, value);
+	}
+	
 	private double convert(Currency sourceCurrency, Currency targetCurrency, double value) {
-		if (sourceCurrency.doubleValue == targetCurrency.doubleValue) {
+		if (sourceCurrency.decimalValue.doubleValue() == targetCurrency.decimalValue.doubleValue()) {
 			return value;
 		}
-		double multiplier = sourceCurrency.doubleValue / targetCurrency.doubleValue;
+		double multiplier = sourceCurrency.decimalValue.doubleValue() / targetCurrency.decimalValue.doubleValue();
 		return value * multiplier;
 	}
 	
+	private BigDecimal convert(Currency sourceCurrency, Currency targetCurrency, BigDecimal value) {
+		if (sourceCurrency.decimalValue.equals(targetCurrency.decimalValue)) {
+			return value;
+		}
+		return sourceCurrency.decimalValue
+				.divide(targetCurrency.decimalValue)
+				.multiply(value);
+		
+	}
 }

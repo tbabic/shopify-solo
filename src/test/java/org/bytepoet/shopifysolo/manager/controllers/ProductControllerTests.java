@@ -6,6 +6,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import org.bytepoet.shopifysolo.authorization.AuthorizationService;
 import org.bytepoet.shopifysolo.controllers.ShopifyOrderCreator;
 import org.bytepoet.shopifysolo.controllers.TenderController;
+import org.bytepoet.shopifysolo.manager.models.Order;
 import org.bytepoet.shopifysolo.manager.models.PaymentOrder;
 import org.bytepoet.shopifysolo.manager.models.Product;
 import org.bytepoet.shopifysolo.manager.repositories.OrderRepository;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -50,7 +52,11 @@ public class ProductControllerTests {
 		
 	}
 	
-	
+	@Test
+	public void dummy_ok()
+	{
+		
+	}
 
 	
 }

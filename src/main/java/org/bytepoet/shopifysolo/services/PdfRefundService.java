@@ -1,6 +1,7 @@
 package org.bytepoet.shopifysolo.services;
 
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -260,7 +261,7 @@ public class PdfRefundService {
 	
 	
 	private String price(Item item, Currency itemCurrency) {
-		return convertAndFormat(-item.getPriceWithTaxRate(), itemCurrency);
+		return convertAndFormat(item.getPriceWithTaxRate().negate(), itemCurrency);
 	}
 	
 	private String discount(Item item, Currency itemCurrency) {
@@ -302,13 +303,13 @@ public class PdfRefundService {
 	}
 	
 	private String sumAllItemsVat(Refund refund) {
-		//TODO: enable if everything ok
 		
-		/*if (refund.getInvoice().getVatAmount() != null)
+		if (refund.getInvoice().getVatAmount() != null)
 		{
 			return convertAndFormat(-refund.getInvoice().getVatAmount().doubleValue(), refund.getOrder().getCurrency());
-		}*/
+		}
 		
+		//TODO: delete eventually
 		double sum = 0;
 		for (Item item : refund.getItems()) {
 			double taxRate = Double.parseDouble(item.getTaxRate()) / 100;
@@ -467,8 +468,19 @@ public class PdfRefundService {
 		
 	}
 	
+	private String convertAndFormat(BigDecimal value, Currency valueCurrency) {
+		return convertAndFormat(value, valueCurrency, PdfInvoiceService.DEFAULT_CURRENCY);
+	}
+	
 	private String convertAndFormat(double value, Currency valueCurrency) {
 		return convertAndFormat(value, valueCurrency, PdfInvoiceService.DEFAULT_CURRENCY);
+	}
+	
+	private String convertAndFormat(BigDecimal value, Currency valueCurrency, Currency newCurrency) {
+		if (newCurrency != valueCurrency) {
+			return getDecimalFormat().format(newCurrency.convertFrom(valueCurrency, value));
+		}
+		return getDecimalFormat().format(value);
 	}
 	
 	private String convertAndFormat(double value, Currency valueCurrency, Currency newCurrency) {

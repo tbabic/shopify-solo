@@ -107,7 +107,7 @@ public class InvoiceService {
 		if (orderCurrency == defaultCurrency) {
 			price = df.format(item.getPriceWithTaxRate());
 		} else {
-			double priceValue = orderCurrency.convertTo(defaultCurrency, item.getPriceWithTaxRate());
+			BigDecimal priceValue = orderCurrency.convertTo(defaultCurrency, item.getPriceWithTaxRate());
 			price = df.format(priceValue);
 		}
 

@@ -309,11 +309,12 @@ public class PdfInvoiceService {
 	}
 	
 	private double calculateVat(PaymentOrder order) {
-		//TODO: enable if everything ok
-		/*if (order.getInvoice().getVatAmount() != null)
+		if (order.getInvoice().getVatAmount() != null)
 		{
 			return order.getInvoice().getVatAmount().doubleValue();
-		}*/
+		}
+		
+		//TODO: delete eventually
 		double sum = 0;
 		for (Item item : order.getItems()) {
 			double taxRate = Double.parseDouble(item.getTaxRate()) / 100;
@@ -523,6 +524,17 @@ public class PdfInvoiceService {
 			throw new RuntimeException(e);
 		}
 		
+	}
+	
+	private String convertAndFormat(BigDecimal value, Currency valueCurrency) {
+		return convertAndFormat(value, valueCurrency, DEFAULT_CURRENCY);
+	}
+	
+	private String convertAndFormat(BigDecimal value, Currency valueCurrency, Currency newCurrency) {
+		if (newCurrency != valueCurrency) {
+			return getDecimalFormat().format(newCurrency.convertFrom(valueCurrency, value));
+		}
+		return getDecimalFormat().format(value);
 	}
 	
 	private String convertAndFormat(double value, Currency valueCurrency) {
