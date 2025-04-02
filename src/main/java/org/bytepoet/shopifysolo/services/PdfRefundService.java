@@ -306,7 +306,7 @@ public class PdfRefundService {
 		
 		if (refund.getInvoice().getVatAmount() != null)
 		{
-			return convertAndFormat(-refund.getInvoice().getVatAmount().doubleValue(), refund.getOrder().getCurrency());
+			return convertAndFormat(-Math.abs( refund.getInvoice().getVatAmount().doubleValue()), refund.getOrder().getCurrency());
 		}
 		
 		//TODO: delete eventually
