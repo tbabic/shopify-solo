@@ -137,6 +137,15 @@ public class ShopifyApiClient {
 	@Value("${fulfillment.gls.tracking-company}")
 	private String glsTrackingCompany;
 	
+	@Value("${fulfillment.boxnow.tracking-url}")
+	private String boxNowTrackingUrl;
+	
+	@Value("${fulfillment.boxnow.location-id}")
+	private String boxNowLocationId;
+	
+	@Value("${fulfillment.boxnow.tracking-company}")
+	private String boxNowTrackingCompany;
+	
 	@Value("${shopify.api.host}")
 	private String clientHost;
 	
@@ -405,6 +414,11 @@ public class ShopifyApiClient {
 		if (shippingType == ShippingType.HP_REGISTERED_MAIL) {
 			tracking.trackingUrl = MessageFormat.format(hpTrackingUrl, trackingNumber);
 			tracking.trackingCompany = this.hpTrackingCompany;
+		}
+		else if(shippingType == ShippingType.BOX_NOW)
+		{
+			tracking.trackingUrl = MessageFormat.format(boxNowTrackingUrl, trackingNumber);
+			tracking.trackingCompany = this.boxNowTrackingCompany;
 		}
 		else {
 			tracking.trackingUrl = MessageFormat.format(glsTrackingUrl, trackingNumber);

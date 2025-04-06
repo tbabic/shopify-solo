@@ -520,6 +520,37 @@ var orderTableComponent = new Vue({
 			});
 		},
 		
+		createBoxNowAdressBook : function() {
+			this.startLoader();
+			let orderIdList = [];
+			for (let orderId in this.selectedOrders) {
+				order = this.selectedOrders[orderId];
+				orderIdList.push(order.id)
+			}
+			
+			axios.post("/manager/boxnow/createAddressBook", orderIdList).then(function(response) {
+							
+				var binaryString = window.atob(response.data.base64Data);
+			    var binaryLen = binaryString.length;
+			    var bytes = new Uint8Array(binaryLen);
+			    for (var i = 0; i < binaryLen; i++) {
+			       var ascii = binaryString.charCodeAt(i);
+			       bytes[i] = ascii;
+			    }
+				
+			    var blob = new Blob([bytes], {type: "application/csv"});
+			    var link = document.createElement('a');
+			    link.href = window.URL.createObjectURL(blob);
+			    var fileName = response.data.fileName;
+			    link.download = fileName;
+			    link.click();
+			}).catch(error => {
+				this.showError(error.response.data.message);
+			}).finally(() => {
+				this.endLoader();
+			});
+		},
+		
 		createPostalForm : function() {
 			this.startLoader();
 			let addressList = [];
@@ -852,7 +883,7 @@ var orderTableComponent = new Vue({
 		},
 		
 		isShippingItem : function(item) {
-			return item.name.includes("HP") || item.name.includes("GLS");
+			return item.name.includes("HP") || item.name.includes("GLS") || item.name.includes("BOX");
 		},
 		
 		startLoader : function() {

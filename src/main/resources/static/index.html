@@ -107,6 +107,9 @@
 												<button type="button" data-value="GLS_DELIVERY" v-on:click="filtering('shippingType', $event)" v-bind:class="'btn btn-filter ' + (filters.shippingType == 'GLS_DELIVERY' ? 'active' : '')">
 													GLS
 												</button>
+												<button type="button" data-value="BOX_NOW" v-on:click="filtering('shippingType', $event)" v-bind:class="'btn btn-filter ' + (filters.shippingType == 'GLS_DELIVERY' ? 'active' : '')">
+													BOX NOW
+												</button>
 											</div>
 										</div>
 										
@@ -204,8 +207,8 @@
 										</div>
 										
 										<div class="col">
-											<button type="button" class="btn btn-primary" v-on:click="createGlsAdressBook" >GLS adresnice</button>
-											
+											<button type="button" class="btn btn-primary" v-on:click="createGlsAdressBook" >GLS</button>
+											<button type="button" class="btn btn-primary" v-on:click="createBoxNowAdressBook" >BOX NOW</button>
 										</div>
 									</div>
 								</th>
@@ -255,6 +258,9 @@
 										GLS
 									</span>
 									<span v-if="order.shippingType == 'HP_REGISTERED_MAIL'" class="delivery-hp">
+										HP
+									</span>
+									<span v-if="order.shippingType == 'BOX_NOW'" class="delivery-box-now">
 										HP
 									</span>
 
