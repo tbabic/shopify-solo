@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-@RequestMapping("/manager/boxnow")
+@RequestMapping("/manager/gls")
 @RestController
 public class GlsController {
 
@@ -25,14 +25,14 @@ public class GlsController {
 	private OrderRepository orderRepository;
 	
 	@Autowired
-	private BoxNowService boxNow;
+	private GlsService glsService;
 	
 	@RequestMapping(path="/createAddressBook", method = RequestMethod.POST)
 	public FileData createAddressSlipCvs(@RequestBody List<Long> orderIds) {
 		List<Order> orders = orderRepository.findAllById(orderIds);
 		
 		
-		return boxNow.generateAddressBookCsv(orders);
+		return glsService.generateAddressBookCsv(orders);
 		
 	}
 }

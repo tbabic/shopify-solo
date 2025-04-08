@@ -165,7 +165,7 @@ public class ShopifyApiClient {
 		private List<ShopifyOrder> orders;
 	}
 
-	public List<ShopifyOrder> getOrders(Boolean isPaid, Boolean isOpen, Date afterDate, Date beforeDate) throws Exception {
+	public List<ShopifyOrder> getOrders(List<String> ids, Boolean isPaid, Boolean isOpen, Date afterDate, Date beforeDate) throws Exception {
 		String url = MessageFormat.format(ENDPOINT_FORMAT, clientHost);
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
 		if (isPaid != null && isPaid.booleanValue()) {
@@ -188,6 +188,9 @@ public class ShopifyApiClient {
 		if(beforeDate != null) {
 			params.add("created_at_max", df.format(beforeDate));
 		}
+		if (ids != null && !ids.isEmpty()) {
+			params.add("ids", String.join(",", ids));
+		}
 		
 		
 		
@@ -202,6 +205,8 @@ public class ShopifyApiClient {
 		OrdersWrapper wrapper = mapper.readValue(responseBodyString, OrdersWrapper.class);
 		return wrapper.orders;
 	}
+	
+	
 	
 	
 	private static class OrderWrapper {

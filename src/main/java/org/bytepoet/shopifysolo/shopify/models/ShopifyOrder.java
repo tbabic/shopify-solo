@@ -2,6 +2,7 @@ package org.bytepoet.shopifysolo.shopify.models;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -61,6 +62,9 @@ public class ShopifyOrder {
 	
 	@JsonProperty("shipping_lines")
 	private List<ShopifyShippingLine> shippingLines;
+	
+	@JsonProperty("note_attributes")
+	private List<ShopifyNoteAttribute> noteAttributes;
 
 	@JsonProperty("created_at")
 	@JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ssX")
@@ -151,6 +155,25 @@ public class ShopifyOrder {
 		return "ShopifyOrder [id=" + id + ", email=" + email + ", totalPrice=" + totalPrice + ", subTotalPrice="
 				+ subTotalPrice + ", totalTax=" + totalTax + ", taxesIncluded=" + taxesIncluded + ", currency="
 				+ currency + ", customer=" + customer + ", lineItems=" + lineItems + "]";
+	}
+	
+	public String getNoteAttributes() {
+		return this.getNoteAttributes();
+	}
+	
+	public String getNoteAttribute(String name) {
+		
+		if(this.noteAttributes == null || this.noteAttributes.isEmpty())
+		{
+			return null;
+		}
+		Optional<ShopifyNoteAttribute> found = this.noteAttributes.stream().filter(e -> name.equals(e.getName())).findFirst();
+		if (found.isEmpty())
+		{
+			return null;
+		}
+		return found.get().getValue();
+		
 	}
 
 }
