@@ -168,7 +168,7 @@ public class ShopifyOrder {
 			return null;
 		}
 		Optional<ShopifyNoteAttribute> found = this.noteAttributes.stream().filter(e -> name.equals(e.getName())).findFirst();
-		if (found.isEmpty())
+		if (!found.isPresent())
 		{
 			return null;
 		}
