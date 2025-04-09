@@ -112,7 +112,10 @@ public class OrderController {
 			} else {
 				return;
 			}
-		
+			
+			if(shopifyOrder.getTags().contains("block-invoice")) {
+				return;
+			}
 
 			if (!order.isReceiptCreated()) {
 				Invoice createdInvoice = CachedFunctionalService.<ShopifyOrder,Invoice>cacheAndExecute(

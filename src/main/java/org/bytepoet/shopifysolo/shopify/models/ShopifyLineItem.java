@@ -99,7 +99,11 @@ public class ShopifyLineItem {
 		
 		double pricePerItem = Double.parseDouble(getPricePerItem());
 		double totalPrice = pricePerItem*quantity;
-		double discountAmount = Double.parseDouble(discountAllocations.get(0).getAmount());
+		double discountAmount = 0;
+		for (ShopifyDiscountAllocation discountAllocation : discountAllocations) {
+			discountAmount += Double.parseDouble(discountAllocation.getAmount());
+		}
+		
 		double discount = 100* discountAmount / totalPrice;
 		return df.format(discount);
 	}
