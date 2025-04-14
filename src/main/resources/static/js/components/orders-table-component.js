@@ -99,6 +99,10 @@ var orderTableComponent = new Vue({
 			let itemsMap = {};
 			for (let orderId in this.selectedOrders) {
 				this.selectedOrders[orderId].items.forEach( item => {
+					if (item.name.includes("Preporučena poštarina") || item.name.includes("GLS") || item.name.includes("BOX NOW"))
+					{
+						return;
+					}
 					if (!itemsMap.hasOwnProperty(item.name)) {
 						Vue.set(itemsMap, item.name, {
 							name : item.name,
