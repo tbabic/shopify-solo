@@ -878,6 +878,9 @@
 									EPK Generator: <a href="https://epk.posta.hr/HP.EPK.Web.Production/">link</a> | Broj skeniranih: {{ epkOrdersSize }}
 									| <label for="file-upload" class="btn btn-primary">Uploadaj CSV</label>
 									<input v-on:change="uploadCSV" id="file-upload" type="file" style="display:none"/>
+									<button type="button" v-bind:class="'btn btn-filter ' + (epk.autoLoadActive ? 'active' : '')" v-on:click="changeAutoLoadMode">
+											Trenutno aktivno
+									</button>
 								</h5>
 								
 								

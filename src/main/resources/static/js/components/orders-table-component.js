@@ -89,6 +89,9 @@ var orderTableComponent = new Vue({
 		epk : {
 			inputId : '',
 			orders:{},
+			autoLoadActive : false,
+			focusIds : [],
+			autoLoadIndex : 0,
 		},
 		loadingCount: 0,
 		authToken : null,
@@ -327,13 +330,46 @@ var orderTableComponent = new Vue({
 		clearEpk : function() {
 			this.epk.inputId = '';
 			this.epk.orders = {};
+			this.epk.autoLoadActive = false;
 		},
 		
 		refocusEpk : function() {
-			$("#epkInputOrderId").focus();
+			if(this.epk.autoLoadActive)
+			{
+				this.epk.autoLoadIndex++;
+				if(this.epk.autoLoadIndex >= this.epk.focusIds.length)
+				{
+					return;
+				}
+				$("#epkOrderTracking_"+this.epk.focusIds[this.epk.autoLoadIndex]).focus()
+			}
+			else
+			{
+				$("#epkInputOrderId").focus();
+			}
+			
 		},
 		
-
+		changeAutoLoadMode : function() {
+			
+			this.epk.orders = {};
+			//Vue.delete(this.filters, property);
+			this.epk.autoLoadActive = !this.epk.autoLoadActive;
+			this.epk.autoLoadIndex = 0;
+			if(this.epk.autoLoadActive)
+			{
+				this.orders.forEach(o => {
+					Vue.set(this.epk.orders, o.id, o);
+					this.epk.focusIds.push("#epkOrderTracking_"+o.id);
+				});
+				
+				$("#epkOrderTracking_"+this.epk.focusIds[this.epk.autoLoadIndex]).focus()
+				
+			}
+			
+			
+			
+		},
 		
 		formatDate : function(dateString) {
 			if (dateString == undefined || dateString == null) {
