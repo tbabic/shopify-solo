@@ -77,8 +77,8 @@ public class BoxNowService {
 				.setDataObjects(orders)
 				
 				.addHeaderAndField("from_location", o -> location)
-				.addHeaderAndField("destination_location", o -> this.getLocationId(map.get(o.getShopifyOrderId()).getShippingTitle()))
-				.addHeaderAndField("customer_phone_number", o -> o.getShippingInfo().getPhoneNumber())
+				.addHeaderAndField("destination_location", o -> this.extractLockerCode(map.get(o.getShopifyOrderId())))
+				.addHeaderAndField("customer_phone_number", o -> this.countryCodePhoneNumber(o.getShippingInfo().getPhoneNumber()))
 				.addHeaderAndField("customer", o -> o.getContact())
 				.addHeaderAndField("customer_full_name", o -> o.getShippingInfo().getFullName())
 				.build();
@@ -138,6 +138,12 @@ public class BoxNowService {
 		
 	}
 	
+	
+	private String extractLockerCode(ShopifyOrder order)
+	{
+		String code = order.getShippingCode().split("_")[1];
+		return code;
+	}
 
 	
 	private String getLocationId(String shippingString) {
@@ -152,6 +158,16 @@ public class BoxNowService {
 		}
 		return locationsMap.get(key).id;
 		
+	}
+	
+	
+	public String countryCodePhoneNumber(String phoneNumber)
+	{
+		if(phoneNumber.startsWith("0"))
+		{
+			return "+385" + phoneNumber.substring(1);
+		}
+		return phoneNumber;
 	}
 	
 	

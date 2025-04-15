@@ -14,6 +14,9 @@ public class ShopifyShippingLine {
 	@JsonProperty
 	private String price;
 	
+	@JsonProperty
+	private String code;
+	
 	@JsonProperty("tax_lines")
 	private List<ShopifyTaxLine> taxLines;
 	
@@ -39,5 +42,9 @@ public class ShopifyShippingLine {
 			return "0";
 		}
 		return taxLines.get(0).getRate();
+	}
+
+	public String getCode() {
+		return code;
 	}
 }

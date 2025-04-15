@@ -108,6 +108,13 @@ public class ShopifyOrder {
 		}
 		return shippingLines.get(0).getTitle();
 	}
+	
+	public String getShippingCode() {
+		if (shippingLines == null || shippingLines.isEmpty()) {
+			return null;
+		}
+		return shippingLines.get(0).getCode();
+	}
 
 	public String getShippingPrice() {
 		if (shippingLines == null || shippingLines.isEmpty()) {
