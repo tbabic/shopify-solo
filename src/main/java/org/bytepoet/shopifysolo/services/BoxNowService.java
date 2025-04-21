@@ -6,10 +6,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.codec.binary.Base64;
@@ -70,14 +73,37 @@ public class BoxNowService {
 		List<String> shopifyOrderIds = orders.stream().map(o -> o.getShopifyOrderId()).collect(Collectors.toList());
 		List<ShopifyOrder> shopifyOrders = shopifyApiClient.getOrders(shopifyOrderIds, null, null, null, null);
 		//validate(shopifyOrders);
-		Map<String, ShopifyOrder> map = shopifyOrders.stream().collect(Collectors.toMap(o -> o.getId(), o -> o));
-		CsvBuilder<Order> builder = new CsvBuilder<>();
+		Map<String, ShopifyOrder> ordersMap = shopifyOrders.stream().collect(Collectors.toMap(o -> o.getId(), o -> o));
+		
+		Map<Long, String> idLockerIdMap = new HashMap<>();
+		String message = "INVALID:";
+		boolean invalid = false;
+		for (Order order : orders)
+		{
+			String lockerId = this.extractLockerCodeFromNote(order);
+			if (lockerId == null)
+			{
+				lockerId = this.extractLockerCode(ordersMap.get(order.getShopifyOrderId()));
+			}
+			if (lockerId == null)
+			{
+				invalid = true;
+				message += "\n " + order.getId() + " Missing box locker;";
+				continue;
+			}
+			idLockerIdMap.put(order.getId(), lockerId);
+		}
+		if (invalid) {
+			throw new RuntimeException(message);
+		}
+		
+				
 		byte [] bytes = new CsvBuilder<Order>()
 				.setEncoding("UTF-8")
 				.setDataObjects(orders)
 				
 				.addHeaderAndField("from_location", o -> location)
-				.addHeaderAndField("destination_location", o -> this.extractLockerCode(map.get(o.getShopifyOrderId())))
+				.addHeaderAndField("destination_location", o -> idLockerIdMap.get(o.getId()))
 				.addHeaderAndField("customer_phone_number", o -> this.countryCodePhoneNumber(o.getShippingInfo().getPhoneNumber()))
 				.addHeaderAndField("customer", o -> o.getContact())
 				.addHeaderAndField("customer_full_name", o -> o.getShippingInfo().getFullName())
@@ -138,11 +164,32 @@ public class BoxNowService {
 		
 	}
 	
+	private String extractLockerCodeFromNote(Order order)
+	{
+		if(StringUtils.isBlank(order.getNote()))
+		{
+			return null;
+		}
+		Pattern pattern = Pattern.compile("BoxNow_[0-9]+");
+		Matcher matcher = pattern.matcher(order.getNote());
+		
+		if (matcher.find()) {
+			return matcher.group().replace("BoxNow_", "");
+		}
+		return null;
+		
+		
+	}
 	
 	private String extractLockerCode(ShopifyOrder order)
 	{
-		String code = order.getShippingCode().split("_")[1];
-		return code;
+		if (StringUtils.isNotBlank(order.getShippingCode()))
+		{
+			String code = order.getShippingCode().split("_")[1];
+			return code;
+		}
+		
+		return null;
 	}
 
 	

@@ -285,6 +285,10 @@ public abstract class Order {
 	public void addNote(String note) {
 		this.note += note;
 	}
+	
+	public String getNote() {
+		return this.note;
+	}
 
 	public boolean isPersonalTakeover() {
 		return personalTakeover;
