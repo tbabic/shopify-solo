@@ -341,7 +341,7 @@ var orderTableComponent = new Vue({
 				{
 					return;
 				}
-				$("#epkOrderTracking_"+this.epk.focusIds[this.epk.autoLoadIndex]).focus()
+				$(this.epk.focusIds[this.epk.autoLoadIndex]).focus()
 			}
 			else
 			{
