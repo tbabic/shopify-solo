@@ -18,6 +18,7 @@
 	<script>Vue.component(VueBarcode.name, VueBarcode);</script>
 	<script src="js/http-vue.js"></script>
 	<script src="js/main.js"></script>
+	<script src="js/jquery.csv.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/4.4.0/font/octicons.css"/>
 	
 	
@@ -889,11 +890,14 @@
 							<div class="modal-header">
 								<h5 class="modal-title" id="exampleModalLabel">
 									EPK Generator: <a href="https://epk.posta.hr/HP.EPK.Web.Production/">link</a> | Broj skeniranih: {{ epkOrdersSize }}
-									| <label for="file-upload" class="btn btn-primary">Uploadaj CSV</label>
+									| <label for="file-upload" class="btn btn-primary">Uploadaj GLS CSV</label>
 									<input v-on:change="uploadCSV" id="file-upload" type="file" style="display:none"/>
 									<button type="button" v-bind:class="'btn btn-filter ' + (epk.autoLoadActive ? 'active' : '')" v-on:click="changeAutoLoadMode">
 											Trenutno aktivno
 									</button>
+									
+									<label for="file-upload-box-now" class="btn btn-primary">BoxNow CSV</label>
+									<input v-on:change="uploadBoxNowCSV" id="file-upload-box-now" type="file" style="display:none"/>
 								</h5>
 								
 								

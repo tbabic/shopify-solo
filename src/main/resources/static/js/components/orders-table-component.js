@@ -307,6 +307,42 @@ var orderTableComponent = new Vue({
 			
 		},
 		
+		uploadBoxNowCSV(event) {
+			console.log("csv uploaded");
+			console.log(event.target.files);
+			let files = event.target.files;
+			let csv = files[0];
+			console.log(csv);
+			let fileReader = new FileReader();
+			this.startLoader();
+			fileReader.readAsText(csv, "cp1250");
+			fileReader.onload = () => {
+          	
+				//console.log(fileReader.result);
+				let rows = $.csv.toObjects(fileReader.result);
+				let keys = Object.keys(this.epk.orders);
+				for (let i = 0; i < rows.length; i++)
+				{
+					let row = rows[i];
+					for (let key in this.epk.orders)
+					{
+						if(row.recipient_email.trim() == this.epk.orders[key].email.trim())
+						{
+							this.epk.orders[key].trackingNumber = row.parcel_number;
+							break;
+						}
+					}
+
+				}
+				
+				
+				this.endLoader();
+				
+			};
+			
+			
+		},
+		
 		findOrderById : function(id) {
 			if(id == undefined || id == null || id == '') {
 				return;
@@ -360,7 +396,7 @@ var orderTableComponent = new Vue({
 			{
 				this.orders.forEach(o => {
 					Vue.set(this.epk.orders, o.id, o);
-					this.epk.focusIds.push("#epkOrderTracking_"+o.id);
+					this.epk.focusIds.push(+o.id);
 				});
 				
 				$("#epkOrderTracking_"+this.epk.focusIds[this.epk.autoLoadIndex]).focus()
