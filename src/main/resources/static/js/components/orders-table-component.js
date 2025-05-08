@@ -326,7 +326,7 @@ var orderTableComponent = new Vue({
 					let row = rows[i];
 					for (let key in this.epk.orders)
 					{
-						if(row.recipient_email.trim() == this.epk.orders[key].email.trim())
+						if(row.recipient_email.trim() == this.epk.orders[key].contact.trim())
 						{
 							this.epk.orders[key].trackingNumber = row.parcel_number;
 							break;
