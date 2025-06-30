@@ -32,7 +32,7 @@ public class ProductPartDistribution {
 	private Product product;
 	
 	@JsonProperty
-	@ManyToOne(cascade = CascadeType.ALL, optional=false, fetch=FetchType.LAZY)
+	@ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH}, optional=false, fetch=FetchType.LAZY)
     @JoinColumn(name = "productPartId")
 	private ProductPart productPart;
 	
