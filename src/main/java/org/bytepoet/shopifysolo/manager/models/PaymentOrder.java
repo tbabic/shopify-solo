@@ -308,7 +308,7 @@ public class PaymentOrder extends Order {
 	
 	@JsonIgnore
 	public List<String> getGiftCodes() {
-		if (StringUtils.isBlank(this.giftCode)) {
+		if (StringUtils.isBlank(this.giftCode) || "false".equals(this.giftCode)) {
 			return Collections.emptyList();
 		}
 		return Arrays.asList(this.giftCode.split(";"));
